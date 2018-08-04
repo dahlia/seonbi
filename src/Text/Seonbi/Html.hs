@@ -1,8 +1,11 @@
 module Text.Seonbi.Html
     ( HtmlEntity (..)
-    , HtmlTag
+    , HtmlTag (..)
+    , HtmlTagKind (..)
     , HtmlTagStack
     , Result (..)
+    , htmlTagKind
+    , htmlTagName
     , normalizeText
     , printHtml
     , printXhtml

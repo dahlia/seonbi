@@ -21,12 +21,12 @@ ghc-options:
 dependencies:
 - base >= 4.7 && < 5
 - bytestring
+- containers
 - text
 library:
   source-dirs: src
   dependencies:
   - attoparsec >= 0.12 && < 1
-  - containers
 executables:
   seonbi:
     main: Main.hs

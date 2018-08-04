@@ -1,7 +1,9 @@
 {-# LANGUAGE TypeFamilies #-}
 module Text.Seonbi.Html.TagStack
     ( HtmlTagStack
+    , Text.Seonbi.Html.TagStack.any
     , descendsFrom
+    , Text.Seonbi.Html.TagStack.elem
     , empty
     , fromList
     , pop
@@ -93,3 +95,24 @@ pop _ (HtmlTagStack []) = empty
 descendsFrom :: HtmlTagStack -> HtmlTagStack -> Bool
 HtmlTagStack a `descendsFrom` HtmlTagStack b =
     b `isSuffixOf` a
+
+-- | Determine whether any element of the tag stack satisfies the predicate.
+--
+-- >>> :set -XOverloadedLists
+-- >>> Text.Seonbi.Html.TagStack.any ((== Void) . htmlTagKind) [Div, P, Script]
+-- False
+-- >>> Text.Seonbi.Html.TagStack.any ((== Void) . htmlTagKind) [BR, P, Script]
+-- True
+any :: (HtmlTag -> Bool) -> HtmlTagStack -> Bool
+any fn (HtmlTagStack stack) =
+    Prelude.any fn stack
+
+-- | Determine whether the element occurs in the tag stack.
+--
+-- >>> :set -XOverloadedLists
+-- >>> A `Text.Seonbi.Html.TagStack.elem` [A, B, Code]
+-- True
+-- >>> Em `Text.Seonbi.Html.TagStack.elem` [A, B, Code]
+-- False
+elem :: HtmlTag -> HtmlTagStack -> Bool
+elem tag (HtmlTagStack stack) = tag `Prelude.elem` stack

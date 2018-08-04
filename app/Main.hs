@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
@@ -14,6 +15,7 @@ import Data.Text.Lazy.Encoding
 import Text.Html.Encoding.Detection (detect)
 
 import Text.Seonbi.Html
+import Text.Seonbi.Punctuation
 
 toUnicode :: EncodingName -> ByteString -> Text
 toUnicode encodingName =
@@ -53,8 +55,11 @@ main = do
     let encodingName = fromMaybe "UTF-8" $ detect contents
     let result = scanHtml $ toUnicode encodingName contents
     case result of
-        Done "" entities ->
-            putStr $ fromUnicode encodingName $ printHtml entities
+        Done "" input ->
+            let
+                output = transformArrow [LeftRight, DoubleArrow] input
+            in
+                putStr $ fromUnicode encodingName $ printHtml output
         _ -> do
             hPutStrLn stderr "error: failed to parse input"
             exitFailure
