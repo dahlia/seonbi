@@ -1,0 +1,73 @@
+name: seonbi
+version: 0.1.0
+synopsis: SmartyPants for Korean language
+category: Text
+author: Hong Minhee <hong.minhee@gmail.com>
+maintainer: Hong Minhee <hong.minhee@gmail.com>
+copyright: (c) 2018 Hong Minhee
+license: LGPL-2.1
+github: dahlia/seonbi
+extra-source-files:
+- CHANGES.md
+- README.md
+description: ! >
+  Please see the README.md on GitHub at
+  <https://github.com/dahlia/seonbi#readme>.
+ghc-options:
+- -Werror
+- -Wall
+- -fwarn-incomplete-uni-patterns
+- -fprint-explicit-kinds
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+- text
+library:
+  source-dirs: src
+  dependencies:
+  - attoparsec >= 0.12 && < 1
+  - containers
+executables:
+  seonbi:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - html-charset >= 0.1 && < 0.2
+    - iconv >= 0.4 && < 0.5
+    - seonbi
+tests:
+  doctest:
+    main: doctest.hs
+    source-dirs: test
+    other-modules: []
+    ghc-options:
+    - -threaded
+    dependencies:
+    - doctest
+    - doctest-discover
+    - QuickCheck
+    - seonbi
+  spec:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+    - -Wno-incomplete-uni-patterns
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hspec >= 2.4.8 && < 3
+    - hspec-discover >= 2.4.8 && < 3
+    - seonbi
+  hlint:
+    main: hlint.hs
+    source-dirs: test
+    other-modules: []
+    ghc-options:
+    - -threaded
+    dependencies:
+    - hlint >= 2.1.7 && < 2.2

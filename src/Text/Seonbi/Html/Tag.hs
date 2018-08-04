@@ -1,0 +1,327 @@
+{-# LANGUAGE LambdaCase #-}
+module Text.Seonbi.Html.Tag
+    ( HtmlTag (..)
+    , HtmlTagKind (..)
+    , htmlTagKind
+    , htmlTagName
+    , htmlTagNames
+    , htmlTags
+    ) where
+
+import Data.Map.Strict
+import Data.Set
+import Data.Text
+
+-- $setup
+-- >>> import Control.Applicative
+-- >>> import Test.QuickCheck
+-- >>> import Test.QuickCheck.Gen
+-- >>> :{
+-- instance Arbitrary HtmlTag where
+--     arbitrary = elements $ Data.Set.toList htmlTags
+-- :}
+
+-- | The six [kinds of HTML elements
+-- ](https://www.w3.org/TR/html5/syntax.html#writing-html-documents-elements).
+data HtmlTagKind
+    = Void
+    | Template'
+    | RawText
+    | EscapableRawText
+    | Foreign
+    | Normal
+    deriving (Eq, Ord, Show)
+
+-- | HTML tags.  This enumeration type contains both HTML 5 and 4 tags for
+-- maximum compatibility.
+data HtmlTag
+    -- CHECK: When a new tag is added, add it into the list of htmlTags (see
+    -- below).
+    = A
+    | Abbr
+    | Acronym
+    | Address
+    | Area
+    | Article
+    | Aside
+    | Audio
+    | B
+    | Base
+    | Bdi
+    | Bdo
+    | Big
+    | BlockQuote
+    | Body
+    | BR
+    | Button
+    | Canvas
+    | Caption
+    | Cite
+    | Code
+    | Col
+    | ColGroup
+    | Data
+    | DataList
+    | DD
+    | Del
+    | Details
+    | Dfn
+    | Dialog
+    | Div
+    | DL
+    | DT
+    | Em
+    | Embed
+    | FieldSet
+    | FigCaption
+    | Figure
+    | Footer
+    | Form
+    | H1
+    | H2
+    | H3
+    | H4
+    | H5
+    | H6
+    | Head
+    | Header
+    | HR
+    | Html
+    | I
+    | IFrame
+    | Img
+    | Input
+    | Ins
+    | Kbd
+    | Label
+    | Legend
+    | LI
+    | Link
+    | Main
+    | Map
+    | Mark
+    | Meta
+    | Meter
+    | Nav
+    | NoScript
+    | Object
+    | OL
+    | OptGroup
+    | Option
+    | Output
+    | P
+    | Param
+    | Picture
+    | Pre
+    | Progress
+    | Q
+    | RB
+    | RP
+    | RT
+    | RTC
+    | Ruby
+    | S
+    | Samp
+    | Script
+    | Select
+    | Section
+    | Small
+    | Source
+    | Span
+    | Strong
+    | Style
+    | Sub
+    | Summary
+    | Sup
+    | Table
+    | TBody
+    | TD
+    | Template
+    | TFoot
+    | TextArea
+    | TH
+    | THead
+    | Time
+    | Title
+    | TR
+    | Track
+    | TT
+    | U
+    | UL
+    | Var
+    | Video
+    | WBR
+    deriving (Eq, Ord, Show)
+
+-- | List all supported HTML tags.
+--
+-- >>> htmlTags
+-- fromList [A,Abbr,Acronym,Address,...,UL,Var,Video,WBR]
+htmlTags :: Set HtmlTag
+htmlTags = Data.Set.fromList
+    [ A, Abbr, Acronym, Address, Area, Article, Aside, Audio
+    , B, Base, Bdi, Bdo, Big, BlockQuote, Body, BR, Button
+    , Canvas, Caption, Cite, Code, Col, ColGroup
+    , Data, DataList, DD, Del, Details, Dfn, Dialog, Div, DL, DT
+    , Em, Embed
+    , FieldSet, FigCaption, Figure, Footer, Form
+    , H1, H2, H3, H4, H5, H6, Head, Header, HR, Html
+    , I, IFrame, Img, Input, Ins
+    , Kbd
+    , Label, Legend, LI, Link
+    , Main, Map, Mark, Meta, Meter
+    , Nav, NoScript
+    , Object, OL, OptGroup, Option, Output
+    , P, Param, Picture, Pre, Progress
+    , Q
+    , RB, RP, RT, RTC, Ruby
+    , S, Samp, Script, Select, Section, Small, Source
+    , Span, Strong, Style, Sub, Summary, Sup
+    , Table, TBody, TD, Template, TFoot, TextArea
+    , TH, THead, Time, Title, TR, Track, TT
+    , U, UL
+    , Var, Video
+    , WBR
+    ]
+
+-- | The name of an 'HtmlTag' in lowercase.
+--
+-- >>> htmlTagName TextArea
+-- "textarea"
+--
+-- prop> \ t -> htmlTagName t == (toLower $ pack $ show (t :: HtmlTag))
+htmlTagName :: HtmlTag -> Text
+htmlTagName = toLower . pack . show
+
+-- | The map of tag names to 'HtmlTag' values.
+--
+-- >>> :set -XOverloadedStrings
+-- >>> Data.Map.Strict.lookup "blockquote" htmlTagNames
+-- Just BlockQuote
+--
+-- prop> \ t -> Data.Map.Strict.lookup (htmlTagName t) htmlTagNames == Just t
+htmlTagNames :: Map Text HtmlTag
+htmlTagNames =
+    Data.Map.Strict.fromList
+        [(htmlTagName t, t) | t <- Data.Set.toList htmlTags]
+
+-- | The kind of an 'HtmlTag'.
+-- 
+-- >>> Data.Set.filter ((== EscapableRawText) . htmlTagKind) htmlTags
+-- fromList [TextArea,Title]
+htmlTagKind :: HtmlTag -> HtmlTagKind
+htmlTagKind = \ case
+    A -> Normal
+    Abbr -> Normal
+    Acronym -> Normal
+    Address -> Normal
+    Area -> Void
+    Article -> Normal
+    Aside -> Normal
+    Audio -> Normal
+    B -> Normal
+    Base -> Void
+    Bdi -> Normal
+    Bdo -> Normal
+    Big -> Normal
+    BlockQuote -> Normal
+    Body -> Normal
+    BR -> Void
+    Button -> Normal
+    Canvas -> Foreign
+    Caption -> Normal
+    Cite -> Normal
+    Code -> Normal
+    Col -> Void
+    ColGroup -> Normal
+    Data -> Normal
+    DataList -> Normal
+    DD -> Normal
+    Del -> Normal
+    Details -> Normal
+    Dfn -> Normal
+    Dialog -> Normal
+    Div -> Normal
+    DL -> Normal
+    DT -> Normal
+    Em -> Normal
+    Embed -> Void
+    FieldSet -> Normal
+    FigCaption -> Normal
+    Figure -> Normal
+    Footer -> Normal
+    Form -> Normal
+    H1 -> Normal
+    H2 -> Normal
+    H3 -> Normal
+    H4 -> Normal
+    H5 -> Normal
+    H6 -> Normal
+    Head -> Normal
+    Header -> Normal
+    HR -> Void
+    Html -> Normal
+    I -> Normal
+    IFrame -> Normal
+    Img -> Void
+    Input -> Void
+    Ins -> Normal
+    Kbd -> Normal
+    Label -> Normal
+    Legend -> Normal
+    LI -> Normal
+    Link -> Void
+    Main -> Normal
+    Map -> Normal
+    Mark -> Normal
+    Meta -> Void
+    Meter -> Normal
+    Nav -> Normal
+    NoScript -> Normal
+    Object -> Normal
+    OL -> Normal
+    OptGroup -> Normal
+    Option -> Normal
+    Output -> Normal
+    P -> Normal
+    Param -> Void
+    Picture -> Normal
+    Pre -> Normal
+    Progress -> Normal
+    Q -> Normal
+    RB -> Normal
+    RP -> Normal
+    RT -> Normal
+    RTC -> Normal
+    Ruby -> Normal
+    S -> Normal
+    Samp -> Normal
+    Script -> RawText
+    Select -> Normal
+    Section -> Normal
+    Small -> Normal
+    Source -> Void
+    Span -> Normal
+    Strong -> Normal
+    Style -> RawText
+    Sub -> Normal
+    Summary -> Normal
+    Sup -> Normal
+    Table -> Normal
+    TBody -> Normal
+    TD -> Normal
+    Template -> Template'
+    TFoot -> Normal
+    TextArea -> EscapableRawText
+    TH -> Normal
+    THead -> Normal
+    Time -> Normal
+    Title -> EscapableRawText
+    TR -> Normal
+    Track -> Void
+    TT -> Normal
+    U -> Normal
+    UL -> Normal
+    Var -> Normal
+    Video -> Normal
+    WBR -> Void

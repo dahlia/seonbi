@@ -1,0 +1,10 @@
+{
+  "ignore": [],
+  "sourceFolders": [
+    "app",
+    "src",
+    "src/Text",
+    "src/Text/Seonbi",
+    "src/Text/Seonbi/Html"
+  ]
+}
