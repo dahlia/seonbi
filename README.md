@@ -8,6 +8,10 @@ what [SmartyPants] does for a text written in English.)
 Seonbi provides the Haskell library and the CLI; both can perform the following
 transformations:
 
+ -  Pairs of less-than and greater-than inequality symbols (`<` & `>`) into
+    pairs of proper angle quotes (`〈` & `〉`)
+ -  Pairs of two consecutive inequality symbols (`<<` & `>>`) into
+    pairs of proper double angle quotes (`《` & `》`)
  -  A less-than inequality symbol followed by a hyphen or an equality
     symbol (`<-`, `<=`) into arrows to left (`←`, `⇐`)
  -  A hyphen or an equality symbol followed by a greater-than inequality
