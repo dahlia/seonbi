@@ -1,5 +1,6 @@
 module Text.Seonbi.Html
     ( HtmlEntity (..)
+    , HtmlRawAttrs
     , HtmlTag (..)
     , HtmlTagKind (..)
     , HtmlTagStack

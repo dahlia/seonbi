@@ -4,10 +4,12 @@ module Text.Seonbi.Html.TagStack
     , Text.Seonbi.Html.TagStack.any
     , descendsFrom
     , Text.Seonbi.Html.TagStack.elem
+    , depth
     , empty
     , fromList
     , pop
     , push
+    , rebase
     , toList
     ) where
 
@@ -37,6 +39,32 @@ instance Show HtmlTagStack where
 -- | An empty stack.
 empty :: HtmlTagStack
 empty = HtmlTagStack []
+
+-- | Count the depth of a stack.
+--
+-- >>> :set -XOverloadedLists
+-- >>> depth empty
+-- 0
+-- >>> depth [Div, Article, P, Em]
+-- 4
+depth :: HtmlTagStack -> Int
+depth (HtmlTagStack stack) = Data.List.length stack
+
+-- | Build a new stack from a stack by replacing its bottom with a new base.
+--
+-- >>> :set -XOverloadedLists
+-- >>> rebase [Article, BlockQuote] [Div] [Article, BlockQuote, P, Em]
+-- fromList [Div,P,Em]
+--
+-- If there are no such bottom elements, it replaces nothing.
+--
+-- >>> rebase [Div, Article, BlockQuote] [Div] [Article, BlockQuote, P, Em]
+-- fromList [Article,BlockQuote,P,Em]
+rebase :: HtmlTagStack -> HtmlTagStack -> HtmlTagStack -> HtmlTagStack
+rebase (HtmlTagStack base) (HtmlTagStack newBase) stack@(HtmlTagStack l)
+  | base `isSuffixOf` l = HtmlTagStack $
+      take (depth stack - length base) l ++ newBase
+  | otherwise = stack
 
 -- | Push one deeper @tag@ to a 'HtmlTagStack'.
 --

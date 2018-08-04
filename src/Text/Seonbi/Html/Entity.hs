@@ -1,11 +1,14 @@
 module Text.Seonbi.Html.Entity
     ( HtmlEntity (..)
+    , HtmlRawAttrs
     ) where
 
 import Data.Text
 
 import Text.Seonbi.Html.Tag (HtmlTag)
 import Text.Seonbi.Html.TagStack (HtmlTagStack)
+
+type HtmlRawAttrs = Text
 
 -- | An event entity emitted by 'scanHtml'.
 data HtmlEntity
@@ -21,7 +24,7 @@ data HtmlEntity
           -- parsing position in an 'HtmlTag' tree.
           tagStack :: HtmlTagStack
         , tag :: HtmlTag
-        , rawAttributes :: Text
+        , rawAttributes :: HtmlRawAttrs
         }
     -- | Represent a token which [closes an HTML element
     -- ](https://www.w3.org/TR/html5/syntax.html#end-tags).
