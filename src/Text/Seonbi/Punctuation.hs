@@ -9,6 +9,7 @@ module Text.Seonbi.Punctuation
     , cornerBrackets
     , quoteCitation
     , transformArrow
+    , transformEllipsis
     ) where
 
 import Prelude hiding (takeWhile)
@@ -336,3 +337,46 @@ gt = choice
     , string "&#62;"
     , asciiCI "&#x3e;"
     ]
+
+-- | Until 2015, the National Institute of Korean Language (國立國語院) had
+-- allowed to use only ellipses (@…@) for omitted word, phrase, line,
+-- paragraph, or speechlessness.  However, people tend to use three or more
+-- consecutive periods (@...@) instead of a proper ellipsis.
+-- Although NIKL has started to allow consecutive periods besides an ellipsis
+-- for these uses, ellipses are still a proper punctuation in principle.
+--
+-- This transforms, in the given HTML fragments, all three consecutive periods
+-- into proper ellipses.
+transformEllipsis :: [HtmlEntity] -> [HtmlEntity]
+transformEllipsis = fmap $ \ case
+    e@HtmlText { tagStack = stack, rawText = txt } -> if ignoresTagStack' stack
+        then e
+        else e { rawText = replaceText txt }
+    e ->
+        e
+  where
+    replaceText :: Text -> Text
+    replaceText txt =
+        case parseOnly parser txt of
+            Left _ -> error "unexpected error: failed to parse text node"
+            Right t -> t
+    parser :: Parser Text
+    parser = do
+        chunks <- many' $ choice
+            [ takeWhile1 (`notElem` (['&', '.'] :: Set Char))
+            , ellipsis
+            , Data.Text.singleton <$> anyChar
+            ]
+        endOfInput
+        return $ Data.Text.concat chunks
+    ellipsis :: Parser Text
+    ellipsis = do
+        void $ period >> period >> period
+        return "&hellip;"
+    period :: Parser Text
+    period = choice
+        [ string "."
+        , string "&period;"
+        , string "&#46;"
+        , asciiCI "&#x2e;"
+        ]

@@ -28,6 +28,26 @@ arrowSample tag' =
     , HtmlEndTag { tagStack = [], tag = tag' }
     ]
 
+ellipsisSample :: Text -> Text -> [HtmlEntity]
+ellipsisSample periods periods' =
+    [ HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
+    , HtmlText
+        { tagStack = [P]
+        , rawText = Data.Text.concat
+            [ "These periods"
+            , periods
+            , " should be an ellipsis."
+            ]
+        }
+    , HtmlEndTag { tagStack = [], tag = P }
+    , HtmlStartTag { tagStack = [], tag = Pre, rawAttributes = "" }
+    , HtmlText
+        { tagStack = [Pre]
+        , rawText = "This should be ignored" `Data.Text.append` periods'
+        }
+    , HtmlEndTag { tagStack = [], tag = Pre }
+    ]
+
 titleInputSample :: [HtmlEntity]
 titleInputSample =
     [ HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
@@ -232,3 +252,9 @@ spec = do
                         entities = transformArrow options (arrowSample tag')
                     in
                         entities `shouldBe` entities
+    specify "transformEllipsis" $ do
+        let sample x = ellipsisSample x x
+        transformEllipsis (sample "...") `shouldBe`
+            ellipsisSample "&hellip;" "..."
+        transformEllipsis (sample "&period;.&#46;") `shouldBe`
+            ellipsisSample "&hellip;" "&period;.&#46;"
