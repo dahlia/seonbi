@@ -44,10 +44,11 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
                 roll stack captured ts xs
             (Nothing, Just captured) ->
                 unroll stack captured ts xs
-            (Just captured@(_, pre, _, _), Just captured'@(_, pre', _, _)) ->
-                if Data.Text.length pre < Data.Text.length pre'
-                then roll stack captured ts xs
-                else unroll stack captured' ts xs
+            (Just captured@(_, pre, _, _), Just captured'@(m', pre', _, _)) ->
+                if Data.Text.length pre >= Data.Text.length pre' &&
+                    Prelude.any ((`arePaired` m') . match) stack
+                then unroll stack captured' ts xs
+                else roll stack captured ts xs
     iter [s@Unclosed { tagStack' = ts }] entities@(x : xs)
       | tagStack x `descendsFrom` ts = flushed ++ (x : iter [] xs)
       | otherwise = flushed ++ iter [] entities
