@@ -7,7 +7,6 @@ module Text.Seonbi.PairedTransformer
 import Data.Text hiding (break, reverse)
 
 import Text.Seonbi.Html
-import Text.Seonbi.Html.TagStack
 
 -- | Settings for 'transformPairs'.
 data PairedTransformer match = PairedTransformer
@@ -35,28 +34,28 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
     iter [] [] = []
     iter stack [] = unstack stack
     iter stack (x@HtmlText { tagStack = ts, rawText = txt } : xs) =
-        case (start (reverse $ fmap match stack) txt, end txt) of
-            (Nothing, Nothing) ->
-                case stack of
-                    [] -> x : iter stack xs
-                    s : ss -> iter (s { buffer = x : buffer s } : ss) xs
+        case (startMatch, endMatch) of
             (Just captured, Nothing) ->
                 roll stack captured ts xs
-            (Nothing, Just captured) ->
-                unroll stack captured ts xs
+            (Nothing, Just captured@(m, _, _, _))
+              | Prelude.any ((`arePaired` m) . match) stack ->
+                    unroll stack captured ts xs
             (Just captured@(_, pre, _, _), Just captured'@(m', pre', _, _)) ->
                 if Data.Text.length pre >= Data.Text.length pre' &&
                     Prelude.any ((`arePaired` m') . match) stack
                 then unroll stack captured' ts xs
                 else roll stack captured ts xs
-    iter [s@Unclosed { tagStack' = ts }] entities@(x : xs)
-      | tagStack x `descendsFrom` ts = flushed ++ (x : iter [] xs)
-      | otherwise = flushed ++ iter [] entities
+            (Nothing, _) ->
+                case stack of
+                    [] -> x : iter stack xs
+                    s : ss -> iter (s { buffer = x : buffer s } : ss) xs
       where
-        flushed :: [HtmlEntity]
-        flushed = unstack [s]
-    iter (s@Unclosed {} : s' : ss) (x : xs) =
-        iter (s' { buffer = x : buffer s ++ buffer s' } : ss) xs
+        startMatch :: Maybe (m, Text, Text, Text)
+        startMatch = start (reverse $ fmap match stack) txt
+        endMatch :: Maybe (m, Text, Text, Text)
+        endMatch = end txt
+    iter (s@Unclosed {} : ss) (x : xs) =
+        iter (s { buffer = x : buffer s } : ss) xs
     iter [] (x : xs) = x : iter [] xs
     roll :: [Unclosed m]
          -> (m, Text, Text, Text)
@@ -65,10 +64,10 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
          -> [HtmlEntity]
     roll [] (startMatch, pre, t, post) tagStack_ entities =
         prependText tagStack_ pre $ iter
-            [Unclosed startMatch tagStack_ [HtmlText tagStack_ t]]
+            [Unclosed startMatch [HtmlText tagStack_ t]]
             (normalizeText (prependText tagStack_ post entities))
     roll (s : ss) (startMatch, pre, t, post) tagStack_ entities = iter
-        ( Unclosed startMatch tagStack_ [HtmlText tagStack_ t]
+        ( Unclosed startMatch [HtmlText tagStack_ t]
         : s { buffer = prependText tagStack_ pre $ buffer s }
         : ss
         )
@@ -79,12 +78,19 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
            -> [HtmlEntity]
            -> [HtmlEntity]
     unroll stack (endMatch, pre, t, post) tagStack_ es =
-        case findPair endMatch stack of
-            (stack', []) ->
-                unstack stack' ++
-                    prependText'
-                        (pre `append` t)
-                        (iter [] (prependText' post es))
+        case remainStack of
+            [] -> unrolled ++ iter [] remainEntities
+            s : ss -> iter
+                (s { buffer = reverse unrolled ++ buffer s } : ss)
+                remainEntities
+      where
+        prependText' :: Text -> [HtmlEntity] -> [HtmlEntity]
+        prependText' = prependText tagStack_
+        unrolled :: [HtmlEntity]
+        remainStack :: [Unclosed m]
+        (unrolled, remainStack) = case findPair endMatch stack of
+            (_, []) ->
+                ([HtmlText tagStack_ (pre `append` t)], [])
             (stack', s@Unclosed { match = startMatch } : ss) ->
                 let
                     buf = prependText' pre (unstack' stack' ++ buffer s)
@@ -94,10 +100,9 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
                        then buf''
                        else transform startMatch endMatch buf''
                 in
-                    transformed ++ iter ss (prependText' post es)
-      where
-        prependText' :: Text -> [HtmlEntity] -> [HtmlEntity]
-        prependText' = prependText tagStack_
+                    (transformed, ss)
+        remainEntities :: [HtmlEntity]
+        remainEntities = prependText' post es
     findPair :: m -> [Unclosed m] -> ([Unclosed m], [Unclosed m])
     findPair m = break (arePaired m . match)
     unstack :: [Unclosed m] -> [HtmlEntity]
@@ -112,6 +117,5 @@ transformPairs (PairedTransformer ignores start end arePaired transform) =
 
 data Unclosed match = Unclosed
     { match :: match
-    , tagStack' :: HtmlTagStack
     , buffer :: [HtmlEntity] -- in reverse order
     }
