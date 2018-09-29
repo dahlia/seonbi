@@ -85,6 +85,65 @@ titleOutputSample start end citeTag = catMaybes
     cite :: HtmlEntity -> Maybe HtmlEntity
     cite = if citeTag then Just else const Nothing
 
+transformQuote' :: Quotes -> [HtmlEntity] -> [HtmlEntity]
+transformQuote' settings = normalizeText . transformQuote settings
+
+quoteInputSample :: [HtmlEntity]
+quoteInputSample =
+    [ HtmlStartTag { tagStack = [], tag = H1, rawAttributes = "" }
+    , HtmlText { tagStack = [H1], rawText = "太陽의風俗" }
+    , HtmlEndTag { tagStack = [], tag = H1 }
+    , HtmlStartTag { tagStack = [], tag = H2, rawAttributes = "" }
+    , HtmlText { tagStack = [H2], rawText = "어떤親한&quot;詩의벗&quot;에게" }
+    , HtmlEndTag { tagStack = [], tag = H2 }
+    , HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
+    , HtmlText { tagStack = [P], rawText = "(前略) " }
+    , HtmlCdata
+        { tagStack = [P]
+        , text = "嘆息. 그것은 紳士와淑女들의 午後의禮儀가아니고 무엇이냐? "
+        }
+    , HtmlText
+        { tagStack = [P]
+        , rawText = Data.Text.concat
+            [ "秘密. 어쩌면 그렇게도 粉바른할머니인 十九世紀的 "
+            , "'비&#x30fc;너쓰'냐? "
+            ]
+        }
+    , HtmlCdata
+        { tagStack = [P]
+        , text = "너는 그것들에게서 지금도 곰팽이냄새를 맡지못하느냐?"
+        }
+    , HtmlText { tagStack = [P], rawText = " (後略)" }
+    , HtmlEndTag { tagStack = [], tag = P }
+    ]
+
+quoteOutputSample :: [HtmlEntity] -> [HtmlEntity] -> [HtmlEntity]
+quoteOutputSample singleQuoted doubleQuoted = normalizeText $
+    [ HtmlStartTag { tagStack = [], tag = H1, rawAttributes = "" }
+    , HtmlText { tagStack = [H1], rawText = "太陽의風俗" }
+    , HtmlEndTag { tagStack = [], tag = H1 }
+    , HtmlStartTag { tagStack = [], tag = H2, rawAttributes = "" }
+    , HtmlText { tagStack = [H2], rawText = "어떤親한" }
+    ] ++ doubleQuoted ++
+    [ HtmlText { tagStack = [H2], rawText = "에게" }
+    , HtmlEndTag { tagStack = [], tag = H2 }
+    , HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
+    , HtmlText
+        { tagStack = [P]
+        , rawText = Data.Text.concat
+            [ "(前略) 嘆息. 그것은 紳士와淑女들의 午後의禮儀가아니고 무엇이냐? "
+            , "秘密. 어쩌면 그렇게도 粉바른할머니인 十九世紀的 "
+            ]
+        }
+    ] ++ singleQuoted ++
+    [ HtmlText
+        { tagStack = [P]
+        , rawText =
+            "냐? 너는 그것들에게서 지금도 곰팽이냄새를 맡지못하느냐? (後略)"
+        }
+    , HtmlEndTag { tagStack = [], tag = P }
+    ]
+
 ignoredTags :: [HtmlTag]
 ignoredTags = [Code, Kbd, Pre, Script, Style, TextArea]
 
@@ -178,6 +237,7 @@ spec = do
                     , HtmlEndTag { tagStack = [Div], tag = tag' }
                     , HtmlEndTag { tagStack = [], tag = Div }
                     ]
+
     describe "transformArrow" $ do
         specify "[]" $
             transformArrow [] (arrowSample P) `shouldBe`
@@ -252,9 +312,105 @@ spec = do
                         entities = transformArrow options (arrowSample tag')
                     in
                         entities `shouldBe` entities
+
     specify "transformEllipsis" $ do
         let sample x = ellipsisSample x x
         transformEllipsis (sample "...") `shouldBe`
             ellipsisSample "&hellip;" "..."
         transformEllipsis (sample "&period;.&#46;") `shouldBe`
             ellipsisSample "&hellip;" "&period;.&#46;"
+
+    describe "transformQuote" $ do
+        it "transforms apostrophes and straight quotes into typographic ones" $
+            transformQuote' curvedQuotes quoteInputSample `shouldBe`
+                quoteOutputSample
+                    [ HtmlText
+                        { tagStack = [P]
+                        , rawText = "&lsquo;비&#x30fc;너쓰&rsquo;"
+                        }
+                    ]
+                    [ HtmlText
+                        { tagStack = [H2]
+                        , rawText = "&ldquo;詩의벗&rdquo;"
+                        }
+                    ]
+        it "transforms apostrophes and straight quotes into guillements" $
+            transformQuote' guillemets quoteInputSample `shouldBe`
+                quoteOutputSample
+                    [ HtmlText
+                        { tagStack = [P]
+                        , rawText = "&#x3008;비&#x30fc;너쓰&#x3009;"
+                        }
+                    ]
+                    [ HtmlText
+                        { tagStack = [H2]
+                        , rawText = "&#x300a;詩의벗&#x300b;"
+                        }
+                    ]
+        it "transforms straight quotes into <q> elements" $
+            transformQuote' curvedSingleQuotesWithQ quoteInputSample `shouldBe`
+                quoteOutputSample
+                    [ HtmlText
+                        { tagStack = [P]
+                        , rawText = "&lsquo;비&#x30fc;너쓰&rsquo;"
+                        }
+                    ]
+                    [ HtmlStartTag
+                        { tagStack = [H2]
+                        , tag = Q
+                        , rawAttributes = ""
+                        }
+                    , HtmlText { tagStack = [H2, Q], rawText = "詩의벗" }
+                    , HtmlEndTag { tagStack = [H2], tag = Q }
+                    ]
+        it "transforms nested quotes" $ do
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlCdata [P] "A \"nest"
+                    , HtmlStartTag [P] Em ""
+                    , HtmlCdata [P, Em] "ed"
+                    , HtmlEndTag [P] Em
+                    , HtmlCdata [P] " 'quote' "
+                    , HtmlText [P] "sentence&quot; here."
+                    , HtmlEndTag [] P
+                    ]
+            transformQuote' curvedQuotes input `shouldBe`
+                [ HtmlStartTag [] P ""
+                , HtmlText [P] "A &ldquo;nest"
+                , HtmlStartTag [P] Em ""
+                , HtmlText [P, Em] "ed"
+                , HtmlEndTag [P] Em
+                , HtmlText
+                    [P]
+                    " &lsquo;quote&rsquo; sentence&rdquo; here."
+                , HtmlEndTag [] P
+                ]
+            transformQuote' curvedSingleQuotesWithQ input `shouldBe`
+                [ HtmlStartTag [] P ""
+                , HtmlText [P] "A "
+                , HtmlStartTag [P] Q ""
+                , HtmlText [P, Q] "nest"
+                , HtmlStartTag [P, Q] Em ""
+                , HtmlText [P, Q, Em] "ed"
+                , HtmlEndTag [P, Q] Em
+                , HtmlText [P, Q] " &lsquo;quote&rsquo; sentence"
+                , HtmlEndTag [P] Q
+                , HtmlText [P] " here."
+                , HtmlEndTag [] P
+                ]
+        forM_ ignoredTags $ \ tag' -> do
+            let tagStr = '<' : unpack (htmlTagName tag') ++ ">"
+            it ("does not transform anything within " ++ tagStr ++ " tags") $ do
+                let input =
+                        [ HtmlStartTag [] tag' ""
+                        , HtmlText
+                            { tagStack = [tag']
+                            , rawText = Data.Text.append
+                                "It should not be changed: "
+                                "&quot;unchanged&quot;."
+                            }
+                        , HtmlEndTag [] tag'
+                        ]
+                transformQuote' curvedQuotes input `shouldBe` input
+                transformQuote' guillemets input `shouldBe` input
+                transformQuote' curvedSingleQuotesWithQ input `shouldBe` input

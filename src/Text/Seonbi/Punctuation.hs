@@ -1,28 +1,39 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 module Text.Seonbi.Punctuation
     ( ArrowTransformationOption (..)
     , CitationQuotes (..)
+    , Quotes (..)
+    , QuotePair (..)
     , angleQuotes
     , cornerBrackets
+    , curvedQuotes
+    , curvedSingleQuotesWithQ
+    , guillemets
     , quoteCitation
     , transformArrow
     , transformEllipsis
+    , transformQuote
     ) where
 
 import Prelude hiding (takeWhile)
 
 import Control.Monad
 import Data.Either
+import Data.List (minimumBy)
 import Data.Maybe
+import Data.Ord
 
 import Data.Attoparsec.Text
 import Data.Set
 import Data.Text hiding (any, length, takeWhile)
+import qualified Data.Text
 
 import Text.Seonbi.Html
+import Text.Seonbi.Html.Clipper
 import qualified Text.Seonbi.Html.TagStack as TagStack
 import Text.Seonbi.Html.Wrapper
 import Text.Seonbi.PairedTransformer
@@ -380,3 +391,184 @@ transformEllipsis = fmap $ \ case
         , string "&#46;"
         , asciiCI "&#x2e;"
         ]
+
+-- | Pairs to substitute folk single and double quotes.
+-- Used by 'transformQuote' function.
+--
+-- The are three presets: 'curvedQuotes', 'guillemets', and
+-- 'curvedSingleQuotesWithQ':
+--
+-- - 'curvedQuotes' uses South Korean curved quotation marks which follows
+--   English quotes (@‘@: U+2018, @’@: U+2019, @“@: U+201C, @”@: U+201D)
+-- - 'guillemets' uses North Korean angular quotation marks, influenced
+--   by Russian guillemets but with some adjustments to replace guillemets with
+--   East Asian angular quotes (@〈@: U+3008, @〉@: U+3009, @《@: U+300A,
+--   @》@: U+300B).
+-- - 'curvedSingleQuotesWithQ' is the almost same to 'curvedQuotes' but
+--   wrap text with a @\<q>@ tag instead of curved double quotes.
+data Quotes = Quotes
+    { singleQuotes :: QuotePair
+    , doubleQuotes :: QuotePair
+    } deriving (Eq, Ord, Show)
+
+data QuotePair
+    = QuotePair Text Text
+    -- | Wrap the quoted text (HTML elements) with an element like @\<q>@ tag.
+    | HtmlElement HtmlTag HtmlRawAttrs
+    deriving (Eq, Ord, Show)
+
+curvedQuotes :: Quotes
+curvedQuotes = Quotes
+    { singleQuotes = QuotePair "&lsquo;" "&rsquo;"
+    , doubleQuotes = QuotePair "&ldquo;" "&rdquo;"
+    }
+
+guillemets :: Quotes
+guillemets = Quotes
+    { singleQuotes = QuotePair "&#x3008;" "&#x3009;"
+    , doubleQuotes = QuotePair "&#x300a;" "&#x300b;"
+    }
+
+curvedSingleQuotesWithQ :: Quotes
+curvedSingleQuotesWithQ = Quotes
+    { singleQuotes = QuotePair "&lsquo;" "&rsquo;"
+    , doubleQuotes = HtmlElement Q ""
+    }
+
+-- | Transform pairs of apostrophes (@'@: U+0027) and straight double
+-- quotes (@"@: U+0022) into more appropriate quotation marks like
+-- typographic single quotes (@‘@: U+2018, @’@: U+2019) and
+-- double quotes (@“@: U+201C, @”@: U+201D), or rather wrap them with an HTML
+-- element like @\<q>@ tag.  It depends on the options passed to the first
+-- parameter; see also 'Quotes'.
+transformQuote :: Quotes -- ^ Pair of quoting punctuations and wrapping element.
+               -> [HtmlEntity] -- ^ The input HTML entities to transform.
+               -> [HtmlEntity]
+transformQuote Quotes { .. } = transformPairs $
+    PairedTransformer
+        { ignoresTagStack = ignoresTagStack'
+        , matchStart = matchStart'
+        , matchEnd = matchEnd'
+        , areMatchesPaired = \ (punct, text) (punct', text') ->
+            arePaired punct punct' && text == text'
+        , transformPair = transformPair'
+        }
+  where
+    punctuations :: [(QuotePunct, [Text])]
+    punctuations =
+        [ ( Apostrophe
+          , ["'", "&apos;", "&#39;", "&#x27;", "&#X27;"]
+          )
+        , ( DoubleQuote
+          , ["\"", "&quot;", "&QUOT;", "&#34;", "&#x22;", "&#X22;"]
+          )
+        , ( DoubleQuote
+          , ["\"", "&quot;", "&QUOT;", "&#34;", "&#x22;", "&#X22;"]
+          )
+        , ( OpeningSingleQuote
+          , [ "\x2018", "&lsquo;", "&OpenCurlyQuote;"
+            , "&#8216;", "&#x2018;", "&#X2018;"
+            ]
+          )
+        , ( ClosingSingleQuote
+          , [ "\x2019", "&rsquo;", "&rsquor;", "&CloseCurlyQuote;"
+            , "&#8217;", "&#x2019;", "&#X2019;"
+            ]
+          )
+        , ( OpeningDoubleQuote
+          , [ "\x201c", "&ldquo;", "&OpenCurlyDoubleQuote;"
+            , "&#8220;", "&#x201c;", "&#x201C;", "&#X201c;", "&#X201C;"
+            ]
+          )
+        , ( ClosingDoubleQuote
+          , [ "\x201d", "&rdquo;", "&rdquor;", "&CloseCurlyDoubleQuote;"
+            , "&#8221;", "&#x201d;", "&#x201D;", "&#X201d;", "&#X201D;"
+            ]
+          )
+        ]
+    matchStart' :: [(QuotePunct, Text)]
+                -> Text
+                -> Maybe ((QuotePunct, Text), Text, Text, Text)
+    matchStart' prevMatches text
+      | Data.Text.null post = Nothing
+      | otherwise = Just
+            ( (matcher, entity)
+            , pre
+            , entity
+            , Data.Text.drop (Data.Text.length entity) post
+            )
+      where
+        prevMatchers :: Set QuotePunct
+        prevMatchers = Data.Set.fromList (fst <$> prevMatches)
+        (matcher, entity, (pre, post)) = minimumBy
+            (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+            [ (matcher', entity', breakOn entity' text)
+            | (matcher', entities) <- punctuations
+            , opens matcher'
+            , matcher' `Data.Set.notMember` prevMatchers
+            , entity' <- entities
+            ]
+    matchEnd' :: Text -> Maybe ((QuotePunct, Text), Text, Text, Text)
+    matchEnd' text
+      | Data.Text.null post = Nothing
+      | otherwise = Just
+            ( (matcher, entity)
+            , pre
+            , entity
+            , Data.Text.drop (Data.Text.length entity) post
+            )
+      where
+        (matcher, entity, (pre, post)) = minimumBy
+            (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+            [ (matcher', entity', breakOn entity' text)
+            | (matcher', entities) <- punctuations
+            , closes matcher'
+            , entity' <- entities
+            ]
+    transformPair' :: (QuotePunct, Text)
+                   -> (QuotePunct, Text)
+                   -> [HtmlEntity]
+                   -> [HtmlEntity]
+    transformPair' (punct, start) (_, end) buffer@(firstEntity : _) =
+        case clipText start end buffer of
+            Nothing -> buffer
+            Just es -> case pair of
+                QuotePair open close ->
+                    HtmlText tagStack' open : es ++ [HtmlText tagStack' close]
+                HtmlElement tag attrs ->
+                    wrap tagStack' tag attrs es
+      where
+        pair :: QuotePair
+        pair = case punct of
+            DoubleQuote -> doubleQuotes
+            OpeningDoubleQuote -> doubleQuotes
+            ClosingDoubleQuote -> doubleQuotes
+            _ -> singleQuotes
+        tagStack' :: HtmlTagStack
+        tagStack' = tagStack firstEntity
+    transformPair' _ _ [] = []
+    arePaired :: QuotePunct -> QuotePunct -> Bool
+    arePaired OpeningSingleQuote = (== ClosingSingleQuote)
+    arePaired OpeningDoubleQuote = (== ClosingDoubleQuote)
+    arePaired punct = (== punct)
+
+data QuotePunct
+    = DoubleQuote
+    | Apostrophe
+    | OpeningSingleQuote | ClosingSingleQuote
+    | OpeningDoubleQuote | ClosingDoubleQuote
+    deriving (Eq, Ord, Show)
+
+opens :: QuotePunct -> Bool
+opens DoubleQuote = True
+opens Apostrophe = True
+opens OpeningSingleQuote = True
+opens OpeningDoubleQuote = True
+opens _ = False
+
+closes :: QuotePunct -> Bool
+closes DoubleQuote = True
+closes Apostrophe = True
+closes ClosingSingleQuote = True
+closes ClosingDoubleQuote = True
+closes _ = False

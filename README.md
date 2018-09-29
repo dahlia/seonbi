@@ -8,6 +8,8 @@ what [SmartyPants] does for a text written in English.)
 Seonbi provides the Haskell library and the CLI; both can perform the following
 transformations:
 
+ -  Straight quotes and apostrophes (`"` & `'`) into curly quotes HTML
+    entities (`“`, `”`, `‘`, & `’`)
  -  Three consecutive periods (`...`) into an ellipsis entity (`…`)
  -  Pairs of less-than and greater-than inequality symbols (`<` & `>`) into
     pairs of proper angle quotes (`〈` & `〉`)
@@ -21,7 +23,9 @@ transformations:
     into bi-directional arrows (`↔`, `⇔`)
 
 Since its transformations work in HTML-level, it also plays well with web
-markup languages like CommonMark, Markdown, and Textile.
+markup languages like CommonMark, Markdown, and Textile.  In similar way to
+SmartyPants, it either does not modify characters within several sensitive
+HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 
