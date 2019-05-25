@@ -1,7 +1,9 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
+import Control.Monad
 import Data.Char
 import Data.Maybe
 import Prelude hiding (getContents, putStr)
@@ -11,6 +13,7 @@ import System.IO (hPutStrLn, stderr)
 import Codec.Text.IConv
 import Data.ByteString.Lazy
 import Data.Set
+import qualified Data.Text as T
 import Data.Text.Lazy
 import Data.Text.Lazy.Encoding
 import Options.Applicative
@@ -56,6 +59,7 @@ data Seonbi = Seonbi
     , xhtml :: Bool
     , leftRight :: Bool
     , doubleArrow :: Bool
+    , debug :: Bool
     } deriving (Eq, Show)
 
 parser :: Parser Seonbi
@@ -82,6 +86,10 @@ parser = Seonbi
         <> short 'D'
         <> help "Do not transform double arrows (<=, =>, <=>)"
         )
+    <*> switch
+        ( long "debug"
+        <> help "Debug mode"
+        )
 
 parserInfo :: ParserInfo Seonbi
 parserInfo = info (parser <**> helper)
@@ -89,13 +97,28 @@ parserInfo = info (parser <**> helper)
     <> progDesc "Korean typographic adjustment processor"
     )
 
+showHtml :: HtmlEntity -> T.Text
+showHtml HtmlStartTag { tag,  rawAttributes } =
+    T.concat ["<", T.pack (show tag), " ", rawAttributes, ">"]
+showHtml HtmlEndTag { tag } =
+    T.concat ["</", T.pack (show tag), ">"]
+showHtml HtmlText { rawText } =
+    T.concat ["!text  ", rawText]
+showHtml HtmlCdata { text } =
+    T.concat ["!cdata ", text]
+showHtml HtmlComment { comment } =
+    T.concat ["<!-- ", comment, " -->"]
+
 main :: IO ()
 main = do
     options <- execParser parserInfo
+    let whenDebug = when (debug options)
+    let debugPrint = whenDebug . hPutStrLn stderr
     contents <- getContents
     let encodingName = case encoding options of
             "" -> fromMaybe "UTF-8" $ detect contents
             enc -> enc
+    debugPrint ("encoding: " ++ encodingName)
     let arrowOptions = Data.Set.fromList $ catMaybes
             [ if leftRight options then Just LeftRight else Nothing
             , if doubleArrow options then Just DoubleArrow else Nothing
@@ -103,11 +126,10 @@ main = do
     let print' = if xhtml options then printXhtml else printHtml
     let result = scanHtml $ toUnicode encodingName contents
     case result of
-        Done "" input ->
-            let
-                output = transformArrow arrowOptions input
-            in
-                putStr $ fromUnicode encodingName $ print' output
+        Done "" input -> do
+            whenDebug $ forM_ input $ (hPutStrLn stderr . T.unpack . showHtml)
+            let output = transformArrow arrowOptions input
+            putStr $ fromUnicode encodingName $ print' output
         _ -> do
             hPutStrLn stderr "error: failed to parse input"
             exitFailure
