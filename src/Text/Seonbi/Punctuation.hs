@@ -58,7 +58,7 @@ data CitationQuotes = CitationQuotes
       -- citations.  E.g., if it is @'Just' ('Cite', " class=\"autogen\")@
       -- titles are transformed like @\<cite class="autogen">이런 날\</cite>@.
       htmlElement :: Maybe (HtmlTag, HtmlRawAttrs)
-    }
+    } deriving (Eq, Show)
 
 -- | Cite a title using angle quotes,
 -- e.g., 《나비와 엉겅퀴》 or 〈枾崎의 바다〉.

@@ -61,6 +61,7 @@ data Seonbi = Seonbi
     , doubleArrow :: Bool
     , ellipsis :: Bool
     , quotes :: Quotes
+    , citeQuotes :: CitationQuotes
     , debug :: Bool
     } deriving (Eq, Show)
 
@@ -96,6 +97,12 @@ parser = Seonbi
     <*> flag curvedQuotes curvedSingleQuotesWithQ
         ( short 'q'
         <> help "Wrap double quotes with <q> element"
+        )
+    <*> flag angleQuotes cornerBrackets
+        ( long "corner-brackets"
+        <> short 'c'
+        <> help ("Cite titles with Japanese-style cornet brackets instead " ++
+                 "Chinese/Korean-style angle brackets")
         )
     <*> switch
         ( long "debug"
@@ -138,6 +145,7 @@ main = do
     let result = scanHtml $ toUnicode encodingName contents
     let transformers =
             [ transformQuote (quotes options)
+            , quoteCitation (citeQuotes options)
             , transformArrow arrowOptions
             , if ellipsis options then transformEllipsis else id
             ] :: [[HtmlEntity] -> [HtmlEntity]]
