@@ -59,6 +59,7 @@ data Seonbi = Seonbi
     , xhtml :: Bool
     , leftRight :: Bool
     , doubleArrow :: Bool
+    , ellipsis :: Bool
     , debug :: Bool
     } deriving (Eq, Show)
 
@@ -85,6 +86,11 @@ parser = Seonbi
         ( long "no-double-arrows"
         <> short 'D'
         <> help "Do not transform double arrows (<=, =>, <=>)"
+        )
+    <*> flag True False
+        ( long "no-ellipsis"
+        <> short 'E'
+        <> help "Do not transform ellipsis (...)"
         )
     <*> switch
         ( long "debug"
@@ -125,10 +131,15 @@ main = do
             ]
     let print' = if xhtml options then printXhtml else printHtml
     let result = scanHtml $ toUnicode encodingName contents
+    let transformers =
+            [ transformArrow arrowOptions
+            , if ellipsis options then transformEllipsis else id
+            ] :: [[HtmlEntity] -> [HtmlEntity]]
+    let transform = Prelude.foldl (.) id transformers
     case result of
         Done "" input -> do
             whenDebug $ forM_ input $ (hPutStrLn stderr . T.unpack . showHtml)
-            let output = transformArrow arrowOptions input
+            let output = transform input
             putStr $ fromUnicode encodingName $ print' output
         _ -> do
             hPutStrLn stderr "error: failed to parse input"
