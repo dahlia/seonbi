@@ -60,6 +60,7 @@ data Seonbi = Seonbi
     , leftRight :: Bool
     , doubleArrow :: Bool
     , ellipsis :: Bool
+    , quotes :: Quotes
     , debug :: Bool
     } deriving (Eq, Show)
 
@@ -91,6 +92,10 @@ parser = Seonbi
         ( long "no-ellipsis"
         <> short 'E'
         <> help "Do not transform ellipsis (...)"
+        )
+    <*> flag curvedQuotes curvedSingleQuotesWithQ
+        ( short 'q'
+        <> help "Wrap double quotes with <q> element"
         )
     <*> switch
         ( long "debug"
@@ -132,7 +137,8 @@ main = do
     let print' = if xhtml options then printXhtml else printHtml
     let result = scanHtml $ toUnicode encodingName contents
     let transformers =
-            [ transformArrow arrowOptions
+            [ transformQuote (quotes options)
+            , transformArrow arrowOptions
             , if ellipsis options then transformEllipsis else id
             ] :: [[HtmlEntity] -> [HtmlEntity]]
     let transform = Prelude.foldl (.) id transformers
