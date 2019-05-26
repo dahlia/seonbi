@@ -132,6 +132,7 @@ main = do
     options <- execParser parserInfo
     let whenDebug = when (debug options)
     let debugPrint = whenDebug . hPutStrLn stderr
+    debugPrint ("options: " ++ show options)
     contents <- getContents
     let encodingName = case encoding options of
             "" -> fromMaybe "UTF-8" $ detect contents
