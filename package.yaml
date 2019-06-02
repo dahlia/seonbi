@@ -8,6 +8,7 @@ copyright: "(c) 2018\u20132019 Hong Minhee"
 license: LGPL-2.1
 github: dahlia/seonbi
 extra-source-files:
+- src/Text/Seonbi/Unihan/*.json
 - CHANGES.md
 - README.md
 description: ! >
@@ -31,6 +32,7 @@ ghc-options:
 - -fwarn-incomplete-uni-patterns
 - -fprint-explicit-kinds
 dependencies:
+- aeson >= 1.3.1 && < 1.4
 - base >= 4.7 && < 5
 - bytestring
 - containers
@@ -39,6 +41,8 @@ library:
   source-dirs: src
   dependencies:
   - attoparsec >= 0.12 && < 1
+  - filepath >= 1 && < 2
+  - file-embed >= 0.0.10 && < 0.0.12
 executables:
   seonbi:
     main: Main.hs

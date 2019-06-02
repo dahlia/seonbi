@@ -1,0 +1,6 @@
+The .txt data files in this directory are imported from the unihan-json project:
+
+	https://github.com/dahlia/unihan-json/releases/tag/12.1.0
+
+If the version of these data become outdated please let me know or send a patch
+to update data files!
