@@ -153,7 +153,7 @@ main = do
     let transform = Prelude.foldl (.) id transformers
     case result of
         Done "" input -> do
-            whenDebug $ forM_ input $ (hPutStrLn stderr . T.unpack . showHtml)
+            whenDebug $ forM_ input (hPutStrLn stderr . T.unpack . showHtml)
             let output = transform input
             putStr $ fromUnicode encodingName $ print' output
         _ -> do
