@@ -37,22 +37,22 @@ data HanjaReadingCitation =
 
 -- | Represents character set standards for Korean writing system.
 data CharacterSet
-    -- | Represents that a Hanja character is not included in any Korean
-    -- character set standards.
-    = NonStandard
     -- | KS X 1001 (정보 교환용 부호계).
-    | KS_X_1001
+    = KS_X_1001
     -- | KS X 1002 (정보 교환용 부호 확장 세트).
     | KS_X_1002
+    -- | Represents that a Hanja character is not included in any Korean
+    -- character set standards.
+    | NonStandard
     deriving (Eq, Ord, Show)
 
 -- | Represents purposes of Hanja characters.
 data Purpose
-    -- | Hanja for personal names (人名用漢字).
-    = PersonalName
     -- | Basic Hanja for educational use (漢文敎育用基礎漢字), a subset of
     -- Hanja defined in 1972 by a South Korean standard for educational use.
-    | Education
+    = Education
+    -- | Hanja for personal names (人名用漢字).
+    | PersonalName
     deriving (Eq, Ord, Show)
 
 citationParser :: Parser HanjaReadingCitation

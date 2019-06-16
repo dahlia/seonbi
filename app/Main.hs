@@ -19,6 +19,7 @@ import Data.Text.Lazy.Encoding
 import Options.Applicative
 import Text.Html.Encoding.Detection (detect)
 
+import Text.Seonbi.Hanja
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
 
@@ -62,6 +63,7 @@ data Seonbi = Seonbi
     , ellipsis :: Bool
     , quotes :: Quotes
     , citeQuotes :: CitationQuotes
+    , phoneticizeHanja' :: Bool
     , debug :: Bool
     } deriving (Eq, Show)
 
@@ -103,6 +105,11 @@ parser = Seonbi
         <> short 'c'
         <> help ("Cite titles with Japanese-style cornet brackets instead " ++
                  "Chinese/Korean-style angle brackets")
+        )
+    <*> switch
+        ( long "phonetize-hanja"
+        <> short 'H'
+        <> help "Read Hanja words and rewrite them with Hanja words"
         )
     <*> switch
         ( long "debug"
@@ -149,6 +156,7 @@ main = do
             , quoteCitation (citeQuotes options)
             , transformArrow arrowOptions
             , if ellipsis options then transformEllipsis else id
+            , if phoneticizeHanja' options then phoneticizeHanja else id
             ] :: [[HtmlEntity] -> [HtmlEntity]]
     let transform = Prelude.foldl (.) id transformers
     case result of
