@@ -156,7 +156,9 @@ main = do
             , quoteCitation (citeQuotes options)
             , transformArrow arrowOptions
             , if ellipsis options then transformEllipsis else id
-            , if phoneticizeHanja' options then phoneticizeHanja else id
+            , if phoneticizeHanja' options
+              then phoneticizeHanja phoneticizeHanjaWordWithInitialSoundLaw
+              else id
             ] :: [[HtmlEntity] -> [HtmlEntity]]
     let transform = Prelude.foldl (.) id transformers
     case result of

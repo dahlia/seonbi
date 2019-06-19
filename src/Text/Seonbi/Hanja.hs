@@ -7,6 +7,7 @@ module Text.Seonbi.Hanja
     , phoneticizeHanja
     , phoneticizeHanjaChar
     , phoneticizeHanjaWord
+    , phoneticizeHanjaWordWithInitialSoundLaw
     , revertInitialSoundLaw
     ) where
 
@@ -30,8 +31,17 @@ import Text.Seonbi.Unihan.KHangul
 
 -- | Transforms hanja words in the given HTML entities into corresponding
 -- hangul words.
-phoneticizeHanja :: [HtmlEntity] -> [HtmlEntity]
-phoneticizeHanja =
+phoneticizeHanja
+    :: (Text -> Text)
+    -- ^ A function to phoneticize a hanja word.
+    -- Use 'phoneticizeHanjaWordWithInitialSoundLaw' for South Korean
+    -- orthography, or 'phoneticizeHanjaWord' for North Korean orthography.
+    -> [HtmlEntity]
+    -- ^ HTML entities (that may contain some hanja words) to phoneticize
+    -- all hanja words into corresponding hangul-only words.
+    -> [HtmlEntity]
+    -- ^ HTML entities that have no hanja words but hangul-only words instead.
+phoneticizeHanja phoneticizeHanjaWord' =
     concatMap transform . normalizeText
   where
     transform :: HtmlEntity -> [HtmlEntity]
@@ -42,7 +52,7 @@ phoneticizeHanja =
     transform entity = [entity]
     transformHanjaText :: HtmlTagStack -> (Text, Text) -> [HtmlEntity]
     transformHanjaText tagStack' (hanja, text') =
-        htmlText (phoneticizeHanjaWord hanja) : textEntities
+        htmlText (phoneticizeHanjaWord' hanja) : textEntities
       where
         htmlText :: Text -> HtmlEntity
         htmlText = HtmlText tagStack'
@@ -66,9 +76,90 @@ analyzeHanjaText text' =
 -- >>> :set -XOverloadedStrings
 -- >>> phoneticizeHanjaWord "漢字"
 -- "\54620\51088"
+--
+-- Note that it does not apply Initial Sound Law (頭音法則):
+--
+-- >>> phoneticizeHanjaWord  "來日"
+-- "\47000\51068"
 phoneticizeHanjaWord :: Text -> Text
 phoneticizeHanjaWord =
     Data.Text.map phoneticizeHanjaChar
+
+-- | It is like 'phoneticizeHanjaWord', but it also applies
+-- Initial Sound Law (頭音法則).
+--
+-- >>> :set -XOverloadedStrings
+-- >>> phoneticizeHanjaWordWithInitialSoundLaw  "來日"
+-- "\45236\51068"
+-- >>> phoneticizeHanjaWordWithInitialSoundLaw  "未來"
+-- "\48120\47000"
+phoneticizeHanjaWordWithInitialSoundLaw :: Text -> Text
+phoneticizeHanjaWordWithInitialSoundLaw word =
+    case parseOnly (parser <* endOfInput) word of
+        Left _ -> word
+        Right "" -> word
+        Right hangulWord -> hangulWord
+  where
+    parser :: Parser Text
+    parser = do
+        chars <- many'
+            ( try yeolYul
+            <|> try prefixedNumber
+            <|> try hanNumber
+            <|> try (Data.Text.singleton . phoneticize <$> anyChar)
+            )
+        let hangulWord = Data.Text.concat chars
+        return $ Data.Text.concat
+            [ Data.Text.map convertInitialSoundLaw $ Data.Text.take 1 hangulWord
+            , Data.Text.drop 1 hangulWord
+            ]
+    yeolYul :: Parser Text
+    yeolYul = do
+        former <- satisfy $ \ c ->
+            c `hasBatchim` Just '\x11ab' || c `hasBatchim` Nothing
+        later <- phone '렬' <|> phone '률'
+        return $ pack
+            [ phoneticize former
+            , convert later
+            ]
+    prefixedNumber :: Parser Text
+    prefixedNumber = do
+        prefix <- char '第'
+        digits <- takeWhile1 isHanDigit
+        return $ Data.Text.cons
+            (phoneticize prefix)
+            (Data.Text.map convertDigit digits)
+    hanNumber :: Parser Text
+    hanNumber = do
+        first <- hanDigit
+        rest <- takeWhile1 isHanDigit
+        return $ Data.Text.map convertDigit $ Data.Text.cons first rest
+    hanDigit :: Parser Char
+    hanDigit = satisfy isHanDigit
+    phone :: Char -> Parser Char
+    phone hangul = satisfy ((== hangul) . phoneticize)
+    convertDigit :: Char -> Char
+    convertDigit = convertInitialSoundLaw . phoneticizeDigit
+    convert :: Char -> Char
+    convert = convertInitialSoundLaw . phoneticize
+    phoneticizeDigit :: Char -> Char
+    phoneticizeDigit '參' = '삼'
+    phoneticizeDigit '叁' = '삼'
+    phoneticizeDigit '参' = '삼'
+    phoneticizeDigit '叄' = '삼'
+    phoneticizeDigit '拾' = '십'
+    phoneticizeDigit c = phoneticize c
+    phoneticize :: Char -> Char
+    phoneticize = phoneticizeHanjaChar
+    hasBatchim :: Char -> Maybe Char -> Bool
+    hasBatchim c batchim =
+        case toJamoTriple (phoneticize c) of
+            Just (_, _, final) -> final == batchim
+            _ -> False
+    isHanDigit :: Char -> Bool
+    isHanDigit = inClass $
+        "零一壹壱弌夁二貳贰弐弍貮三參叁参弎叄四肆䦉五伍六陸陆陸七柒漆八捌" ++
+        "九玖十拾百佰陌千仟阡萬万億兆京垓秭穰溝澗"
 
 -- | Reads a hanja character as a hangul character.
 --
