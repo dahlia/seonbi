@@ -1,13 +1,19 @@
 Seonbi: SmartyPants for Korean language
 =======================================
 
-Seonbi does typographic adjustments to an HTML so that the result uses accurate
-punctuations according to the modern Korean orthography.  (It's similar to
-what [SmartyPants] does for a text written in English.)
+Seonbi (선비) is is an HTML preprocessor that does typographic adjustments
+to an HTML so that the result uses accurate punctuations according to
+the modern Korean orthography.
+(It's similar to what [SmartyPants] does for a text written in English.)
+
+It also transforms a `ko-Kore` text (國漢文混用; [Korean mixed script]) into
+a `ko-Hang` text (한글전용; Hangul-only script).
 
 Seonbi provides the Haskell library and the CLI; both can perform the following
 transformations:
 
+ -  All hanja words (e.g., `漢字`) into corresponding hangul-only words
+    (e.g., `한자`)
  -  Straight quotes and apostrophes (`"` & `'`) into curly quotes HTML
     entities (`“`, `”`, `‘`, & `’`)
  -  Three consecutive periods (`...`) into an ellipsis entity (`…`)
@@ -28,9 +34,21 @@ SmartyPants, it either does not modify characters within several sensitive
 HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
+[Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
 
 License
 -------
 
 Distributed under LGPL 2.1 or later.
+
+
+Etymology
+---------
+
+*[Seonbi]* (선비) means a classical scholar during Joseon periods (14c–19c).
+Today there's a meme that calls a person who feels morally superior or has
+elitism *seonbi* in the Korean internet.  So *seonbi* and *smarty pants* have
+some things in common.
+
+[Seonbi]: https://en.wikipedia.org/wiki/Seonbi
