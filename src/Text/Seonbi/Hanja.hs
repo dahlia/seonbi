@@ -238,16 +238,19 @@ textParser :: Parser [(Text, Text)]
 textParser = many' $ do
     hanjas <- many' $ try $ do
         c <- unnamedCharRef
-        unless (isHanja c) (fail "not a hanja")
+        unless (isHanjaOrDigit c) (fail "not a hanja")
         return c
-    hanjas' <- Data.Attoparsec.Text.takeWhile isHanja
+    hanjas' <- Data.Attoparsec.Text.takeWhile isHanjaOrDigit
     chars <- many' unnamedCharRef
-    chars' <- takeTill isHanja
+    chars' <- takeTill isHanjaOrDigit
     let hanjaText = pack hanjas `append` hanjas'
     let text' = pack chars `append` chars'
     when (Data.Text.null $ hanjaText `append` text') (fail "parsed nothing")
     return (hanjaText, text')
   where
+    isHanjaOrDigit :: Char -> Bool
+    isHanjaOrDigit c =
+        isDigit c || isHanja c
     isHanja :: Char -> Bool
     isHanja c =
         -- Ideographic Description Character
