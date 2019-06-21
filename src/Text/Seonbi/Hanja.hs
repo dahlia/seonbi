@@ -1,7 +1,10 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module Text.Seonbi.Hanja
-    ( convertInitialSoundLaw
+    ( HanjaPhoneticization (..)
+    , convertInitialSoundLaw
+    , def
     , initialSoundLawTable
     , initialSoundLawTable'
     , phoneticizeHanja
@@ -21,6 +24,7 @@ import Data.Maybe
 import Data.Ord (comparing)
 
 import Data.Attoparsec.Text
+import Data.Default
 import Data.Map.Strict
 import Data.Set
 import Data.Text hiding (concatMap)
@@ -29,19 +33,34 @@ import Text.Seonbi.Hangul
 import Text.Seonbi.Html
 import Text.Seonbi.Unihan.KHangul
 
+data HanjaPhoneticization = HanjaPhoneticization
+    { -- | A function to phoneticize a hanja word.
+      -- Use 'phoneticizeHanjaWordWithInitialSoundLaw' for South Korean
+      -- orthography, or 'phoneticizeHanjaWord' for North Korean orthography.
+      phoneticizer :: Text -> Text
+      -- | Whether to insert some HTML comments that contain useful information
+      -- for debugging into the result.  This does not affect the rendering
+      -- of the result HTML, but only the HTML code.
+    , debugComment :: Bool
+    }
+
+instance Default HanjaPhoneticization where
+    def = HanjaPhoneticization
+        { phoneticizer = phoneticizeHanjaWordWithInitialSoundLaw
+        , debugComment = False
+        }
+
 -- | Transforms hanja words in the given HTML entities into corresponding
 -- hangul words.
 phoneticizeHanja
-    :: (Text -> Text)
-    -- ^ A function to phoneticize a hanja word.
-    -- Use 'phoneticizeHanjaWordWithInitialSoundLaw' for South Korean
-    -- orthography, or 'phoneticizeHanjaWord' for North Korean orthography.
+    :: HanjaPhoneticization
+    -- ^ Configures the phoneticization details.
     -> [HtmlEntity]
     -- ^ HTML entities (that may contain some hanja words) to phoneticize
     -- all hanja words into corresponding hangul-only words.
     -> [HtmlEntity]
     -- ^ HTML entities that have no hanja words but hangul-only words instead.
-phoneticizeHanja phoneticizeHanjaWord' =
+phoneticizeHanja HanjaPhoneticization { phoneticizer, debugComment } =
     concatMap transform . normalizeText
   where
     transform :: HtmlEntity -> [HtmlEntity]
@@ -51,13 +70,21 @@ phoneticizeHanja phoneticizeHanjaWord' =
             Just pairs -> concatMap (transformHanjaText tagStack') pairs
     transform entity = [entity]
     transformHanjaText :: HtmlTagStack -> (Text, Text) -> [HtmlEntity]
-    transformHanjaText tagStack' (hanja, text') =
-        htmlText (phoneticizeHanjaWord' hanja) : textEntities
+    transformHanjaText tagStack' (hanja, text')
+      | debugComment =
+            [ HtmlComment tagStack' (" Hanja: " `append` hanja)
+            , hangulEntity
+            , HtmlComment tagStack' " /Hanja "
+            ] ++ textEntities
+      | otherwise =
+            hangulEntity : textEntities
       where
         htmlText :: Text -> HtmlEntity
         htmlText = HtmlText tagStack'
         texts :: [Text]
         texts = splitOn "]]>" text'
+        hangulEntity :: HtmlEntity
+        hangulEntity = htmlText (phoneticizer hanja)
         textEntities :: [HtmlEntity]
         textEntities = (htmlText <$> Prelude.take 1 texts) ++ Prelude.concat
             [ [htmlText "]]&gt;", HtmlCdata tagStack' t]

@@ -189,15 +189,22 @@ spec = do
             phone "參佰拾圓" `shouldBe` "삼백십원"
             phone "仟參佰圓" `shouldBe` "천삼백원"
     describe "phoneticizeHanja" $ do
-        specify "without initial sound law" $
-            normalizeText (phoneticizeHanja phoneticizeHanjaWord inputFixture)
+        specify "without initial sound law" $ do
+            let conf = def
+                    { phoneticizer = phoneticizeHanjaWord
+                    , debugComment = False
+                    }
+            normalizeText (phoneticizeHanja conf inputFixture)
                 `shouldBe` normalizeText outputFixture
         specify "with initial sound law" $ do
-            let phone = phoneticizeHanja phoneticizeHanjaWordWithInitialSoundLaw
-            let phone' = normalizeText . phone
-            phone' inputFixture `shouldBe`
+            let conf = def
+                    { phoneticizer = phoneticizeHanjaWordWithInitialSoundLaw
+                    , debugComment = False
+                    }
+            let phone = normalizeText . phoneticizeHanja conf
+            phone inputFixture `shouldBe`
                 normalizeText outputWithInitialSoundLawFixture
-            phone' [HtmlText [] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
+            phone [HtmlText [] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
                 [HtmlText [] "1996년 그들이 지구를 지배했을 때"]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do

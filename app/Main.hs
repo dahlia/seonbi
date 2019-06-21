@@ -151,13 +151,14 @@ main = do
             ]
     let print' = if xhtml options then printXhtml else printHtml
     let result = scanHtml $ toUnicode encodingName contents
+    let hanjaPhoneticization = def { debugComment = debug options }
     let transformers =
             [ transformQuote (quotes options)
             , quoteCitation (citeQuotes options)
             , transformArrow arrowOptions
             , if ellipsis options then transformEllipsis else id
             , if phoneticizeHanja' options
-              then phoneticizeHanja phoneticizeHanjaWordWithInitialSoundLaw
+              then phoneticizeHanja hanjaPhoneticization
               else id
             ] :: [[HtmlEntity] -> [HtmlEntity]]
     let transform = Prelude.foldl (.) id transformers
