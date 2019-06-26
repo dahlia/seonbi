@@ -1,0 +1,6 @@
+*.pyc
+*.tsv
+.env/
+.venv/
+env/
+venv/
