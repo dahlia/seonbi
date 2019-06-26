@@ -190,22 +190,68 @@ spec = do
             phone "仟參佰圓" `shouldBe` "천삼백원"
     describe "phoneticizeHanja" $ do
         specify "without initial sound law" $ do
-            let conf = def
-                    { phoneticizer = phoneticizeHanjaWord
-                    , debugComment = False
-                    }
+            let conf = def { phoneticizer = phoneticizeHanjaWord }
             normalizeText (phoneticizeHanja conf inputFixture)
                 `shouldBe` normalizeText outputFixture
         specify "with initial sound law" $ do
             let conf = def
                     { phoneticizer = phoneticizeHanjaWordWithInitialSoundLaw
-                    , debugComment = False
                     }
             let phone = normalizeText . phoneticizeHanja conf
             phone inputFixture `shouldBe`
                 normalizeText outputWithInitialSoundLawFixture
             phone [HtmlText [] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
                 [HtmlText [] "1996년 그들이 지구를 지배했을 때"]
+        specify "with hanjaInParentheses renderer" $ do
+            let conf = def { wordRenderer = hanjaInParentheses }
+            let phone = normalizeText . phoneticizeHanja conf
+            phone [HtmlText [] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
+                [HtmlText [] "1996년(年) 그들이 지구(地球)를 지배(支配)했을 때"]
+        specify "with hanjaInRuby renderer" $ do
+            let conf = def { wordRenderer = hanjaInRuby }
+            let phone = normalizeText . phoneticizeHanja conf
+            phone [HtmlText [] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
+                [ HtmlText [] "1996"
+                , HtmlStartTag [] Ruby ""
+                , HtmlText [Ruby] "年"
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] "("
+                , HtmlEndTag [Ruby] RP
+                , HtmlStartTag [Ruby] RT ""
+                , HtmlText [Ruby, RT] "년"
+                , HtmlEndTag [Ruby] RT
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] ")"
+                , HtmlEndTag [Ruby] RP
+                , HtmlEndTag [] Ruby
+                , HtmlText [] " 그들이 "
+                , HtmlStartTag [] Ruby ""
+                , HtmlText [Ruby] "地球"
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] "("
+                , HtmlEndTag [Ruby] RP
+                , HtmlStartTag [Ruby] RT ""
+                , HtmlText [Ruby, RT] "지구"
+                , HtmlEndTag [Ruby] RT
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] ")"
+                , HtmlEndTag [Ruby] RP
+                , HtmlEndTag [] Ruby
+                , HtmlText [] "를 "
+                , HtmlStartTag [] Ruby ""
+                , HtmlText [Ruby] "支配"
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] "("
+                , HtmlEndTag [Ruby] RP
+                , HtmlStartTag [Ruby] RT ""
+                , HtmlText [Ruby, RT] "지배"
+                , HtmlEndTag [Ruby] RT
+                , HtmlStartTag [Ruby] RP ""
+                , HtmlText [Ruby, RP] ")"
+                , HtmlEndTag [Ruby] RP
+                , HtmlEndTag [] Ruby
+                , HtmlText [] "했을 때"
+                ]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'

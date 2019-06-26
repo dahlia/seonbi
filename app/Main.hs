@@ -151,7 +151,10 @@ main = do
             ]
     let print' = if xhtml options then printXhtml else printHtml
     let result = scanHtml $ toUnicode encodingName contents
-    let hanjaPhoneticization = def { debugComment = debug options }
+    let hanjaPhoneticization = def
+            { wordRenderer = hangulOnly
+            , debugComment = debug options
+            }
     let transformers =
             [ transformQuote (quotes options)
             , quoteCitation (citeQuotes options)
