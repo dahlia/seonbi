@@ -131,10 +131,10 @@ spec = do
             phoneticizeHanjaChar '六' `shouldBe` '륙'
             phoneticizeHanjaChar '禮' `shouldBe` '례'
     describe "phoneticizeHanjaWord" $ do
-        it "returns the input as is if there are no Hanja at all" $ do
+        it "returns the input as is if there are no hanja at all" $ do
             phoneticizeHanjaWord "foo" `shouldBe` "foo"
             phoneticizeHanjaWord "테스트" `shouldBe` "테스트"
-        it "transforms Hanja chars into the corresponding Hangul readings" $ do
+        it "transforms hanja chars into the corresponding hangul readings" $ do
             phoneticizeHanjaWord "漢字" `shouldBe` "한자"
             phoneticizeHanjaWord "言文" `shouldBe` "언문"
             phoneticizeHanjaWord "餘念" `shouldBe` "여념"
@@ -144,10 +144,10 @@ spec = do
             phoneticizeHanjaWord "力量" `shouldBe` "력량"
     describe "phoneticizeHanjaWordWithInitialSoundLaw" $ do
         let phone = phoneticizeHanjaWordWithInitialSoundLaw
-        it "returns the input as is if there are no Hanja at all" $ do
+        it "returns the input as is if there are no hanja at all" $ do
             phone "foo" `shouldBe` "foo"
             phone "테스트" `shouldBe` "테스트"
-        it "transforms Hanja chars into the corresponding Hangul readings" $ do
+        it "transforms hanja chars into the corresponding Hangul readings" $ do
             phone "漢字" `shouldBe` "한자"
             phone "言文" `shouldBe` "언문"
             phone "餘念" `shouldBe` "여념"
@@ -182,12 +182,30 @@ spec = do
             phone "賤劣" `shouldBe` "천열"
             phone "旋律" `shouldBe` "선율"
             phone "戰慄" `shouldBe` "전율"
-        it "converts all Hanja digits according to Initial Sound Law" $ do
+        it "converts all hanja digits according to Initial Sound Law" $ do
             phone "千九百八十六年" `shouldBe` "천구백팔십육년"
             phone "第六共和國" `shouldBe` "제육공화국"
             phone "拾萬圓" `shouldBe` "십만원"
             phone "參佰拾圓" `shouldBe` "삼백십원"
             phone "仟參佰圓" `shouldBe` "천삼백원"
+    describe "withDictionary" $ do
+        let dict =
+                [ ("標識", "표지")
+                , ("毛澤東", "마오쩌둥")
+                , ("交通", "교통")
+                ]
+        let phone = withDictionary dict phoneticizeHanjaWordWithInitialSoundLaw
+        it "replaces Sino-Korean words with hangul letters in a dictionary" $ do
+            phone "標識" `shouldBe` "표지"
+            phone "毛澤東" `shouldBe` "마오쩌둥"
+            phone "交通標識" `shouldBe` "교통표지"
+        it "uses a fallback phoneticizer for unknown morphemes" $
+            phone "知識" `shouldBe` "지식"
+        it "uses a fallback phoneticizer for unknown prefixes" $
+            phone "安全標識" `shouldBe` "안전표지"
+        it "uses a fallback phoneticizer for unknown suffixes" $ do
+            phone "毛澤東語錄" `shouldBe` "마오쩌둥어록"
+            phone "毛澤東理論" `shouldBe` "마오쩌둥이론"
     describe "phoneticizeHanja" $ do
         specify "without initial sound law" $ do
             let conf = def { phoneticizer = phoneticizeHanjaWord }

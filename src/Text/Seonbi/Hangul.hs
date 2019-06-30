@@ -5,6 +5,10 @@ module Text.Seonbi.Hangul
     , toJamoTriple
     ) where
 
+-- $setup
+-- >>> import qualified Text.Show.Unicode
+-- >>> :set -interactive-print=Text.Show.Unicode.uprint
+
 -- | A triple of an initial consonant, a vowel, and an optional final consonant.
 type JamoTriple = (Char, Char, Maybe Char)
 
@@ -40,9 +44,9 @@ finalCount = 28;
 -- Returns 'Nothing' for non-hangul letters.
 --
 -- >>> toJamoTriple '가'
--- Just ('\4352','\4449',Nothing)
+-- Just ('ᄀ','ᅡ',Nothing)
 -- >>> toJamoTriple '글'
--- Just ('\4352','\4467',Just '\4527')
+-- Just ('ᄀ','ᅳ',Just 'ᆯ')
 -- >>> toJamoTriple 'A'
 -- Nothing
 toJamoTriple :: Char -> Maybe JamoTriple
@@ -62,9 +66,9 @@ toJamoTriple c
 -- | Composes hangul jamo triple into a hangul syllable.
 --
 -- >>> fromJamoTriple ('ᄀ', 'ᅡ', Nothing)
--- Just '\44032'
+-- Just '가'
 -- >>> fromJamoTriple ('ᄀ', 'ᅳ', Just 'ᆯ')
--- Just '\44544'
+-- Just '글'
 fromJamoTriple :: JamoTriple -> Maybe Char
 fromJamoTriple (initial, vowel, final)
   | initialIndex < 0 = Nothing

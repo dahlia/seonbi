@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 module Text.Seonbi.Hanja
-    ( HanjaPhoneticization (..)
+    ( HanjaDictionary
+    , HanjaPhoneticization (..)
+    , HanjaWordPhoneticizer
     , HanjaWordRenderer
     , convertInitialSoundLaw
     , def
@@ -16,6 +18,7 @@ module Text.Seonbi.Hanja
     , phoneticizeHanjaWord
     , phoneticizeHanjaWordWithInitialSoundLaw
     , revertInitialSoundLaw
+    , withDictionary
     ) where
 
 import Prelude hiding (lookup)
@@ -36,13 +39,18 @@ import Data.Text hiding (concatMap)
 import Text.Seonbi.Hangul
 import Text.Seonbi.Html
 import Text.Seonbi.Html.TagStack (push)
+import qualified Text.Seonbi.Trie as Trie
 import Text.Seonbi.Unihan.KHangul
+
+-- $setup
+-- >>> import qualified Text.Show.Unicode
+-- >>> :set -interactive-print=Text.Show.Unicode.uprint
 
 data HanjaPhoneticization = HanjaPhoneticization
     { -- | A function to phoneticize a hanja word.
       -- Use 'phoneticizeHanjaWordWithInitialSoundLaw' for South Korean
       -- orthography, or 'phoneticizeHanjaWord' for North Korean orthography.
-      phoneticizer :: Text -> Text
+      phoneticizer :: HanjaWordPhoneticizer
       -- | A function to render a hanja word.  See also 'HanjaWordRenderer'.
     , wordRenderer :: HanjaWordRenderer
       -- | Whether to insert some HTML comments that contain useful information
@@ -51,13 +59,25 @@ data HanjaPhoneticization = HanjaPhoneticization
     , debugComment :: Bool
     }
 
--- | A function to render a hanja word.
+-- | A function to phoneticize a Sino-Korean (i.e., hanja) word (漢字語)
+-- into hangul letters.
+-- See also 'phoneticizeHanjaWord', 'phoneticizeHanjaWordWithInitialSoundLaw',
+-- and 'withDictionary'.
+type HanjaWordPhoneticizer
+    = Text  -- ^ A Sino-Korean (i.e., hanja) word (漢字語) to phoneticize.
+    -> Text -- ^ Hangul letters that phoneticize the given Sino-Korean word.
+
+-- | A function to render a Sino-Korean (i.e., hanja) word (漢字語).
 -- Choose one in 'hangulOnly', 'hanjaInParentheses', and 'hanjaInRuby'.
 type HanjaWordRenderer
-  = HtmlTagStack
-  -> Text
-  -> Text
-  -> [HtmlEntity]
+    = HtmlTagStack
+    -- ^ Where rendered HTML entities get interleaved into.
+    -> Text
+    -- ^ A Sino-Korean (i.e., hanja) word (漢字語) to render.
+    -> Text
+    -- ^ Hangul letters that phoneticized the Sino-Korean word.
+    -> [HtmlEntity]
+    -- ^ Rendered HTML entities.
 
 -- | Renders a word in hangul-only, no hanja at all (e.g., @안녕히@).
 hangulOnly :: HanjaWordRenderer
@@ -206,13 +226,13 @@ analyzeHanjaText text' =
 --
 -- >>> :set -XOverloadedStrings
 -- >>> phoneticizeHanjaWord "漢字"
--- "\54620\51088"
+-- "한자"
 --
 -- Note that it does not apply Initial Sound Law (頭音法則):
 --
 -- >>> phoneticizeHanjaWord  "來日"
--- "\47000\51068"
-phoneticizeHanjaWord :: Text -> Text
+-- "래일"
+phoneticizeHanjaWord :: HanjaWordPhoneticizer
 phoneticizeHanjaWord =
     Data.Text.map phoneticizeHanjaChar
 
@@ -221,10 +241,10 @@ phoneticizeHanjaWord =
 --
 -- >>> :set -XOverloadedStrings
 -- >>> phoneticizeHanjaWordWithInitialSoundLaw  "來日"
--- "\45236\51068"
+-- "내일"
 -- >>> phoneticizeHanjaWordWithInitialSoundLaw  "未來"
--- "\48120\47000"
-phoneticizeHanjaWordWithInitialSoundLaw :: Text -> Text
+-- "미래"
+phoneticizeHanjaWordWithInitialSoundLaw :: HanjaWordPhoneticizer
 phoneticizeHanjaWordWithInitialSoundLaw word =
     case parseOnly (parser <* endOfInput) word of
         Left _ -> word
@@ -292,15 +312,81 @@ phoneticizeHanjaWordWithInitialSoundLaw word =
         "零一壹壱弌夁二貳贰弐弍貮三參叁参弎叄四肆䦉五伍六陸陆陸七柒漆八捌" ++
         "九玖十拾百佰陌千仟阡萬万億兆京垓秭穰溝澗"
 
+-- | Represents a dictionary that has hanja keys and values of their
+-- corresponding hangul readings, e.g., @[("敗北", "패배")]@.
+type HanjaDictionary = Trie.Trie Text
+
+-- | Reads a hanja word according to the given dictionary, or falls back to
+-- the other phoneticizer if there is no such word in the dictionary.
+--
+-- It's basically replace one with one:
+--
+-- >>> :set -XOverloadedLists -XOverloadedStrings
+-- >>> let phone = withDictionary [("自轉車", "자전거")] phoneticizeHanjaWord
+-- >>> phone "自轉車"
+-- "자전거"
+--
+-- But, if it faces any words or characters that are not registered in
+-- the dictionary, it does the best to interpolate prefixes/infixes/suffixes
+-- using the fallback phoneticizer:
+--
+-- >>> phone "自轉車道路"
+-- "자전거도로"
+-- >>> phone "二輪自轉車"
+-- "이륜자전거"
+withDictionary
+    :: HanjaDictionary
+    -- ^ Hangul readings of Sino-Korean words.
+    -> HanjaWordPhoneticizer
+    -- ^ A fallback phoneticize for unregistered words.
+    -- E.g., 'phoneticizeHanjaWordWithInitialSoundLaw'.
+    -> HanjaWordPhoneticizer
+    -- ^ A combined phoneticizer.
+withDictionary _ _ "" = ""
+withDictionary dic fallback word =
+    case matches of
+        [] ->
+            fallback word
+        (replaced, rest) : _ ->
+            if Data.Text.null rest
+            then replaced
+            else replaced `append` withDictionary dic fallback rest
+  where
+    lookupDic :: Text -> Maybe Text
+    lookupDic = (`Trie.lookup` dic)
+    tries :: [(Text, Text)]
+    tries =
+        [Data.Text.splitAt pos word | pos <- [0..Data.Text.length word]]
+    patterns :: Text -> [Text]
+    patterns word' =
+        word' : case unsnoc word' of
+            Just (next, _) -> patterns next
+            Nothing -> []
+    matchTries :: [Maybe (Text, Text, Text)]
+    matchTries =
+        (`Prelude.map` tries) $ \ (unmatched, wd) ->
+            case [(p, m) | p <- patterns wd, m <- maybeToList (lookupDic p)] of
+                [] -> Nothing
+                pair : _ -> Just
+                    ( unmatched
+                    , snd pair
+                    , Data.Text.drop (Data.Text.length $ fst pair) wd
+                    )
+    matches :: [(Text, Text)]
+    matches =
+        [ (fallback unmatched `append` matched, rest)
+        | Just (unmatched, matched, rest) <- matchTries
+        ]
+
 -- | Reads a hanja character as a hangul character.
 --
 -- >>> phoneticizeHanjaChar '漢'
--- '\54620'
+-- '한'
 --
 -- Note that it does not follow Initial Sound Law (頭音法則):
 --
 -- >>> phoneticizeHanjaChar '六'
--- '\47449'
+-- '륙'
 phoneticizeHanjaChar :: Char -> Char
 phoneticizeHanjaChar c = fromMaybe c $ do
     readings <- lookup c kHangulData
@@ -327,7 +413,7 @@ withBatchim hangul final = do
 -- | Converts a hangul character according to Initial Sound Law (頭音法則).
 --
 -- >>> convertInitialSoundLaw '념'
--- '\50684'
+-- '염'
 --
 -- If an input is not a hangul syllable or a syllable is not applicable to
 -- the law it returns the given input without change:
@@ -335,7 +421,7 @@ withBatchim hangul final = do
 -- >>> convertInitialSoundLaw 'A'
 -- 'A'
 -- >>> convertInitialSoundLaw '가'
--- '\44032'
+-- '가'
 convertInitialSoundLaw :: Char -> Char
 convertInitialSoundLaw sound = fromMaybe sound $ do
     (pattern', final) <- withoutBatchim sound
@@ -347,9 +433,9 @@ convertInitialSoundLaw sound = fromMaybe sound $ do
 -- because Initial Sound Law (頭音法則) is not a bijective function.
 --
 -- >>> revertInitialSoundLaw '예'
--- fromList "\47168"
+-- fromList "례"
 -- >>> revertInitialSoundLaw '염'
--- fromList "\45392\47156"
+-- fromList "념렴"
 --
 -- It returns an empty set if an input is not applicable to the law:
 --

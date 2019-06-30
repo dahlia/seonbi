@@ -24,6 +24,10 @@ import Data.Map.Strict
 import Data.Set hiding (empty)
 import System.FilePath (takeDirectory, (</>))
 
+-- $setup
+-- >>> import qualified Text.Show.Unicode
+-- >>> :set -interactive-print=Text.Show.Unicode.uprint
+
 -- | Maps all Hanja characters to their possible readings.
 type KHangulData = Map Char HanjaReadings
 
@@ -93,6 +97,6 @@ kHangulData' = eitherDecode $
 -- >>> import Data.Map.Strict as M
 -- >>> let Just entries = M.lookup '天' kHangulData
 -- >>> entries
--- fromList [('\52380',HanjaReadingCitation KS_X_1001 (fromList [Education]))]
+-- fromList [('천',HanjaReadingCitation KS_X_1001 (fromList [Education]))]
 kHangulData :: KHangulData
 kHangulData = fromRight empty kHangulData'

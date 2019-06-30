@@ -44,6 +44,7 @@ library:
   - data-default >= 0.2 && < 1
   - filepath >= 1 && < 2
   - file-embed >= 0.0.10 && < 0.0.12
+  - text-trie >= 0.2.5 && < 0.3
 executables:
   seonbi:
     main: Main.hs
@@ -69,6 +70,7 @@ tests:
     - doctest-discover
     - QuickCheck
     - seonbi
+    - unicode-show
   spec:
     main: Spec.hs
     source-dirs: test
