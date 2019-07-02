@@ -270,6 +270,22 @@ spec = do
                 , HtmlEndTag [] Ruby
                 , HtmlText [] "했을 때"
                 ]
+        it "disambiguate homophones" $ do
+            let conf = def
+                    { wordRenderer = hangulOnly
+                    , homophoneRenderer = hanjaInParentheses
+                    }
+            let phone = normalizeText . phoneticizeHanja conf
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "同音 異義語 例: 連霸와 連敗"
+                    , HtmlEndTag [] P
+                    ]
+            phone input `shouldBe` normalizeText
+                [ HtmlStartTag [] P ""
+                , HtmlText [P] "동음 이의어 예: 연패(連霸)와 연패(連敗)"
+                , HtmlEndTag [] P
+                ]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'

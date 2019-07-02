@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -39,6 +40,7 @@ import Data.Text hiding (concatMap)
 import Text.Seonbi.Hangul
 import Text.Seonbi.Html
 import Text.Seonbi.Html.TagStack (push)
+import Text.Seonbi.Html.TextNormalizer
 import qualified Text.Seonbi.Trie as Trie
 import Text.Seonbi.Unihan.KHangul
 
@@ -53,6 +55,11 @@ data HanjaPhoneticization = HanjaPhoneticization
       phoneticizer :: HanjaWordPhoneticizer
       -- | A function to render a hanja word.  See also 'HanjaWordRenderer'.
     , wordRenderer :: HanjaWordRenderer
+      -- | A function to render a hanja word which should be disambiguated.
+      -- It's used instead of 'wordRenderer' when two or more words in
+      -- a text have the same hangul reading but actually are dictinct
+      -- each other in hanja characters, e.g., 小數/素數 (소수).
+    , homophoneRenderer :: HanjaWordRenderer
       -- | Whether to insert some HTML comments that contain useful information
       -- for debugging into the result.  This does not affect the rendering
       -- of the result HTML, but only the HTML code.
@@ -117,6 +124,7 @@ instance Default HanjaPhoneticization where
     def = HanjaPhoneticization
         { phoneticizer = phoneticizeHanjaWordWithInitialSoundLaw
         , wordRenderer = hangulOnly
+        , homophoneRenderer = hanjaInParentheses
         , debugComment = False
         }
 
@@ -132,95 +140,72 @@ phoneticizeHanja
     -- ^ HTML entities that have no hanja words but hangul-only words instead.
 phoneticizeHanja HanjaPhoneticization { phoneticizer
                                       , wordRenderer
+                                      , homophoneRenderer
                                       , debugComment
-                                      } =
-    concatMap transform . normalizeText
+                                      }
+                 entities =
+    (`concatMap` normalized) $ \ case
+        Left e' ->
+            [e']
+        Right (stack, hanja, hangul) ->
+            if Data.Set.size (findWithDefault [] hangul frequencyDict) > 1
+            then homophoneRenderer' stack hanja hangul
+            else wordRenderer' stack hanja hangul
   where
-    transform :: HtmlEntity -> [HtmlEntity]
+    frequencyDict :: Map Text (Set Text)
+    frequencyDict = Data.Map.Strict.fromListWith
+        Data.Set.union
+        [(hangul, [hanja]) | Right (_, hanja, hangul) <- normalized]
+    normalized :: [Either HtmlEntity (HtmlTagStack, Text, Text)]
+    normalized = Data.List.concat
+        [ case e of
+            Left _ ->
+                [e]
+            Right (stack, hanja, hangul) ->
+                case commonPrefixes hanja hangul of
+                    Nothing ->
+                        [e]
+                    Just (prefix, hanja', hangul') ->
+                        [ Left $ HtmlText stack (escapeHtmlEntities prefix)
+                        , Right (stack, hanja', hangul')
+                        ]
+        | e <- concatMap transform entities
+        ]
+    transform :: HtmlEntity -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
     transform entity@HtmlText { tagStack = tagStack', rawText = rawText' } =
         case analyzeHanjaText rawText' of
-            Nothing -> [entity { rawText = rawText' }]
-            Just pairs -> concatMap (transformHanjaText tagStack') pairs
-    transform entity = [entity]
-    transformHanjaText :: HtmlTagStack -> (Text, Text) -> [HtmlEntity]
-    transformHanjaText tagStack' (hanja, text')
-      | debugComment =
-            HtmlComment tagStack' (" Hanja: " `append` hanja)
-                : hangulEntities ++
-                (HtmlComment tagStack' " /Hanja " : textEntities)
-      | otherwise =
-            hangulEntities ++ textEntities
-      where
-        htmlText :: Text -> HtmlEntity
-        htmlText = HtmlText tagStack'
-        texts :: [Text]
-        texts = splitOn "]]>" text'
-        hangul :: Text
-        hangul = phoneticizer hanja
-        hangulEntities :: [HtmlEntity]
-        hangulEntities = mapHanjaWords
-            (wordRenderer tagStack')
-            ((: []) . HtmlCdata tagStack')
-            hanja
-            hangul
-        textEntities :: [HtmlEntity]
-        textEntities = (htmlText <$> Prelude.take 1 texts) ++ Prelude.concat
-            [ [htmlText "]]&gt;", HtmlCdata tagStack' t]
-            | t <- Prelude.drop 1 texts
-            ]
-        mapHanjaWords :: (Text -> Text -> [HtmlEntity])
-                      -> (Text -> [HtmlEntity])
-                      -> Text
-                      -> Text
-                      -> [HtmlEntity]
-        mapHanjaWords renderHanja renderHangul hanja' hangul'
-          | Data.Text.null hanja' =
-                []
-          | len /= Data.Text.length hangul' =
-                renderHanja hanja' hangul'
-          | otherwise =
-                renderedHanja ++
-                    let restHanja = drop' hanja'
-                        restHangul = drop' hangul'
-                        (prefix', nextHanja, nextHangul) =
-                            case commonPrefixes restHanja restHangul of
-                                Nothing -> ([], restHanja, restHangul)
-                                Just ("", restHanja', restHangul') ->
-                                    ([], restHanja', restHangul')
-                                Just (prefix, restHanja', restHangul') ->
-                                    ( renderHangul prefix
-                                    , restHanja'
-                                    , restHangul'
-                                    )
-                    in
-                        prefix' ++ mapHanjaWords
-                            renderHanja
-                            renderHangul
-                            nextHanja
-                            nextHangul
-          where
-            len :: Int
-            len = Data.Text.length hanja'
-            wordLen :: Int
-            wordLen = fromMaybe len $
-                Data.List.find
-                    (\ i -> index hanja' i == index hangul' i)
-                    ([0..(len - 1)] :: [Int])
-            take' :: Text -> Text
-            take' = Data.Text.take wordLen
-            drop' :: Text -> Text
-            drop' = Data.Text.drop wordLen
-            renderedHanja :: [HtmlEntity]
-            renderedHanja
-              | wordLen > 0 = renderHanja (take' hanja') (take' hangul')
-              | otherwise = []
+            Nothing -> [Left $ entity { rawText = rawText' }]
+            Just pairs ->
+                [ if trueIfHanja
+                  then Right (tagStack', text, phoneticizer text)
+                  else Left (entity { rawText = escapeHtmlEntities text })
+                | (trueIfHanja, text) <- pairs
+                ]
+    transform entity =
+        [Left entity]
+    -- FIXME: This should be public:
+    debugRenderer :: HanjaWordRenderer -> HanjaWordRenderer
+    debugRenderer render stack hanja hangul =
+        HtmlComment stack (" Hanja: " `append` hanja)
+            : render stack hanja hangul ++ [HtmlComment stack " /Hanja "]
+    wordRenderer' :: HanjaWordRenderer
+    wordRenderer'
+      | debugComment = debugRenderer wordRenderer
+      | otherwise = wordRenderer
+    homophoneRenderer' :: HanjaWordRenderer
+    homophoneRenderer'
+      | debugComment = debugRenderer homophoneRenderer
+      | otherwise = homophoneRenderer
 
-analyzeHanjaText :: Text -> Maybe [(Text, Text)]
+analyzeHanjaText :: Text -> Maybe [(Bool, Text)]
 analyzeHanjaText text' =
     case parseOnly (textParser <* endOfInput) text' of
         Left _ -> Nothing
-        Right [("", _)] -> Nothing
-        Right pairs -> Just pairs
+        Right pairs -> Just
+            [ (trueIfHanja, text)
+            | (trueIfHanja, text) <- pairs
+            , not (Data.Text.null text)
+            ]
 
 -- | Reads a hanja word and returns a corresponding hangul word.
 --
@@ -451,8 +436,8 @@ revertInitialSoundLaw sound = fromMaybe Data.Set.empty $ do
     (<&>) :: Functor f => f a -> (a -> b) -> f b
     (<&>) = flip fmap
 
-textParser :: Parser [(Text, Text)]
-textParser = many' $ do
+textParser :: Parser [(Bool, Text)]
+textParser = fmap Data.List.concat $ many' $ do
     hanjas <- many' $ try $ do
         c <- unnamedCharRef
         unless (isHanjaOrDigit c) (fail "not a hanja")
@@ -463,7 +448,7 @@ textParser = many' $ do
     let hanjaText = pack hanjas `append` hanjas'
     let text' = pack chars `append` chars'
     when (Data.Text.null $ hanjaText `append` text') (fail "parsed nothing")
-    return (hanjaText, text')
+    return [(True, hanjaText), (False, text')]
   where
     isHanjaOrDigit :: Char -> Bool
     isHanjaOrDigit c =
