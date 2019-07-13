@@ -111,6 +111,22 @@ spec =
                 , HtmlStartTag { tagStack = [P], tag = Em, rawAttributes = "" }
                 ]
 
+        it "parses HTML start tags having attributes" $ do
+            scanHtml "<p class=foo>" `shouldBeDone`
+                [ HtmlStartTag
+                    { tagStack = []
+                    , tag = P
+                    , rawAttributes = " class=foo"
+                    }
+                ]
+            scanHtml "<a href=\"https://example.com/\">" `shouldBeDone`
+                [ HtmlStartTag
+                    { tagStack = []
+                    , tag = A
+                    , rawAttributes = " href=\"https://example.com/\""
+                    }
+                ]
+
         it "parses html end tags" $ do
             scanHtml "<p></p>" `shouldBeDone`
                 [ HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }

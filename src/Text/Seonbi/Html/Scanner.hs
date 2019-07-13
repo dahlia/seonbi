@@ -127,7 +127,7 @@ startTag tagStack' = do
             c <- takeWhile (/= '\'')
             e <- char '\''
             return (Data.Text.cons s $ Data.Text.snoc c e)
-        , takeWhile1 $ \ c -> c /= '/' && c /= '>'
+        , takeWhile1 $ \ c -> c /= '"' && c /= '\'' && c /= '/' && c /= '>'
         ]
     selfClosing <- option ' ' $ char '/'
     _ <- char '>'
