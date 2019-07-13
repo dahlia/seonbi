@@ -34,6 +34,7 @@ spec =
                 , ellipsis = False
                 , hanja = Nothing
                 , xhtml = False
+                , debugLogger = Nothing
                 }
         transformHtmlLazyText noOp input `shouldBe` Just input
         let koKr = noOp

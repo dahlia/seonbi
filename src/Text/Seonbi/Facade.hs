@@ -28,10 +28,12 @@ import Text.Seonbi.Punctuation
 import Text.Seonbi.Trie
 
 -- | Transformation settings.
-data Configuration = Configuration 
-    { -- | An option to decide how quotation marks are rendered.
+data Monad m => Configuration m a = Configuration 
+    { -- | An optional debugging logger to print its internal AST.
+      debugLogger :: Maybe (HtmlEntity -> m a)
+      -- | An option to decide how quotation marks are rendered.
       -- If 'Nothing' no quotes are transformed.
-      quote :: Maybe QuoteOption
+    , quote :: Maybe QuoteOption
       -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@)
       -- into proper citing quotes (e.g., @《한겨레》).
     , cite :: Maybe CiteOption
@@ -44,7 +46,19 @@ data Configuration = Configuration
     , hanja :: Maybe HanjaOption
       -- | Whether to take and result in XHTML instead of HTML.
     , xhtml :: Bool
-    } deriving (Eq, Show)
+    }
+
+instance Monad m => Show (Configuration m a) where
+    show c = "Configuration {\n" <>
+        "  debugLogger = " <>
+            maybe "Nothing" (const "Just ...") (debugLogger c) <> "," <>
+        "  quote = " <> show (quote c) <> "," <>
+        "  arrow = " <> show (cite c) <> "," <>
+        "  cite = " <> show (arrow c) <> "," <>
+        "  ellipsis = " <> show (ellipsis c) <> "," <>
+        "  hanja = " <> show (hanja c) <> "," <>
+        "  xhtml = " <> show (xhtml c) <>
+        "}"
 
 -- | An option to decide how quotation marks are rendered.
 data QuoteOption
@@ -127,25 +141,28 @@ data HanjaReadingOption = HanjaReadingOption
 
 -- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
 -- HTML text.
-transformHtmlText :: Configuration -> Text -> Maybe Text
+transformHtmlText :: Monad m => Configuration m a -> Text -> m Text
 transformHtmlText config =
     fmap LT.toStrict . transformHtmlLazyText config . LT.fromStrict
 
 -- | A lazy version of 'transformHtmlText' function.
-transformHtmlLazyText :: Configuration -> LT.Text -> Maybe LT.Text
-transformHtmlLazyText config@Configuration { xhtml } htmlText =
+transformHtmlLazyText :: Monad m => Configuration m a -> LT.Text -> m LT.Text
+transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
     case scanHtml htmlText of
-        Done "" input ->
-            Just $ printHtml' $ toTransformer config input
+        Done "" input -> do
+            case debugLogger of
+                Just logger -> mapM_ logger input
+                Nothing -> return ()
+            return $ printHtml' $ toTransformer config input
         _ ->
-            Nothing
+            fail "failed to parse input"
   where
     printHtml' :: [HtmlEntity] -> LT.Text
     printHtml'
       | xhtml = printXhtml
       | otherwise = printHtml
 
-toTransformers :: Configuration -> [[HtmlEntity] -> [HtmlEntity]]
+toTransformers :: Monad m => Configuration m a -> [[HtmlEntity] -> [HtmlEntity]]
 toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
     [ case quote of
         Nothing -> id
@@ -200,6 +217,6 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
                 }
     ]
 
-toTransformer :: Configuration -> [HtmlEntity] -> [HtmlEntity]
+toTransformer :: Monad m => Configuration m a -> [HtmlEntity] -> [HtmlEntity]
 toTransformer =
     Prelude.foldl (.) id . toTransformers

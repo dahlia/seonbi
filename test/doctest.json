@@ -5,5 +5,8 @@
     "src/Text",
     "src/Text/Seonbi",
     "src/Text/Seonbi/Html"
+  ],
+  "doctestOptions": [
+    "-XHaskell2010"
   ]
 }

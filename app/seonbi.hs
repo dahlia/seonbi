@@ -12,6 +12,7 @@ import Data.Version
 import Prelude hiding (getContents, putStr)
 import System.Exit
 import System.IO (hPutStrLn, stderr)
+import System.IO.Error
 
 import Cases
 import Codec.Text.IConv
@@ -24,6 +25,7 @@ import Text.Html.Encoding.Detection (detect)
 
 import qualified Paths_seonbi as Meta
 import Text.Seonbi.Facade
+import Text.Seonbi.Html.Entity
 
 toUnicode :: EncodingName -> ByteString -> Text
 toUnicode encodingName =
@@ -59,10 +61,10 @@ normalizeEncodingName =
 
 data Seonbi = Seonbi
     { encoding :: String
-    , config :: Configuration
+    , config :: Configuration IO ()
     , debug :: Bool
     , version :: Bool
-    } deriving (Eq, Show)
+    } deriving (Show)
 
 -- | Similar to 'auto', except it uses @spinal-case@ instead of @PascalCase@.
 enum :: Read a => ReadM a
@@ -92,7 +94,7 @@ parser = Seonbi
         <> value ""
         <> help "Character encoding (e.g., UTF-8, EUC-KR)"
         )
-    <*> ( Configuration
+    <*> ( Configuration Nothing
         <$> ( flag' Nothing
                 ( long "no-quote"
                 <> short 'Q'
@@ -189,9 +191,24 @@ parserInfo = info (parser <**> helper)
     <> progDesc "Korean typographic adjustment processor"
     )
 
+showHtml :: HtmlEntity -> T.Text
+showHtml HtmlStartTag { tag,  rawAttributes } =
+    T.concat ["<", T.pack (show tag), " ", rawAttributes, ">"]
+showHtml HtmlEndTag { tag } =
+    T.concat ["</", T.pack (show tag), ">"]
+showHtml HtmlText { rawText } =
+    T.concat ["!text  ", rawText]
+showHtml HtmlCdata { text } =
+    T.concat ["!cdata ", text]
+showHtml HtmlComment { comment } =
+    T.concat ["<!-- ", comment, " -->"]
+
 main :: IO ()
 main = do
     options@Seonbi { encoding, config, debug, version } <- execParser parserInfo
+    let config' = config
+            { debugLogger = if debug then Just logger else Nothing
+            }
     when version $ do
         Prelude.putStrLn $ showVersion Meta.version
         exitSuccess
@@ -203,10 +220,10 @@ main = do
             "" -> fromMaybe "UTF-8" $ detect contents
             enc -> enc
     debugPrint ("encoding: " ++ encodingName)
-    let result = transformHtmlLazyText config $ toUnicode encodingName contents
-    case result of
-        Just output ->
-            putStr $ fromUnicode encodingName output
-        Nothing -> do
-            hPutStrLn stderr "error: failed to parse input"
-            exitFailure
+    output <- catchIOError
+        (transformHtmlLazyText config' $ toUnicode encodingName contents)
+        (\ e -> hPutStrLn stderr (ioeGetErrorString e) >> exitFailure)
+    putStr $ fromUnicode encodingName output
+  where
+    logger :: HtmlEntity -> IO ()
+    logger = hPutStrLn stderr . T.unpack . showHtml
