@@ -1,7 +1,6 @@
 {
   "ignore": [],
   "sourceFolders": [
-    "app",
     "src",
     "src/Text",
     "src/Text/Seonbi",
