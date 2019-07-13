@@ -286,6 +286,11 @@ spec = do
                 , HtmlText [P] "동음 이의어 예: 연패(連霸)와 연패(連敗)"
                 , HtmlEndTag [] P
                 ]
+        it "does not transform numeral-only words" $ do
+            let conf = def { wordRenderer = hanjaInParentheses }
+            let phone = normalizeText . phoneticizeHanja conf
+            phone [HtmlText [] "4·19革命"] `shouldBe`
+                [HtmlText [] "4·19혁명(革命)"]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'

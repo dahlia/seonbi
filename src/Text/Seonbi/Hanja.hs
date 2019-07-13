@@ -166,9 +166,12 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
                     Nothing ->
                         [e]
                     Just (prefix, hanja', hangul') ->
-                        [ Left $ HtmlText stack (escapeHtmlEntities prefix)
-                        , Right (stack, hanja', hangul')
-                        ]
+                        let prefixEntity = Left $
+                                HtmlText stack (escapeHtmlEntities prefix)
+                        in
+                            if Data.Text.null hanja'
+                            then [prefixEntity]
+                            else [prefixEntity, Right (stack, hanja', hangul')]
         | e <- concatMap transform entities
         ]
     transform :: HtmlEntity -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
