@@ -60,8 +60,8 @@ data CitationQuotes = CitationQuotes
       htmlElement :: Maybe (HtmlTag, HtmlRawAttrs)
     } deriving (Eq, Show)
 
--- | Cite a title using angle quotes,
--- e.g., 《나비와 엉겅퀴》 or 〈枾崎의 바다〉.
+-- | Cite a title using angle quotes, used by South Korean orthography in
+-- horizontal writing (橫書), e.g., 《나비와 엉겅퀴》 or 〈枾崎의 바다〉.
 angleQuotes :: CitationQuotes
 angleQuotes = CitationQuotes
     { title = ("&#12298;", "&#12299;")
@@ -69,7 +69,8 @@ angleQuotes = CitationQuotes
     , htmlElement = Just (Cite, "")
     }
 
--- | Cite a title using corner brackets,
+-- | Cite a title using corner brackets, used by South Korean orthography in
+-- vertical writing (縱書) and Japanese orthography,
 -- e.g., 『나비와 엉겅퀴』 or 「枾崎의 바다」.
 cornerBrackets :: CitationQuotes
 cornerBrackets = CitationQuotes
@@ -239,7 +240,9 @@ data TitlePunct
 -- - @['DoubleArrow']@: Transform double arrows as well as single arrows.
 -- - @['LeftRight', 'DoubleArrow']@: Transform all types of arrows.
 data ArrowTransformationOption
+    -- | A bidirect arrow (e.g., ↔︎).
     = LeftRight
+    -- | An arrow which has two lines (e.g., ⇒).
     | DoubleArrow
     deriving (Eq, Ord, Show)
 
@@ -411,24 +414,32 @@ data Quotes = Quotes
     , doubleQuotes :: QuotePair
     } deriving (Eq, Ord, Show)
 
+-- | A pair of an opening quote and a closing quote.
 data QuotePair
+    -- | Wrap the quoted text with a pair of punctuation characters.
     = QuotePair Text Text
     -- | Wrap the quoted text (HTML elements) with an element like @\<q>@ tag.
     | HtmlElement HtmlTag HtmlRawAttrs
     deriving (Eq, Ord, Show)
 
+-- | English-style curved quotes (@‘@: U+2018, @’@: U+2019, @“@: U+201C,
+-- @”@: U+201D), which are used by South Korean orthography.
 curvedQuotes :: Quotes
 curvedQuotes = Quotes
     { singleQuotes = QuotePair "&lsquo;" "&rsquo;"
     , doubleQuotes = QuotePair "&ldquo;" "&rdquo;"
     }
 
+-- | East Asian guillemets (@〈@: U+3008, @〉@: U+3009, @《@: U+300A, @》@:
+-- U+300B), which are used by North Korean orthography.
 guillemets :: Quotes
 guillemets = Quotes
     { singleQuotes = QuotePair "&#x3008;" "&#x3009;"
     , doubleQuotes = QuotePair "&#x300a;" "&#x300b;"
     }
 
+-- | Use English-style curved quotes (@‘@: U+2018, @’@: U+2019) for single
+-- quotes, and HTML @\<q\>@ tags for double quotes.
 curvedSingleQuotesWithQ :: Quotes
 curvedSingleQuotesWithQ = Quotes
     { singleQuotes = QuotePair "&lsquo;" "&rsquo;"
