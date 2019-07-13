@@ -180,9 +180,10 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
             Nothing -> [Left $ entity { rawText = rawText' }]
             Just pairs ->
                 [ if trueIfHanja
-                  then Right (tagStack', text, phoneticizer text)
-                  else Left (entity { rawText = escapeHtmlEntities text })
-                | (trueIfHanja, text) <- pairs
+                  then Right (tagStack', htmlText, phoneticizer htmlText)
+                  else Left (entity { rawText = htmlText })
+                -- Note that htmlText here can have HTML entities.
+                | (trueIfHanja, htmlText) <- pairs
                 ]
     transform entity =
         [Left entity]
@@ -441,15 +442,30 @@ revertInitialSoundLaw sound = fromMaybe Data.Set.empty $ do
 
 textParser :: Parser [(Bool, Text)]
 textParser = fmap Data.List.concat $ many' $ do
-    hanjas <- many' $ try $ do
+    -- We have 3 passes to optimize by utilizing takeWhile instead of many'
+    hanjaEntities <- many' $ try $ do
         c <- unnamedCharRef
         unless (isHanjaOrDigit c) (fail "not a hanja")
         return c
-    hanjas' <- Data.Attoparsec.Text.takeWhile isHanjaOrDigit
-    chars <- many' unnamedCharRef
-    chars' <- takeTill isHanjaOrDigit
-    let hanjaText = pack hanjas `append` hanjas'
-    let text' = pack chars `append` chars'
+    hanjaCharsText <- Data.Attoparsec.Text.takeWhile isHanjaOrDigit
+    hanjaChars <- many' $ try $ do
+        c <- unnamedCharRef <|> anyChar
+        unless (isHanjaOrDigit c) (fail "not a hanja")
+        return c
+    -- Note that the parsed result can still have HTML entities; these
+    -- are never touched.
+    entities <- many' $ try $ do
+        c <- unnamedCharRef
+        when (isHanjaOrDigit c) (fail "a hanja")
+        return c
+    charsText <- takeTill isHanjaOrDigit
+    chars <- many' $ try $ do
+        c <- unnamedCharRef <|> anyChar
+        when (isHanjaOrDigit c) (fail "a hanja")
+        return c
+    let hanjaText = Data.Text.concat
+            [pack hanjaEntities, hanjaCharsText, pack hanjaChars]
+    let text' = Data.Text.concat [pack entities, charsText, pack chars]
     when (Data.Text.null $ hanjaText `append` text') (fail "parsed nothing")
     return [(True, hanjaText), (False, text')]
   where
@@ -480,7 +496,6 @@ textParser = fmap Data.List.concat $ many' $ do
         '\x2ceb0' <= c && c <= '\x2ebe0' ||
         -- CJK Compatibility Ideographs Supplement
         '\x2f800' <= c && c <= '\x2fa1f'
-
     unnamedCharRef :: Parser Char
     unnamedCharRef = do
         _ <- char '&'

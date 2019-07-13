@@ -291,6 +291,11 @@ spec = do
             let phone = normalizeText . phoneticizeHanja conf
             phone [HtmlText [] "4·19革命"] `shouldBe`
                 [HtmlText [] "4·19혁명(革命)"]
+        it "transforms hanja characters in HTML entities" $ do
+            let phone = normalizeText . phoneticizeHanja def
+            phone [HtmlText [] "&lt;1996&#x5e74; 그들이 地球를 支配했을 때&gt;"]
+                `shouldBe`
+                    [HtmlText [] "&lt;1996년 그들이 지구를 지배했을 때&gt;"]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'
