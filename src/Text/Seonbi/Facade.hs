@@ -12,6 +12,8 @@ module Text.Seonbi.Facade
     , HanjaReadingOption (..)
     , HanjaRenderingOption (..)
     , QuoteOption (..)
+    , ko_KP
+    , ko_KR
     , transformHtmlText
     , transformHtmlLazyText
     ) where
@@ -27,7 +29,11 @@ import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
 import Text.Seonbi.Trie
 
--- | Transformation settings.
+-- | Transformation settings.  For the most cases, you could use one of
+-- presets:
+--
+-- - 'ko_KR'
+-- - 'ko_KP'
 data Monad m => Configuration m a = Configuration 
     { -- | An optional debugging logger to print its internal AST.
       debugLogger :: Maybe (HtmlEntity -> m a)
@@ -74,7 +80,7 @@ data QuoteOption
     deriving (Enum, Eq, Read, Show)
 
 -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@) into
--- proper citing quotes (e.g., @《한겨레》).
+-- proper citing quotes (e.g., @《한겨레》@).
 data CiteOption
     -- | Cite a title using angle quotes, used by South Korean orthography in
     -- horizontal writing (橫書), e.g., 《나비와 엉겅퀴》 or 〈枾崎의 바다〉.
@@ -220,3 +226,36 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
 toTransformer :: Monad m => Configuration m a -> [HtmlEntity] -> [HtmlEntity]
 toTransformer =
     Prelude.foldl (.) id . toTransformers
+
+-- | Preset 'Configuration' for South Korean orthography.
+ko_KR :: Monad m => Configuration m a
+ko_KR = Configuration
+    { debugLogger = Nothing
+    , quote = Just CurvedQuotes
+    , cite = Just AngleQuotes
+    , arrow = Just ArrowOption { bidirArrow = True, doubleArrow = True }
+    , ellipsis = True
+    , hanja = Just HanjaOption
+        { rendering = DisambiguatingHanjaInParentheses
+        , reading = HanjaReadingOption
+            { dictionary = []
+            , initialSoundLaw = True
+            }
+        }
+    , xhtml = False
+    }
+
+-- | Preset 'Configuration' for North Korean orthography.
+ko_KP :: Monad m => Configuration m a
+ko_KP = ko_KR
+    { quote = Just Guillemets
+    , hanja = Just HanjaOption
+        { rendering = HangulOnly
+        , reading = HanjaReadingOption
+            { dictionary = []
+            , initialSoundLaw = False
+            }
+        }
+    }
+
+{- HLINT ignore "Use camelCase" -}

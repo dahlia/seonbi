@@ -6,6 +6,7 @@ module Main (main) where
 
 import Control.Monad
 import Data.Char
+import Data.List (intercalate)
 import Data.Maybe
 import Data.Proxy
 import Data.Version
@@ -17,6 +18,7 @@ import System.IO.Error
 import Cases
 import Codec.Text.IConv
 import Data.ByteString.Lazy
+import Data.Map.Strict
 import qualified Data.Text as T
 import Data.Text.Lazy
 import Data.Text.Lazy.Encoding
@@ -68,6 +70,24 @@ data Seonbi = Seonbi
     , input :: FilePath
     } deriving (Show)
 
+presets :: Map String (Configuration IO ())
+presets =
+    [ ("ko-kp", ko_KP)
+    , ("ko-kr", ko_KR)
+    ]
+
+preset :: ReadM (Configuration IO ())
+preset = eitherReader $ \ arg ->
+    case Data.Map.Strict.lookup (normalize <$> arg) presets of
+        Just c -> Right c
+        _ -> Left $ "no such preset: \"" ++ arg ++ "\""
+  where
+    normalize :: Char -> Char
+    normalize = Data.Char.toLower . hyphenize
+    hyphenize :: Char -> Char
+    hyphenize '_' = '-'
+    hyphenize c = c
+
 -- | Similar to 'auto', except it uses @spinal-case@ instead of @PascalCase@.
 enum :: Read a => ReadM a
 enum = eitherReader $ \ arg -> case reads (pascalize arg) of
@@ -105,85 +125,99 @@ parser = Seonbi
         <> value ""
         <> help "Character encoding (e.g., UTF-8, EUC-KR)"
         )
-    <*> ( Configuration Nothing
-        <$> ( flag' Nothing
-                ( long "no-quote"
-                <> short 'Q'
-                <> help "Do not transform any quotes at all"
-                )
-            <|> option (fmap Just enum)
-                ( long "quote"
-                <> short 'q'
-                <> metavar "QUOTE_STYLE"
-                <> value (Just CurvedQuotes)
-                <> help ("Quoting style.  Available styles: " ++
-                         enumKeywords (Proxy :: Proxy QuoteOption) ++
-                         "  [default: " ++ enumKeyword CurvedQuotes ++ "]")
-                )
+    <*> ( option preset
+            ( long "preset"
+            <> short 'p'
+            <> help ("Use a preset instead of below style settings (this " ++
+                     "resjects any other style options below).  " ++
+                     "Available presets: " ++
+                     Data.List.intercalate ", " (Data.Map.Strict.keys presets))
             )
-        <*> option (fmap Just enum)
-            ( long "cite"
-            <> short 'c'
-            <> metavar "CITE_STYLE"
-            <> value Nothing
-            <> help ("Transform citating quotes.  Available styles: " ++
-                     enumKeywords (Proxy :: Proxy CiteOption))
-            )
-        <*> ( flag' Nothing
-                ( long "no-arrow"
-                <> short 'A'
-                <> help "Do not transform any arrows at all"
-                )
-            <|> ( fmap Just . ArrowOption
-                <$> switch
-                    ( long "bidir-arrow"
-                    <> short 'b'
-                    <> help "Transform bi-directional arrows as well"
+        <|> ( Configuration Nothing
+            <$> ( flag' Nothing
+                    ( long "no-quote"
+                    <> short 'Q'
+                    <> help ("Do not transform any quotes at all.  " ++
+                             "This rejects -q/--quote option")
                     )
-                <*> switch
-                    ( long "double-arrow"
-                    <> short 'd'
-                    <> help "Transform double arrows as well"
+                <|> option (fmap Just enum)
+                    ( long "quote"
+                    <> short 'q'
+                    <> metavar "QUOTE_STYLE"
+                    <> value (Just CurvedQuotes)
+                    <> help ("Quoting style.  Available styles: " ++
+                             enumKeywords (Proxy :: Proxy QuoteOption) ++
+                             "  [default: " ++ enumKeyword CurvedQuotes ++ "]")
                     )
                 )
-            )
-        <*> switch
-            ( long "ellipsis"
-            <> short 'E'
-            <> help "Transform triple periods into a proper ellipsis"
-            )
-        <*> ( flag' Nothing 
-                ( long "maintain-hanja"
-                <> short 'H'
-                <> help "Leave Sino-Korean words as are"
+            <*> option (fmap Just enum)
+                ( long "cite"
+                <> short 'c'
+                <> metavar "CITE_STYLE"
+                <> value Nothing
+                <> help ("Transform citating quotes.  Available styles: " ++
+                         enumKeywords (Proxy :: Proxy CiteOption))
                 )
-            <|> ( fmap Just . HanjaOption
-                <$> option enum
-                    ( long "render-hanja"
-                    <> short 'r'
-                    <> metavar "RENDERING_STYLE"
-                    <> value DisambiguatingHanjaInParentheses
-                    <> help ("How to render Sino-Korean words.  " ++
-                             "Available styles: " ++
-                             enumKeywords (Proxy :: Proxy HanjaRenderingOption)
-                             ++ "  [default: " ++
-                             enumKeyword DisambiguatingHanjaInParentheses ++
-                             "]")
+            <*> ( flag' Nothing
+                    ( long "no-arrow"
+                    <> short 'A'
+                    <> help ("Do not transform any arrows at all.  " ++
+                             "This rejects -b/--bidir-arrow and " ++
+                             "-d/--double-arrow options")
                     )
-                <*> ( HanjaReadingOption []
-                    <$> flag True False 
-                        ( long "no-initial-sound-law"
-                        <> short 'I'
-                        <> help ("Do not apply Initial Sound Law (頭音法則) " ++
-                                 "Sino-Korean words")
+                <|> ( fmap Just . ArrowOption
+                    <$> switch
+                        ( long "bidir-arrow"
+                        <> short 'b'
+                        <> help "Transform bi-directional arrows as well"
+                        )
+                    <*> switch
+                        ( long "double-arrow"
+                        <> short 'd'
+                        <> help "Transform double arrows as well"
                         )
                     )
                 )
-            )
-        <*> switch
-            ( long "xhtml"
-            <> short 'x'
-            <> help "XHTML mode"
+            <*> switch
+                ( long "ellipsis"
+                <> short 'E'
+                <> help "Transform triple periods into a proper ellipsis"
+                )
+            <*> ( flag' Nothing 
+                    ( long "maintain-hanja"
+                    <> short 'H'
+                    <> help ("Leave Sino-Korean words as are.  This rejects " ++
+                             "-r/--render-hanja and " ++
+                             "-I/--no-initial-sound-law options")
+                    )
+                <|> ( fmap Just . HanjaOption
+                    <$> option enum
+                        ( long "render-hanja"
+                        <> short 'r'
+                        <> metavar "RENDERING_STYLE"
+                        <> value DisambiguatingHanjaInParentheses
+                        <> help ("How to render Sino-Korean words.  " ++
+                                 "Available styles: " ++
+                                 enumKeywords (Proxy :: Proxy HanjaRenderingOption)
+                                 ++ "  [default: " ++
+                                 enumKeyword DisambiguatingHanjaInParentheses ++
+                                 "]")
+                        )
+                    <*> ( HanjaReadingOption []
+                        <$> flag True False 
+                            ( long "no-initial-sound-law"
+                            <> short 'I'
+                            <> help ("Do not apply Initial Sound Law (頭音法則) " ++
+                                     "Sino-Korean words")
+                            )
+                        )
+                    )
+                )
+            <*> switch
+                ( long "xhtml"
+                <> short 'x'
+                <> help "XHTML mode"
+                )
             )
         )
     <*> switch

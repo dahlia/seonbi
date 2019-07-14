@@ -37,15 +37,4 @@ spec =
                 , debugLogger = Nothing
                 }
         transformHtmlLazyText noOp input `shouldBe` Just input
-        let koKr = noOp
-                { quote = Just CurvedQuotes
-                , cite = Just AngleQuotes
-                , hanja = Just $ HanjaOption
-                    { rendering = DisambiguatingHanjaInParentheses
-                    , reading = HanjaReadingOption
-                        { dictionary = []
-                        , initialSoundLaw = True
-                        }
-                    }
-                }
-        transformHtmlLazyText koKr input `shouldBe` Just output
+        transformHtmlLazyText ko_KR input `shouldBe` Just output
