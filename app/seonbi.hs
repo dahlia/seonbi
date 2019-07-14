@@ -9,7 +9,7 @@ import Data.Char
 import Data.Maybe
 import Data.Proxy
 import Data.Version
-import Prelude hiding (getContents, putStr)
+import Prelude hiding (getContents, putStr, readFile, writeFile)
 import System.Exit
 import System.IO (hPutStrLn, stderr)
 import System.IO.Error
@@ -60,10 +60,12 @@ normalizeEncodingName =
     Prelude.filter (\ c -> isAscii c && isAlphaNum c) . fmap Data.Char.toLower
 
 data Seonbi = Seonbi
-    { encoding :: String
+    { output :: FilePath
+    , encoding :: String
     , config :: Configuration IO ()
     , debug :: Bool
     , version :: Bool
+    , input :: FilePath
     } deriving (Show)
 
 -- | Similar to 'auto', except it uses @spinal-case@ instead of @PascalCase@.
@@ -88,6 +90,15 @@ enumKeywords _ = T.unpack $ T.intercalate ", " $
 parser :: Parser Seonbi
 parser = Seonbi
     <$> strOption
+        ( long "output"
+        <> short 'o'
+        <> metavar "FILE"
+        <> value "-"
+        <> help ("Output file path.  A hyphen (-) means standard output.  " ++
+                 "To specify an actual file named \"-\", prepend its " ++
+                 "relative path, e.g., \"./-\"  [default: -]")
+        )
+    <*> strOption
         ( long "encoding"
         <> short 'e'
         <> metavar "ENCODING"
@@ -177,16 +188,26 @@ parser = Seonbi
         )
     <*> switch
         ( long "debug"
+        <> hidden
         <> help "Debug mode"
         )
     <*> switch
         ( long "version"
         <> short 'v'
+        <> hidden
         <> help "Show version"
+        )
+    <**> helper
+    <*> argument str
+        ( metavar "FILE"
+        <> value "-"
+        <> help ("Input HTML file.  A hyphen (-) means standard input.  " ++
+                 "To specify an actual file named \"-\", prepend its " ++
+                 "relative path, e.g., \"./-\"  [default: -]")
         )
 
 parserInfo :: ParserInfo Seonbi
-parserInfo = info (parser <**> helper)
+parserInfo = info parser
     ( fullDesc
     <> progDesc "Korean typographic adjustment processor"
     )
@@ -205,7 +226,14 @@ showHtml HtmlComment { comment } =
 
 main :: IO ()
 main = do
-    options@Seonbi { encoding, config, debug, version } <- execParser parserInfo
+    options@Seonbi
+        { encoding
+        , config
+        , debug
+        , version
+        , input
+        , output
+        } <- execParser parserInfo
     let config' = config
             { debugLogger = if debug then Just logger else Nothing
             }
@@ -215,15 +243,20 @@ main = do
     let whenDebug = when debug
     let debugPrint = whenDebug . hPutStrLn stderr
     debugPrint ("options: " ++ show options)
-    contents <- getContents
+    contents <- if input == "-" then getContents else readFile input
     let encodingName = case encoding of
             "" -> fromMaybe "UTF-8" $ detect contents
             enc -> enc
     debugPrint ("encoding: " ++ encodingName)
-    output <- catchIOError
+    result <- catchIOError
         (transformHtmlLazyText config' $ toUnicode encodingName contents)
         (\ e -> hPutStrLn stderr (ioeGetErrorString e) >> exitFailure)
-    putStr $ fromUnicode encodingName output
+    let resultBytes = fromUnicode encodingName result
+    if output == "-"
+    then
+        putStr resultBytes
+    else
+        writeFile output resultBytes
   where
     logger :: HtmlEntity -> IO ()
     logger = hPutStrLn stderr . T.unpack . showHtml

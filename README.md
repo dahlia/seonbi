@@ -37,6 +37,33 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
 
+CLI
+---
+
+The `seonbi` command basically takes the input HTML as standard input, and
+then transformes it into the output HTML as standard output:
+
+    seonbi < input.html > output.html
+
+You could pass a filename as an argument instead (and it is `-` by default):
+
+    seonbi input.html > output.html
+
+There is `-o`/`--output` option as well:
+
+    seonbi -o output.html input.html
+
+Although it automatically detects text encoding of the input file,
+you could explicitly specify `-e`/`--encoding`:
+
+    seobni -e euc-kr -o output.html input.html
+
+There are several style options, e.g., `-q`/`--quote`, `-c`/`--cite`,
+`-r`/`--render-hanja`.  Read `-h`/`--help` for details:
+
+    seonbi --help
+
+
 License
 -------
 
