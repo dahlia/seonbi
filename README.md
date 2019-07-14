@@ -1,7 +1,7 @@
 Seonbi: SmartyPants for Korean language
 =======================================
 
-Seonbi (선비) is is an HTML preprocessor that does typographic adjustments
+Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
 the modern Korean orthography.
 (It's similar to what [SmartyPants] does for a text written in English.)
@@ -22,14 +22,14 @@ transformations:
  -  Pairs of two consecutive inequality symbols (`<<` & `>>`) into
     pairs of proper double angle quotes (`《` & `》`)
  -  A less-than inequality symbol followed by a hyphen or an equality
-    symbol (`<-`, `<=`) into arrows to left (`←`, `⇐`)
+    symbol (`<-`, `<=`) into arrows to the left (`←`, `⇐`)
  -  A hyphen or an equality symbol followed by a greater-than inequality
-    symbol (`->`, `=>`) into arrows to right (`→`, `⇒`)
+    symbol (`->`, `=>`) into arrows to the right (`→`, `⇒`)
  -  A hyphen or an equality symbol wrapped by inequality symbols (`<->`, `<=>`)
     into bi-directional arrows (`↔`, `⇔`)
 
 Since its transformations work in HTML-level, it also plays well with web
-markup languages like CommonMark, Markdown, and Textile.  In similar way to
+markup languages like CommonMark, Markdown, and Textile.  In a similar way to
 SmartyPants, it either does not modify characters within several sensitive
 HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
