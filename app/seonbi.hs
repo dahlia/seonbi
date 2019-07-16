@@ -278,7 +278,14 @@ main = do
     let whenDebug = when debug
     let debugPrint = whenDebug . hPutStrLn stderr
     debugPrint ("options: " ++ show options)
-    contents <- if input == "-" then getContents else readFile input
+    contents <- if input == "-"
+        then getContents
+        else catchIOError (readFile input) $ \ e -> do
+            hPutStrLn stderr $ ioeGetErrorString e ++
+                case ioeGetFileName e of
+                    Just msg -> ": " ++ msg
+                    Nothing -> ""
+            exitFailure
     let encodingName = case encoding of
             "" -> fromMaybe "UTF-8" $ detect contents
             enc -> enc
