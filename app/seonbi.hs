@@ -107,8 +107,8 @@ enumKeywords :: forall a . (Enum a, Show a) => Proxy a -> String
 enumKeywords _ = T.unpack $ T.intercalate ", " $
     fmap enumKeyword' [(toEnum 0 :: a) ..]
 
-parser :: Parser Seonbi
-parser = Seonbi
+parser :: HanjaDictionary -> Parser Seonbi
+parser defaultDictionary = Seonbi
     <$> strOption
         ( long "output"
         <> short 'o'
@@ -203,7 +203,7 @@ parser = Seonbi
                                  enumKeyword DisambiguatingHanjaInParentheses ++
                                  "]")
                         )
-                    <*> ( HanjaReadingOption []
+                    <*> ( HanjaReadingOption defaultDictionary
                         <$> flag True False 
                             ( long "no-initial-sound-law"
                             <> short 'I'
@@ -240,8 +240,8 @@ parser = Seonbi
                  "relative path, e.g., \"./-\"  [default: -]")
         )
 
-parserInfo :: ParserInfo Seonbi
-parserInfo = info parser
+parserInfo :: HanjaDictionary -> ParserInfo Seonbi
+parserInfo defaultDictionary = info (parser defaultDictionary)
     ( fullDesc
     <> progDesc "Korean typographic adjustment processor"
     )
@@ -260,6 +260,7 @@ showHtml HtmlComment { comment } =
 
 main :: IO ()
 main = do
+    defaultDictionary <- catchIOError southKoreanDictionary $ const (return [])
     options@Seonbi
         { encoding
         , config
@@ -267,7 +268,7 @@ main = do
         , version
         , input
         , output
-        } <- execParser parserInfo
+        } <- execParser $ parserInfo defaultDictionary
     let config' = config
             { debugLogger = if debug then Just logger else Nothing
             }

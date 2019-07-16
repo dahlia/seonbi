@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -14,16 +15,26 @@ module Text.Seonbi.Facade
     , QuoteOption (..)
     , ko_KP
     , ko_KR
+    , southKoreanDictionary
     , transformHtmlText
     , transformHtmlLazyText
     ) where
 
+import Data.Char
 import Data.Maybe
+import GHC.Exts (IsList (toList))
+import GHC.Generics (Generic)
+import System.IO.Error
+import System.IO.Unsafe
 
+import Data.ByteString.Lazy
+import Data.Csv
 import Data.Set
 import Data.Text
 import qualified Data.Text.Lazy as LT
+import System.FilePath ((</>))
 
+import Paths_seonbi (getDataDir)
 import Text.Seonbi.Hanja
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
@@ -143,7 +154,17 @@ data HanjaReadingOption = HanjaReadingOption
       dictionary :: HanjaDictionary
       -- | Whether to apply Initial Sound Law (頭音法則) or not.
     , initialSoundLaw :: Bool
-    } deriving (Eq, Show)
+    } deriving (Eq)
+
+instance Show HanjaReadingOption where
+    show HanjaReadingOption { dictionary, initialSoundLaw } =
+        "HanjaReadingOption {" <>
+        " dictionary = [" <>
+        (show $ Text.Seonbi.Trie.size dictionary) <>
+        " words]," <>
+        " initialSoundLaw = " <>
+        (show initialSoundLaw) <>
+        " }"
 
 -- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
 -- HTML text.
@@ -203,8 +224,8 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
             phoneticizeHanja $ def
                 { phoneticizer =
                     let withDict = if Text.Seonbi.Trie.null dictionary
-                            then withDictionary dictionary
-                            else id
+                            then id
+                            else withDictionary dictionary
                         phoneticize = if initialSoundLaw
                             then phoneticizeHanjaWordWithInitialSoundLaw
                             else phoneticizeHanjaWord
@@ -238,7 +259,7 @@ ko_KR = Configuration
     , hanja = Just HanjaOption
         { rendering = DisambiguatingHanjaInParentheses
         , reading = HanjaReadingOption
-            { dictionary = []
+            { dictionary = southKoreanDictionaryUnsafe
             , initialSoundLaw = True
             }
         }
@@ -257,5 +278,32 @@ ko_KP = ko_KR
             }
         }
     }
+
+southKoreanDictionaryUnsafe :: HanjaDictionary
+southKoreanDictionaryUnsafe =
+    unsafePerformIO $ ignoreError southKoreanDictionary
+  where
+    ignoreError :: IO HanjaDictionary -> IO HanjaDictionary
+    ignoreError action =
+        catchIOError action $ const $ return Text.Seonbi.Trie.empty
+
+southKoreanDictionary :: IO HanjaDictionary
+southKoreanDictionary = do
+    dataDir <- getDataDir
+    byteString <- Data.ByteString.Lazy.readFile (dataDir </> "ko-kr-stdict.tsv")
+    case decodeWith tsvDecodeOptions NoHeader byteString of
+        Right vector -> return $ Text.Seonbi.Trie.fromList $
+            [(k, v) | DictionaryPair k v <- GHC.Exts.toList vector]
+        Left _ ->
+            return $ Text.Seonbi.Trie.empty
+  where
+    tsvDecodeOptions :: DecodeOptions
+    tsvDecodeOptions = defaultDecodeOptions
+        { decDelimiter = fromIntegral (ord '\t')
+        }
+
+data DictionaryPair = DictionaryPair !Text !Text deriving (Generic, Show)
+
+instance FromRecord DictionaryPair
 
 {- HLINT ignore "Use camelCase" -}
