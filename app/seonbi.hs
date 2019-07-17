@@ -198,17 +198,25 @@ parser defaultDictionary = Seonbi
                         <> value DisambiguatingHanjaInParentheses
                         <> help ("How to render Sino-Korean words.  " ++
                                  "Available styles: " ++
-                                 enumKeywords (Proxy :: Proxy HanjaRenderingOption)
-                                 ++ "  [default: " ++
+                                 enumKeywords
+                                    (Proxy :: Proxy HanjaRenderingOption) ++
+                                 "  [default: " ++
                                  enumKeyword DisambiguatingHanjaInParentheses ++
                                  "]")
                         )
-                    <*> ( HanjaReadingOption defaultDictionary
-                        <$> flag True False 
+                    <*> ( HanjaReadingOption
+                        <$> flag defaultDictionary []
+                            ( long "no-kr-stdict"
+                            <> short 'S'
+                            <> help ("Do not use Standard Korean Language " ++
+                                     "Dictionary (標準國語大辭典) by " ++
+                                     "South Korean NIKL (國立國語院)")
+                            )
+                        <*> flag True False
                             ( long "no-initial-sound-law"
                             <> short 'I'
-                            <> help ("Do not apply Initial Sound Law (頭音法則) " ++
-                                     "Sino-Korean words")
+                            <> help ("Do not apply Initial Sound Law " ++
+                                     "(頭音法則) Sino-Korean words")
                             )
                         )
                     )

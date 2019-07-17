@@ -287,6 +287,8 @@ southKoreanDictionaryUnsafe =
     ignoreError action =
         catchIOError action $ const $ return Text.Seonbi.Trie.empty
 
+-- | Loads [Standard Korean Language Dictionary](https://stdict.korean.go.kr/)
+-- (標準國語大辭典) data.
 southKoreanDictionary :: IO HanjaDictionary
 southKoreanDictionary = do
     dataDir <- getDataDir
