@@ -27,6 +27,7 @@ import Text.Html.Encoding.Detection (detect)
 
 import qualified Paths_seonbi as Meta
 import Text.Seonbi.Facade
+import Text.Seonbi.Trie as Trie
 import Text.Seonbi.Html.Entity
 
 toUnicode :: EncodingName -> ByteString -> Text
@@ -87,6 +88,14 @@ preset = eitherReader $ \ arg ->
     hyphenize :: Char -> Char
     hyphenize '_' = '-'
     hyphenize c = c
+
+hanjaReading :: ReadM (T.Text, T.Text)
+hanjaReading = eitherReader $ \ arg ->
+    case T.breakOn ":" $ T.pack arg of
+        (_, "") -> Left $ "colon is missing: \"" ++ arg ++ "\""
+        ("", _) -> Left $ "hanja writing is missing: \"" ++ arg ++ "\""
+        (_, ":") -> Left $ "phonetic reading is missing: \"" ++ arg ++ "\""
+        (writing, reading) -> Right (writing, T.drop 1 reading)
 
 -- | Similar to 'auto', except it uses @spinal-case@ instead of @PascalCase@.
 enum :: Read a => ReadM a
@@ -205,12 +214,30 @@ parser defaultDictionary = Seonbi
                                  "]")
                         )
                     <*> ( HanjaReadingOption
-                        <$> flag defaultDictionary []
-                            ( long "no-kr-stdict"
-                            <> short 'S'
-                            <> help ("Do not use Standard Korean Language " ++
-                                     "Dictionary (標準國語大辭典) by " ++
-                                     "South Korean NIKL (國立國語院)")
+                        <$> ( unionR
+                            <$> ( flag defaultDictionary Trie.empty
+                                    ( long "no-kr-stdict"
+                                    <> short 'S'
+                                    <> help ("Do not use Standard Korean " ++
+                                             "Language Dictionary " ++
+                                             "(標準國語大辭典) by South " ++
+                                             "Korean NIKL (國立國語院)")
+                                    )
+                                )
+                            <*> ( Trie.fromList
+                                <$> many
+                                    ( option hanjaReading
+                                        ( long "read-hanja"
+                                        <> short 'R'
+                                        <> metavar "HANJA:HANGUL"
+                                        <> help ("Add a custum reading of " ++
+                                                 "Sino-Korean word.  This " ++
+                                                 "option can be multiple, " ++
+                                                 "e.g., \"-R 孫文:쑨원 " ++
+                                                 "-R 毛澤東:마오쩌둥\"")
+                                        )
+                                    )
+                                )
                             )
                         <*> flag True False
                             ( long "no-initial-sound-law"
