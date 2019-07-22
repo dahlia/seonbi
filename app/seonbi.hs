@@ -66,6 +66,7 @@ data Seonbi = Seonbi
     { output :: FilePath
     , encoding :: String
     , config :: Configuration IO ()
+    , dictionaries :: [FilePath]
     , noKrStdict :: Bool
     , debug :: Bool
     , version :: Bool
@@ -237,13 +238,26 @@ parser = Seonbi
                                              "Sino-Korean word.  This " ++
                                              "option can be multiple, " ++
                                              "e.g., \"-R 孫文:쑨원 " ++
-                                             "-R 毛澤東:마오쩌둥\"")
+                                             "-R 毛澤東:마오쩌둥\".  " ++
+                                             "Prior to -D/--dict options")
                                     )
                                 )
                             )
                         )
                     )
                 )
+            )
+        )
+    <*> many
+        ( strOption
+            ( long "dict"
+            <> short 'D'
+            <> metavar "FILE"
+            <> help ("Give a custom dictionary to phonetize Sino-Korean " ++
+                     "words.  A dictionry file should be TSV (tab-separated " ++
+                     "values) format of two columns; the first column is " ++
+                     "hanja and the second column is hangul.  " ++
+                     "This option can be multiple.")
             )
         )
     <*> ( switch
@@ -296,6 +310,7 @@ main = do
     options@Seonbi
         { encoding
         , config
+        , dictionaries
         , noKrStdict
         , debug
         , version
@@ -308,12 +323,14 @@ main = do
             return config { debugLogger = debugLogger' }
         Just hanja'@HanjaOption
                 { reading = HanjaReadingOption initialSoundLaw dict } -> do
+            dicts <- forM dictionaries readDictionaryFile
+            let customDict = Prelude.foldl unionL dict dicts
             dict' <- if not initialSoundLaw || noKrStdict
-                then return dict
+                then return customDict
                 else do
                     krStDict <- catchIOError southKoreanDictionary $
                         const (return [])
-                    return $ unionL dict krStDict
+                    return $ unionL customDict krStDict
             let reading' = (reading hanja') { dictionary = dict' }
             return config
                 { debugLogger = debugLogger'

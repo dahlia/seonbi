@@ -15,6 +15,7 @@ module Text.Seonbi.Facade
     , QuoteOption (..)
     , ko_KP
     , ko_KR
+    , readDictionaryFile
     , southKoreanDictionary
     , transformHtmlText
     , transformHtmlLazyText
@@ -279,6 +280,22 @@ ko_KP = ko_KR
         }
     }
 
+-- | Loads a dictionary file.  The file consists of two-column TSV
+-- (tab-separated values); the first column is hanja and the second column is
+-- hangul.
+readDictionaryFile :: FilePath -> IO HanjaDictionary
+readDictionaryFile path = do
+    byteString <- Data.ByteString.Lazy.readFile path
+    case decodeWith tsvDecodeOptions NoHeader byteString of
+        Right vector -> return $ Text.Seonbi.Trie.fromList $
+            [(k, v) | DictionaryPair k v <- GHC.Exts.toList vector]
+        Left err -> fail err
+  where
+    tsvDecodeOptions :: DecodeOptions
+    tsvDecodeOptions = defaultDecodeOptions
+        { decDelimiter = fromIntegral (ord '\t')
+        }
+
 southKoreanDictionaryUnsafe :: HanjaDictionary
 southKoreanDictionaryUnsafe =
     unsafePerformIO $ ignoreError southKoreanDictionary
@@ -292,17 +309,7 @@ southKoreanDictionaryUnsafe =
 southKoreanDictionary :: IO HanjaDictionary
 southKoreanDictionary = do
     dataDir <- getDataDir
-    byteString <- Data.ByteString.Lazy.readFile (dataDir </> "ko-kr-stdict.tsv")
-    case decodeWith tsvDecodeOptions NoHeader byteString of
-        Right vector -> return $ Text.Seonbi.Trie.fromList $
-            [(k, v) | DictionaryPair k v <- GHC.Exts.toList vector]
-        Left _ ->
-            return $ Text.Seonbi.Trie.empty
-  where
-    tsvDecodeOptions :: DecodeOptions
-    tsvDecodeOptions = defaultDecodeOptions
-        { decDelimiter = fromIntegral (ord '\t')
-        }
+    readDictionaryFile (dataDir </> "ko-kr-stdict.tsv")
 
 data DictionaryPair = DictionaryPair !Text !Text deriving (Generic, Show)
 
