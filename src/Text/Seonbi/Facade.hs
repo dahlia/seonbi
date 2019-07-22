@@ -48,6 +48,8 @@ import Text.Seonbi.Trie
 data Monad m => Configuration m a = Configuration 
     { -- | An optional debugging logger to print its internal AST.
       debugLogger :: Maybe (HtmlEntity -> m a)
+      -- | Whether to take and result in XHTML instead of HTML.
+    , xhtml :: Bool
       -- | An option to decide how quotation marks are rendered.
       -- If 'Nothing' no quotes are transformed.
     , quote :: Maybe QuoteOption
@@ -61,20 +63,18 @@ data Monad m => Configuration m a = Configuration
     , ellipsis :: Bool
       -- | Settings to deal with Sino-Korean words.
     , hanja :: Maybe HanjaOption
-      -- | Whether to take and result in XHTML instead of HTML.
-    , xhtml :: Bool
     }
 
 instance Monad m => Show (Configuration m a) where
     show c = "Configuration {\n" <>
         "  debugLogger = " <>
             maybe "Nothing" (const "Just ...") (debugLogger c) <> "," <>
+        "  xhtml = " <> show (xhtml c) <> "," <>
         "  quote = " <> show (quote c) <> "," <>
         "  arrow = " <> show (cite c) <> "," <>
         "  cite = " <> show (arrow c) <> "," <>
         "  ellipsis = " <> show (ellipsis c) <> "," <>
-        "  hanja = " <> show (hanja c) <> "," <>
-        "  xhtml = " <> show (xhtml c) <>
+        "  hanja = " <> show (hanja c) <>
         "}"
 
 -- | An option to decide how quotation marks are rendered.
@@ -146,14 +146,14 @@ data HanjaRenderingOption
 
 -- | Settings to read Sino-Korean words.
 data HanjaReadingOption = HanjaReadingOption
-    { -- | A dictionary which has hanja readings.  Keys are
+    { -- | Whether to apply Initial Sound Law (頭音法則) or not.
+      initialSoundLaw :: Bool
+      -- | A dictionary which has hanja readings.  Keys are
       -- hanja words and values are their corresponding hangul readings,
       -- e.g.:
       --
       -- > [("敗北", "패배"), ("北極", "북극")] :: HanjaDictionary
-      dictionary :: HanjaDictionary
-      -- | Whether to apply Initial Sound Law (頭音法則) or not.
-    , initialSoundLaw :: Bool
+    , dictionary :: HanjaDictionary
     } deriving (Eq)
 
 instance Show HanjaReadingOption where

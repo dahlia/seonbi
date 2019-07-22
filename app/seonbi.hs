@@ -143,7 +143,12 @@ parser defaultDictionary = Seonbi
                      Data.List.intercalate ", " (Data.Map.Strict.keys presets))
             )
         <|> ( Configuration Nothing
-            <$> ( flag' Nothing
+            <$> switch
+                ( long "xhtml"
+                <> short 'x'
+                <> help "XHTML mode"
+                )
+            <*> ( flag' Nothing
                     ( long "no-quote"
                     <> short 'Q'
                     <> help ("Do not transform any quotes at all.  " ++
@@ -214,7 +219,13 @@ parser defaultDictionary = Seonbi
                                  "]")
                         )
                     <*> ( HanjaReadingOption
-                        <$> ( unionR
+                        <$> flag True False
+                            ( long "no-initial-sound-law"
+                            <> short 'I'
+                            <> help ("Do not apply Initial Sound Law " ++
+                                     "(頭音法則) Sino-Korean words")
+                            )
+                        <*> ( unionR
                             <$> ( flag defaultDictionary Trie.empty
                                     ( long "no-kr-stdict"
                                     <> short 'S'
@@ -239,19 +250,8 @@ parser defaultDictionary = Seonbi
                                     )
                                 )
                             )
-                        <*> flag True False
-                            ( long "no-initial-sound-law"
-                            <> short 'I'
-                            <> help ("Do not apply Initial Sound Law " ++
-                                     "(頭音法則) Sino-Korean words")
-                            )
                         )
                     )
-                )
-            <*> switch
-                ( long "xhtml"
-                <> short 'x'
-                <> help "XHTML mode"
                 )
             )
         )

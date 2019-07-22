@@ -4,16 +4,17 @@ synopsis: SmartyPants for Korean language
 category: Text
 author: Hong Minhee <hong.minhee@gmail.com>
 maintainer: Hong Minhee <hong.minhee@gmail.com>
-copyright: "(c) 2018\u20132019 Hong Minhee"
+copyright: "\xa9 2018\u20132019 Hong Minhee"
 license: LGPL-2.1
-github: dahlia/seonbi
+homepage: https://github.com/dahlia/seonbi
+bug-reports: https://github.com/dahlia/seonbi/issues
+git: git://github.com/dahlia/seonbi.git
+description:
+  Please see the README.md on GitHub at <https://github.com/dahlia/seonbi>.
 extra-source-files:
 - src/Text/Seonbi/Unihan/*.json
 - CHANGES.md
 - README.md
-description: ! >
-  Please see the README.md on GitHub at
-  <https://github.com/dahlia/seonbi#readme>.
 data-dir: data
 data-files:
 - '*.tsv'
