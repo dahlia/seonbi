@@ -66,6 +66,7 @@ data Seonbi = Seonbi
     { output :: FilePath
     , encoding :: String
     , config :: Configuration IO ()
+    , noKrStdict :: Bool
     , debug :: Bool
     , version :: Bool
     , input :: FilePath
@@ -116,8 +117,8 @@ enumKeywords :: forall a . (Enum a, Show a) => Proxy a -> String
 enumKeywords _ = T.unpack $ T.intercalate ", " $
     fmap enumKeyword' [(toEnum 0 :: a) ..]
 
-parser :: HanjaDictionary -> Parser Seonbi
-parser defaultDictionary = Seonbi
+parser :: Parser Seonbi
+parser = Seonbi
     <$> strOption
         ( long "output"
         <> short 'o'
@@ -223,36 +224,33 @@ parser defaultDictionary = Seonbi
                             ( long "no-initial-sound-law"
                             <> short 'I'
                             <> help ("Do not apply Initial Sound Law " ++
-                                     "(頭音法則) Sino-Korean words")
+                                     "(頭音法則) Sino-Korean words.  " ++
+                                     "This implies -S/--no-kr-stdict")
                             )
-                        <*> ( unionR
-                            <$> ( flag defaultDictionary Trie.empty
-                                    ( long "no-kr-stdict"
-                                    <> short 'S'
-                                    <> help ("Do not use Standard Korean " ++
-                                             "Language Dictionary " ++
-                                             "(標準國語大辭典) by South " ++
-                                             "Korean NIKL (國立國語院)")
-                                    )
-                                )
-                            <*> ( Trie.fromList
-                                <$> many
-                                    ( option hanjaReading
-                                        ( long "read-hanja"
-                                        <> short 'R'
-                                        <> metavar "HANJA:HANGUL"
-                                        <> help ("Add a custum reading of " ++
-                                                 "Sino-Korean word.  This " ++
-                                                 "option can be multiple, " ++
-                                                 "e.g., \"-R 孫文:쑨원 " ++
-                                                 "-R 毛澤東:마오쩌둥\"")
-                                        )
+                        <*> ( Trie.fromList
+                            <$> many
+                                ( option hanjaReading
+                                    ( long "read-hanja"
+                                    <> short 'R'
+                                    <> metavar "HANJA:HANGUL"
+                                    <> help ("Add a custum reading of " ++
+                                             "Sino-Korean word.  This " ++
+                                             "option can be multiple, " ++
+                                             "e.g., \"-R 孫文:쑨원 " ++
+                                             "-R 毛澤東:마오쩌둥\"")
                                     )
                                 )
                             )
                         )
                     )
                 )
+            )
+        )
+    <*> ( switch
+            ( long "no-kr-stdict"
+            <> short 'S'
+            <> help ("Do not use Standard Korean Language Dictionary " ++
+                     "(標準國語大辭典) by South Korean NIKL (國立國語院)")
             )
         )
     <*> switch
@@ -275,8 +273,8 @@ parser defaultDictionary = Seonbi
                  "relative path, e.g., \"./-\"  [default: -]")
         )
 
-parserInfo :: HanjaDictionary -> ParserInfo Seonbi
-parserInfo defaultDictionary = info (parser defaultDictionary)
+parserInfo :: ParserInfo Seonbi
+parserInfo = info parser
     ( fullDesc
     <> progDesc "Korean typographic adjustment processor"
     )
@@ -295,18 +293,32 @@ showHtml HtmlComment { comment } =
 
 main :: IO ()
 main = do
-    defaultDictionary <- catchIOError southKoreanDictionary $ const (return [])
     options@Seonbi
         { encoding
         , config
+        , noKrStdict
         , debug
         , version
         , input
         , output
-        } <- execParser $ parserInfo defaultDictionary
-    let config' = config
-            { debugLogger = if debug then Just logger else Nothing
-            }
+        } <- execParser parserInfo
+    let debugLogger' = if debug then Just logger else Nothing
+    config' <- case hanja config of
+        Nothing ->
+            return config { debugLogger = debugLogger' }
+        Just hanja'@HanjaOption
+                { reading = HanjaReadingOption initialSoundLaw dict } -> do
+            dict' <- if not initialSoundLaw || noKrStdict
+                then return dict
+                else do
+                    krStDict <- catchIOError southKoreanDictionary $
+                        const (return [])
+                    return $ unionL dict krStDict
+            let reading' = (reading hanja') { dictionary = dict' }
+            return config
+                { debugLogger = debugLogger'
+                , hanja = Just hanja' { reading = reading' }
+                }
     when version $ do
         Prelude.putStrLn $ showVersion Meta.version
         exitSuccess
