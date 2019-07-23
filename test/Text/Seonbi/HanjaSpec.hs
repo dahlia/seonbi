@@ -291,6 +291,8 @@ spec = do
             let phone = normalizeText . phoneticizeHanja conf
             phone [HtmlText [] "4·19革命"] `shouldBe`
                 [HtmlText [] "4·19혁명(革命)"]
+            phone [HtmlText [] "1987年10月29日"] `shouldBe`
+                [HtmlText [] "1987년(年)10월(月)29일(日)"]
         it "transforms hanja characters in HTML entities" $ do
             let phone = normalizeText . phoneticizeHanja def
             phone [HtmlText [] "&lt;1996&#x5e74; 그들이 地球를 支配했을 때&gt;"]

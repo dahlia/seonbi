@@ -40,7 +40,6 @@ import Data.Text hiding (concatMap)
 import Text.Seonbi.Hangul
 import Text.Seonbi.Html
 import Text.Seonbi.Html.TagStack (push)
-import Text.Seonbi.Html.TextNormalizer
 import qualified Text.Seonbi.Trie as Trie
 import Text.Seonbi.Unihan.KHangul
 
@@ -162,18 +161,23 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
             Left _ ->
                 [e]
             Right (stack, hanja, hangul) ->
-                case commonPrefixes hanja hangul of
-                    Nothing ->
-                        [e]
-                    Just (prefix, hanja', hangul') ->
-                        let prefixEntity = Left $
-                                HtmlText stack (escapeHtmlEntities prefix)
-                        in
-                            if Data.Text.null hanja'
-                            then [prefixEntity]
-                            else [prefixEntity, Right (stack, hanja', hangul')]
+                let hanjaWords = splitByDigits hanja
+                    hangulWords = splitByDigits hangul
+                    hanjaWordsLen = Prelude.length hanjaWords
+                    hangulWordsLen = Prelude.length hangulWords
+                in
+                    if hanjaWordsLen /= hangulWordsLen
+                    then [e]
+                    else
+                        [ if Data.Text.any isDigit hanj
+                          then Left $ HtmlText stack hanj
+                          else Right (stack, hanj, hang)
+                        | (hanj, hang) <- Prelude.zip hanjaWords hangulWords
+                        ]
         | e <- concatMap transform entities
         ]
+    splitByDigits :: Text -> [Text]
+    splitByDigits = Data.Text.groupBy (\ a b -> isDigit a == isDigit b)
     transform :: HtmlEntity -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
     transform entity@HtmlText { tagStack = tagStack', rawText = rawText' } =
         case analyzeHanjaText rawText' of
