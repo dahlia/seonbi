@@ -39,7 +39,7 @@ import Paths_seonbi (getDataDir)
 import Text.Seonbi.Hanja
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
-import Text.Seonbi.Trie
+import Text.Seonbi.Trie as Trie
 
 -- | Transformation settings.  For the most cases, you could use one of
 -- presets:
@@ -161,7 +161,7 @@ instance Show HanjaReadingOption where
     show HanjaReadingOption { dictionary, initialSoundLaw } =
         "HanjaReadingOption {" <>
         " dictionary = [" <>
-        show (Text.Seonbi.Trie.size dictionary) <>
+        show (Trie.size dictionary) <>
         " words]," <>
         " initialSoundLaw = " <>
         show initialSoundLaw <>
@@ -224,7 +224,7 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
                 } ->
             phoneticizeHanja $ def
                 { phoneticizer =
-                    let withDict = if Text.Seonbi.Trie.null dictionary
+                    let withDict = if Trie.null dictionary
                             then id
                             else withDictionary dictionary
                         phoneticize = if initialSoundLaw
@@ -287,8 +287,10 @@ readDictionaryFile :: FilePath -> IO HanjaDictionary
 readDictionaryFile path = do
     byteString <- Data.ByteString.Lazy.readFile path
     case decodeWith tsvDecodeOptions NoHeader byteString of
-        Right vector -> return $ Text.Seonbi.Trie.fromList
-            [(k, v) | DictionaryPair k v <- GHC.Exts.toList vector]
+        Right vector -> return $ Prelude.foldl
+            (\ d (DictionaryPair k v) -> Trie.insert k v d)
+            Trie.empty
+            (GHC.Exts.toList vector)
         Left err -> fail err
   where
     tsvDecodeOptions :: DecodeOptions
@@ -303,7 +305,7 @@ southKoreanDictionaryUnsafe =
   where
     ignoreError :: IO HanjaDictionary -> IO HanjaDictionary
     ignoreError action =
-        catchIOError action $ const $ return Text.Seonbi.Trie.empty
+        catchIOError action $ const $ return Trie.empty
 
 -- | Loads [Standard Korean Language Dictionary](https://stdict.korean.go.kr/)
 -- (標準國語大辭典) data.
