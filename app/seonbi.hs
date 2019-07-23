@@ -260,12 +260,11 @@ parser = Seonbi
                      "This option can be multiple.")
             )
         )
-    <*> ( switch
-            ( long "no-kr-stdict"
-            <> short 'S'
-            <> help ("Do not use Standard Korean Language Dictionary " ++
-                     "(標準國語大辭典) by South Korean NIKL (國立國語院)")
-            )
+    <*> switch
+        ( long "no-kr-stdict"
+        <> short 'S'
+        <> help ("Do not use Standard Korean Language Dictionary " ++
+                 "(標準國語大辭典) by South Korean NIKL (國立國語院)")
         )
     <*> switch
         ( long "debug"

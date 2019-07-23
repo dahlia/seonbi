@@ -161,10 +161,10 @@ instance Show HanjaReadingOption where
     show HanjaReadingOption { dictionary, initialSoundLaw } =
         "HanjaReadingOption {" <>
         " dictionary = [" <>
-        (show $ Text.Seonbi.Trie.size dictionary) <>
+        show (Text.Seonbi.Trie.size dictionary) <>
         " words]," <>
         " initialSoundLaw = " <>
-        (show initialSoundLaw) <>
+        show initialSoundLaw <>
         " }"
 
 -- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
@@ -287,7 +287,7 @@ readDictionaryFile :: FilePath -> IO HanjaDictionary
 readDictionaryFile path = do
     byteString <- Data.ByteString.Lazy.readFile path
     case decodeWith tsvDecodeOptions NoHeader byteString of
-        Right vector -> return $ Text.Seonbi.Trie.fromList $
+        Right vector -> return $ Text.Seonbi.Trie.fromList
             [(k, v) | DictionaryPair k v <- GHC.Exts.toList vector]
         Left err -> fail err
   where
@@ -296,6 +296,7 @@ readDictionaryFile path = do
         { decDelimiter = fromIntegral (ord '\t')
         }
 
+{-# NOINLINE southKoreanDictionaryUnsafe #-}
 southKoreanDictionaryUnsafe :: HanjaDictionary
 southKoreanDictionaryUnsafe =
     unsafePerformIO $ ignoreError southKoreanDictionary
