@@ -62,6 +62,8 @@ data Monad m => Configuration m a = Configuration
     , arrow :: Maybe ArrowOption
       -- | Whether to transform triple periods into a proper ellipsis.
     , ellipsis :: Bool
+      -- | Whether to transform folk em dashes into proper em dashes.
+    , emDash :: Bool
       -- | Settings to deal with Sino-Korean words.
     , hanja :: Maybe HanjaOption
     }
@@ -75,6 +77,7 @@ instance Monad m => Show (Configuration m a) where
         "  arrow = " <> show (cite c) <> "," <>
         "  cite = " <> show (arrow c) <> "," <>
         "  ellipsis = " <> show (ellipsis c) <> "," <>
+        "  emDash = " <> show (emDash c) <> "," <>
         "  hanja = " <> show (hanja c) <>
         "}"
 
@@ -191,7 +194,7 @@ transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
       | otherwise = printHtml
 
 toTransformers :: Monad m => Configuration m a -> [[HtmlEntity] -> [HtmlEntity]]
-toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
+toTransformers Configuration { quote, cite, arrow, ellipsis, emDash, hanja } =
     [ case quote of
         Nothing -> id
         Just quoteOption -> transformQuote $
@@ -215,6 +218,7 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, hanja } =
                 , if doubleArrow then Just DoubleArrow else Nothing
                 ]
     , if ellipsis then transformEllipsis else id
+    , if emDash then transformEmDash else id
     , case hanja of
         Nothing ->
             id
@@ -257,6 +261,7 @@ ko_KR = Configuration
     , cite = Just AngleQuotes
     , arrow = Just ArrowOption { bidirArrow = True, doubleArrow = True }
     , ellipsis = True
+    , emDash = True
     , hanja = Just HanjaOption
         { rendering = DisambiguatingHanjaInParentheses
         , reading = HanjaReadingOption

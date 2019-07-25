@@ -32,6 +32,7 @@ spec =
                 , cite = Nothing
                 , arrow = Nothing
                 , ellipsis = False
+                , emDash = False
                 , hanja = Nothing
                 , xhtml = False
                 , debugLogger = Nothing

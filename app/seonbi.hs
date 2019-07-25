@@ -199,6 +199,11 @@ parser = Seonbi
                 <> short 'E'
                 <> help "Transform triple periods into a proper ellipsis"
                 )
+            <*> flag True False
+                ( long "no-em-dash"
+                <> short 'D'
+                <> help "Do not transform folk em dashes into proper em dashes"
+                )
             <*> ( flag' Nothing 
                     ( long "maintain-hanja"
                     <> short 'H'

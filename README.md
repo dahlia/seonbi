@@ -21,6 +21,8 @@ transformations:
     pairs of proper angle quotes (`〈` & `〉`)
  -  Pairs of two consecutive inequality symbols (`<<` & `>>`) into
     pairs of proper double angle quotes (`《` & `》`)
+ -  A hyphen (`-`) or hangul vowel *eu* (`ㅡ`) surrounded by spaces, or
+    two/three consecutive hyphens (`--` or `---`) into a proper em dash (`—`)
  -  A less-than inequality symbol followed by a hyphen or an equality
     symbol (`<-`, `<=`) into arrows to the left (`←`, `⇐`)
  -  A hyphen or an equality symbol followed by a greater-than inequality

@@ -414,3 +414,41 @@ spec = do
                 transformQuote' curvedQuotes input `shouldBe` input
                 transformQuote' guillemets input `shouldBe` input
                 transformQuote' curvedSingleQuotesWithQ input `shouldBe` input
+
+    describe "transformEmDash" $ do
+        it "transforms a single hyphen surrounded by spaces into an em dash" $
+            transformEmDash
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "A hyphen - U+002D HYPHEN-MINUS &#45; to em dash."
+                , HtmlEndTag [] P
+                ] `shouldBe`
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "A hyphen&mdash;U+002D HYPHEN-MINUS&mdash;to em dash."
+                , HtmlEndTag [] P
+                ]
+        it "transforms two/three consecutive hyphens into an em dash" $
+            transformEmDash
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "A hyphen--U+002D HYPHEN-MINUS&#45;&#x2d;to em dash."
+                , HtmlEndTag [] P
+                ] `shouldBe`
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "A hyphen&mdash;U+002D HYPHEN-MINUS&mdash;to em dash."
+                , HtmlEndTag [] P
+                ]
+        it "transforms a hangul vowel 'eu' surrounded by spaces to an em dash" $
+            transformEmDash
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "한글 모음 ㅡ U+3161 HANGUL LETTER EU &#x3161; 을 줄표로"
+                , HtmlEndTag [] P
+                ] `shouldBe`
+                [ HtmlStartTag [] P ""
+                , HtmlText [P]
+                    "한글 모음&mdash;U+3161 HANGUL LETTER EU&mdash;을 줄표로"
+                , HtmlEndTag [] P
+                ]

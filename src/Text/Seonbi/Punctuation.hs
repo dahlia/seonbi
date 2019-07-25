@@ -16,12 +16,14 @@ module Text.Seonbi.Punctuation
     , quoteCitation
     , transformArrow
     , transformEllipsis
+    , transformEmDash
     , transformQuote
     ) where
 
 import Prelude hiding (takeWhile)
 
 import Control.Monad
+import Data.Char (isSpace)
 import Data.Either
 import Data.List (minimumBy)
 import Data.Maybe
@@ -362,18 +364,11 @@ gt = choice
 -- This transforms, in the given HTML fragments, all three consecutive periods
 -- into proper ellipses.
 transformEllipsis :: [HtmlEntity] -> [HtmlEntity]
-transformEllipsis = fmap $ \ case
-    e@HtmlText { tagStack = stack, rawText = txt } -> if ignoresTagStack' stack
-        then e
-        else e { rawText = replaceText txt }
-    e ->
-        e
+transformEllipsis = transformText $ \ txt ->
+    case parseOnly parser txt of
+        Left _ -> error "unexpected error: failed to parse text node"
+        Right t -> t
   where
-    replaceText :: Text -> Text
-    replaceText txt =
-        case parseOnly parser txt of
-            Left _ -> error "unexpected error: failed to parse text node"
-            Right t -> t
     parser :: Parser Text
     parser = do
         chunks <- many' $ choice
@@ -395,7 +390,7 @@ transformEllipsis = fmap $ \ case
         , asciiCI "&#x2e;"
         ]
 
--- | Pairs to substitute folk single and double quotes.
+-- | Pairs of substitute folk single and double quotes.
 -- Used by 'transformQuote' function.
 --
 -- The are three presets: 'curvedQuotes', 'guillemets', and
@@ -583,3 +578,49 @@ closes Apostrophe = True
 closes ClosingSingleQuote = True
 closes ClosingDoubleQuote = True
 closes _ = False
+
+-- | Transform the following folk em dashes into proper em dashes
+-- (@—@: @U+2014 EM DASH@):
+--
+-- - A hyphen (@-@: @U+002D HYPHEN-MINUS@) surrounded by spaces.
+-- - Two or three consecutive hyphens (@--@ or @---@).
+-- - A hangul vowel @ㅡ@ (@U+3161 HANGUL LETTER EU@) surrounded by spaces.
+--   There are Korean people that use a hangul vowel @ㅡ@ ("eu") instead of
+--   an em dash due to their ignorance or negligence.
+transformEmDash :: [HtmlEntity] -> [HtmlEntity]
+transformEmDash = transformText $ \ txt ->
+    case parseOnly parser txt of
+        Left _ -> error "unexpected error: failed to parse text node"
+        Right t -> t
+  where
+    parser :: Parser Text
+    parser = do
+        chunks <- many' $ choice
+            [ takeWhile1 $ \ c ->
+                not (isSpace c || c `elem` (['&', '-', '\x3161'] :: Set Char))
+            , emDash
+            , Data.Text.singleton <$> anyChar
+            ]
+        endOfInput
+        return $ Data.Text.concat chunks
+    emDash :: Parser Text
+    emDash = choice
+        [ hyphens
+        , takeWhile1 isSpace >> choice [eu, hyphen] >> takeWhile1 isSpace
+        ] >> return "&mdash;"
+    hyphens :: Parser Text
+    hyphens = hyphen >> hyphen >> option "" hyphen
+    hyphen :: Parser Text
+    hyphen = choice $ Prelude.map string
+        ["-", "&#45;", "&#x2d;", "&#x2D;", "&#X2d;", "&#X2D;"]
+    eu :: Parser Text
+    eu = choice $ Prelude.map string
+        ["\x3161", "&#12641;", "&#x3161;", "&#X3161;"]
+
+transformText :: (Text -> Text) -> [HtmlEntity] -> [HtmlEntity]
+transformText replace' = fmap $ \ case
+    e@HtmlText { tagStack = stack, rawText = txt } -> if ignoresTagStack' stack
+        then e
+        else e { rawText = replace' txt }
+    e ->
+        e
