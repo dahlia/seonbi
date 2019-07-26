@@ -194,10 +194,10 @@ parser = Seonbi
                         )
                     )
                 )
-            <*> switch
-                ( long "ellipsis"
+            <*> flag True False
+                ( long "no-ellipsis"
                 <> short 'E'
-                <> help "Transform triple periods into a proper ellipsis"
+                <> help "Do not transform triple periods into a proper ellipsis"
                 )
             <*> flag True False
                 ( long "no-em-dash"

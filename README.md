@@ -60,8 +60,13 @@ you could explicitly specify `-e`/`--encoding`:
 
     seobni -e euc-kr -o output.html input.html
 
-There are several style options, e.g., `-q`/`--quote`, `-c`/`--cite`,
-`-r`/`--render-hanja`.  Read `-h`/`--help` for details:
+Although there are several style options, e.g., `-q`/`--quote`, `-c`/`--cite`,
+`-r`/`--render-hanja`, in most cases, giving `-p`/`--preset` is enough:
+
+    echo '平壤 冷麵' | seonbi -p ko-kr  # 평양 냉면
+    echo '平壤 冷麵' | seonbi -p ko-kp  # 평양 랭면
+
+Read `-h`/`--help` for details:
 
     seonbi --help
 
