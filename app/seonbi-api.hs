@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
@@ -5,11 +9,11 @@ import Data.String
 import Data.Version
 import System.IO
 
+import Data.Aeson
 import qualified Data.ByteString as B
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as E
-import Data.Text.Lazy
-import Data.Text.Lazy.Encoding
+import qualified Data.Map.Strict as M
+import Data.Text
+import Data.Text.Encoding
 import Network.Wai
 import Network.HTTP.Types
 import Network.Wai.Handler.Warp
@@ -17,24 +21,92 @@ import Options.Applicative
 
 import qualified Paths_seonbi as Meta
 import Text.Seonbi.Facade
+import Text.Seonbi.Trie as Trie
+
+data Input = Input
+    { sourceHtml :: Text
+    , configuration :: Configuration IO ()
+    } deriving (Show)
+
+instance FromJSON Input where
+    parseJSON = withObject "Input" $ \ v -> do
+        sourceHtml' <- v .: "sourceHtml"
+        preset <- v .:? "preset"
+        config <- case preset of
+            Just locale ->
+                let presets' = presets :: M.Map Text (Configuration IO ())
+                    m = M.lookup (replace "_" "-" $ toLower locale) presets'
+                in
+                    case m of
+                        Just p -> return p
+                        Nothing -> fail $ unpack $ Data.Text.concat
+                            [ "No such preset: "
+                            , locale
+                            , "; available presets: "
+                            , intercalate ", " (M.keys presets')
+                            ]
+            Nothing -> do
+                xhtml' <- v .: "xhtml"
+                quote' <- v .: "quote"
+                cite' <- v .: "cite"
+                arrow' <- v .: "arrow"
+                ellipsis' <- v .: "ellipsis"
+                emDash' <- v .: "emDash"
+                hanja' <- v .: "hanja"
+                return Configuration
+                    { debugLogger = Nothing
+                    , xhtml = xhtml'
+                    , quote = quote'
+                    , cite = cite'
+                    , arrow = arrow'
+                    , ellipsis = ellipsis'
+                    , emDash = emDash'
+                    , hanja = hanja'
+                    }
+        return $ Input sourceHtml' config
+
+instance FromJSON QuoteOption
+instance FromJSON CiteOption
+instance FromJSON ArrowOption
+instance FromJSON HanjaRenderingOption
+
+instance FromJSON HanjaOption where
+    parseJSON = withObject "HanjaOption" $ \ v -> HanjaOption
+        <$> v .: "rendering"
+        <*> v .: "reading"
+
+instance FromJSON HanjaReadingOption where
+    parseJSON = withObject "HanjaReadingOption" $ \ v ->
+        (`HanjaReadingOption` Trie.empty)
+            <$> v .: "initialSoundLaw"
 
 app :: Application
 app request respond =
     case requestMethod request of
         "POST" -> do
-            input <- lazyRequestBody request
-            let source = decodeUtf8 input
-            result <- transformHtmlLazyText ko_KR source
-            let output = encodeUtf8 (result `snoc` '\n')
-            respond $ responseLBS
-                status200
-                [("Content-Type", "text/html; charset=utf-8")]
-                output
-        _ -> 
-            respond $ responseLBS
-                status405
-                [("Content-Type", "text/text")]
-                ""
+            inputJson <- lazyRequestBody request
+            case eitherDecode' inputJson of
+                Right (Input source config) -> do
+                    result <- transformHtmlText config source
+                    respond' status200 $ object
+                        [ "success" .= Bool True
+                        , "resultHtml" .= String result
+                        ]
+                Left msg -> respond' status400 $ object
+                    [ "success" .= Bool False
+                    , "message" .= String (pack msg)
+                    ]
+        method -> respond' status405 $ object
+            [ "success" .= Bool False
+            , "message" .= String ("Unsupported method: " <> decodeUtf8 method)
+            ]
+  where
+    respond' :: ToJSON a => Status -> a -> IO ResponseReceived
+    respond' status value' =
+        respond $ responseLBS
+            status
+            [("Content-Type", "application/json")]
+            (encode value')
 
 string :: IsString a => ReadM a
 string = maybeReader (Just . fromString)
@@ -79,7 +151,7 @@ parserInfo = info parser
 
 serverName :: B.ByteString
 serverName =
-    "Seonbi/" `B.append` E.encodeUtf8 (T.pack $ showVersion Meta.version)
+    "Seonbi/" `B.append` encodeUtf8 (pack $ showVersion Meta.version)
 
 main :: IO ()
 main = do

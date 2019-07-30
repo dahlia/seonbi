@@ -73,15 +73,12 @@ data Seonbi = Seonbi
     , input :: FilePath
     } deriving (Show)
 
-presets :: Map String (Configuration IO ())
-presets =
-    [ ("ko-kp", ko_KP)
-    , ("ko-kr", ko_KR)
-    ]
+presets' :: Map String (Configuration IO ())
+presets' = presets
 
 preset :: ReadM (Configuration IO ())
 preset = eitherReader $ \ arg ->
-    case Data.Map.Strict.lookup (normalize <$> arg) presets of
+    case Data.Map.Strict.lookup (normalize <$> arg) presets' of
         Just c -> Right c
         _ -> Left $ "no such preset: \"" ++ arg ++ "\""
   where
@@ -142,7 +139,7 @@ parser = Seonbi
             <> help ("Use a preset instead of below style settings (this " ++
                      "resjects any other style options below).  " ++
                      "Available presets: " ++
-                     Data.List.intercalate ", " (Data.Map.Strict.keys presets))
+                     Data.List.intercalate ", " (Data.Map.Strict.keys presets'))
             )
         <|> ( Configuration Nothing
             <$> switch

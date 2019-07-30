@@ -15,6 +15,7 @@ module Text.Seonbi.Facade
     , QuoteOption (..)
     , ko_KP
     , ko_KR
+    , presets
     , readDictionaryFile
     , southKoreanDictionary
     , transformHtmlText
@@ -23,6 +24,7 @@ module Text.Seonbi.Facade
 
 import Data.Char
 import Data.Maybe
+import Data.String (IsString)
 import GHC.Exts (IsList (toList))
 import GHC.Generics (Generic)
 import System.IO.Error
@@ -30,6 +32,7 @@ import System.IO.Unsafe
 
 import Data.ByteString.Lazy
 import Data.Csv
+import Data.Map.Strict
 import Data.Set
 import Data.Text
 import qualified Data.Text.Lazy as LT
@@ -92,7 +95,7 @@ data QuoteOption
     -- | Use English-style curved quotes (@‘@: U+2018, @’@: U+2019) for single
     -- quotes, and HTML @\<q\>@ tags for double quotes.
     | CurvedSingleQuotesWithQ 
-    deriving (Enum, Eq, Read, Show)
+    deriving (Enum, Eq, Generic, Read, Show)
 
 -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@) into
 -- proper citing quotes (e.g., @《한겨레》@).
@@ -109,7 +112,7 @@ data CiteOption
     -- | Same as 'CornerBrackets' except it wraps the title with
     -- a @\<cite\>@ tag.
     | CornerBracketsWithCite
-    deriving (Enum, Eq, Read, Show)
+    deriving (Enum, Eq, Generic, Read, Show)
 
 -- | Settings to transform arrow-looking punctuations into proper arrows.
 data ArrowOption = ArrowOption
@@ -118,7 +121,7 @@ data ArrowOption = ArrowOption
       bidirArrow :: Bool
       -- | Whether to transform double arrows as well as single arrows.
     , doubleArrow :: Bool
-    } deriving (Eq, Show)
+    } deriving (Eq, Generic, Show)
 
 -- | Settings to deal with Sino-Korean words.
 data HanjaOption = HanjaOption
@@ -126,7 +129,7 @@ data HanjaOption = HanjaOption
       rendering :: HanjaRenderingOption
       -- | How to rewrite Sino-Korean words in hangul.
     , reading :: HanjaReadingOption
-    } deriving (Eq, Show)
+    } deriving (Show)
 
 -- | Available options to render Sino-Korean words.
 data HanjaRenderingOption
@@ -146,7 +149,7 @@ data HanjaRenderingOption
     -- Markup](https://www.w3.org/TR/ruby-use-cases/) as well for more
     -- information.
     | HanjaInRuby
-    deriving (Enum, Eq, Read, Show)
+    deriving (Enum, Eq, Generic, Read, Show)
 
 -- | Settings to read Sino-Korean words.
 data HanjaReadingOption = HanjaReadingOption
@@ -158,7 +161,7 @@ data HanjaReadingOption = HanjaReadingOption
       --
       -- > [("敗北", "패배"), ("北極", "북극")] :: HanjaDictionary
     , dictionary :: HanjaDictionary
-    } deriving (Eq)
+    }
 
 instance Show HanjaReadingOption where
     show HanjaReadingOption { dictionary, initialSoundLaw } =
@@ -284,6 +287,12 @@ ko_KP = ko_KR
             }
         }
     }
+
+presets :: (Ord k, IsString k, Monad m) => Map k (Configuration m a)
+presets =
+    [ ("ko-kp", ko_KP)
+    , ("ko-kr", ko_KR)
+    ]
 
 -- | Loads a dictionary file.  The file consists of two-column TSV
 -- (tab-separated values); the first column is hanja and the second column is

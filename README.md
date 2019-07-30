@@ -9,8 +9,8 @@ the modern Korean orthography.
 It also transforms a `ko-Kore` text (國漢文混用; [Korean mixed script]) into
 a `ko-Hang` text (한글전용; Hangul-only script).
 
-Seonbi provides the Haskell library and the CLI; both can perform the following
-transformations:
+Seonbi provides a Haskell library, a CLI, and an HTTP API; any of them can
+perform the following transformations:
 
  -  All hanja words (e.g., `漢字`) into corresponding hangul-only words
     (e.g., `한자`)
@@ -69,6 +69,39 @@ Although there are several style options, e.g., `-q`/`--quote`, `-c`/`--cite`,
 Read `-h`/`--help` for details:
 
     seonbi --help
+
+
+HTTP API
+--------
+
+The `seonbi-api` command starts an HTTP server that takes `POST` requests
+with an HTML source with transformation options, and responds with
+a transformed result HTML.  You can decide a hostname and a port number
+with `-H`/`--host` and `-p`/`--port` options:
+
+    seonbi-api -H 0.0.0.0 -p 3800
+
+The following is an example request:
+
+    POST / HTTP/1.1
+    Content-Type: application/json
+    Host: localhost:3800
+
+    {
+      "preset": "ko-kr",
+      "sourceHtml": "<p>하늘과 바람과 별과 詩</p>"
+    }
+
+The HTTP API server would respond like this:
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Server: Seonbi/0.1.0
+
+    {
+      "success": true,
+      "resultHtml": "<p>하늘과 바람과 별과 시</p>"
+    }
 
 
 License
