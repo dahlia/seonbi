@@ -2,9 +2,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
+import Control.Concurrent (threadDelay)
 import Data.String
 import Data.Version
 import System.IO
@@ -80,11 +82,12 @@ instance FromJSON HanjaReadingOption where
         (`HanjaReadingOption` Trie.empty)
             <$> v .: "initialSoundLaw"
 
-app :: Application
-app request respond =
+app :: Int -> Application
+app debugDelay request respond =
     case requestMethod request of
         "POST" -> do
             inputJson <- lazyRequestBody request
+            threadDelay debugDelay
             case eitherDecode' inputJson of
                 Right (Input source config) -> do
                     result <- transformHtmlText config source
@@ -122,28 +125,42 @@ showHostPreference h = case show h of
         Prelude.take (Prelude.length a - 1) a
     _ -> "?"
 
-parser :: Parser Settings
-parser = setHost
-    <$> option string
-        ( long "host"
-        <> short 'H'
-        <> metavar "HOST"
-        <> value "*"
-        <> help "Host address to listen (default: [::/0])"
-        )
-    <*> ((`setPort` defaultSettings)
-        <$> option auto
-            ( long "port"
-            <> short 'p'
-            <> metavar "PORT"
-            <> value 3800
-            <> showDefault
-            <> help "Port number to listen"
+data CliOptions = CliOptions
+    { serverSettings :: Settings
+    , debugDelayMs :: Int
+    }
+
+parser :: Parser CliOptions
+parser = CliOptions
+    <$> ( setHost
+        <$> option string
+            ( long "host"
+            <> short 'H'
+            <> metavar "HOST"
+            <> value "*"
+            <> help "Host address to listen (default: [::/0])"
             )
+        <*> ((`setPort` defaultSettings)
+            <$> option auto
+                ( long "port"
+                <> short 'p'
+                <> metavar "PORT"
+                <> value 3800
+                <> showDefault
+                <> help "Port number to listen"
+                )
+            )
+        )
+    <*> option auto
+        ( long "debug-delay"
+        <> metavar "MS"
+        <> value 0
+        <> showDefault
+        <> help "Delay time for client development"
         )
     <**> helper
 
-parserInfo :: ParserInfo Settings
+parserInfo :: ParserInfo CliOptions
 parserInfo = info parser
     ( fullDesc
     <> progDesc "Seonbi HTTP API server"
@@ -155,9 +172,13 @@ serverName =
 
 main :: IO ()
 main = do
-    settings <- setServerName serverName <$> execParser parserInfo
-    let netloc = showHostPreference (getHost settings) ++ ":" ++
-            show (getPort settings)
+    CliOptions
+        { serverSettings = settings
+        , debugDelayMs
+        } <- execParser parserInfo
+    let serverSettings' = setServerName serverName settings
+    let netloc = showHostPreference (getHost serverSettings') ++ ":" ++
+            show (getPort serverSettings')
     let url = "http://" ++ netloc ++ "/"
     hPutStrLn stderr url
-    runSettings settings app
+    runSettings serverSettings' $ app (debugDelayMs * 1000)
