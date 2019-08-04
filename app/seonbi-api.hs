@@ -82,12 +82,12 @@ instance FromJSON HanjaReadingOption where
         (`HanjaReadingOption` Trie.empty)
             <$> v .: "initialSoundLaw"
 
-app :: Int -> Application
-app debugDelay request respond =
+app :: AppOptions -> Application
+app AppOptions { allowOrigin, debugDelayMs } request respond =
     case requestMethod request of
         "POST" -> do
             inputJson <- lazyRequestBody request
-            threadDelay debugDelay
+            threadDelay (debugDelayMs * 1000)
             case eitherDecode' inputJson of
                 Right (Input source config) -> do
                     result <- transformHtmlText config source
@@ -99,6 +99,8 @@ app debugDelay request respond =
                     [ "success" .= Bool False
                     , "message" .= String (pack msg)
                     ]
+        "OPTIONS" -> do
+            respond' status200 Null
         method -> respond' status405 $ object
             [ "success" .= Bool False
             , "message" .= String ("Unsupported method: " <> decodeUtf8 method)
@@ -106,10 +108,16 @@ app debugDelay request respond =
   where
     respond' :: ToJSON a => Status -> a -> IO ResponseReceived
     respond' status value' =
-        respond $ responseLBS
-            status
-            [("Content-Type", "application/json")]
-            (encode value')
+        respond $ responseLBS status headers (encode value')
+    headers :: [Header]
+    headers = headerAdder
+        [ ("Content-Type", "application/json")
+        , ("Access-Control-Allow-Headers", "content-type")
+        ]
+    headerAdder :: [Header] -> [Header]
+    headerAdder = case allowOrigin of
+        Just origin -> (("Access-Control-Allow-Origin", origin) :)
+        Nothing -> id
 
 string :: IsString a => ReadM a
 string = maybeReader (Just . fromString)
@@ -127,8 +135,13 @@ showHostPreference h = case show h of
 
 data CliOptions = CliOptions
     { serverSettings :: Settings
-    , debugDelayMs :: Int
+    , appOptions :: AppOptions
     }
+
+data AppOptions = AppOptions
+    { allowOrigin :: Maybe B.ByteString
+    , debugDelayMs :: Int
+    } deriving (Show, Eq)
 
 parser :: Parser CliOptions
 parser = CliOptions
@@ -151,12 +164,24 @@ parser = CliOptions
                 )
             )
         )
-    <*> option auto
-        ( long "debug-delay"
-        <> metavar "MS"
-        <> value 0
-        <> showDefault
-        <> help "Delay time for client development"
+    <*> ( AppOptions
+        <$> (
+                ( Just <$> strOption
+                    ( long "allow-origin"
+                    <> short 'o'
+                    <> metavar "ORIGIN"
+                    <> help "Allow cross-origin (i.e., CORS)"
+                    )
+                )
+                <|> pure Nothing
+            )
+        <*> option auto
+            ( long "debug-delay"
+            <> metavar "MS"
+            <> value 0
+            <> showDefault
+            <> help "Delay time for client development"
+            )
         )
     <**> helper
 
@@ -174,11 +199,11 @@ main :: IO ()
 main = do
     CliOptions
         { serverSettings = settings
-        , debugDelayMs
+        , appOptions
         } <- execParser parserInfo
     let serverSettings' = setServerName serverName settings
     let netloc = showHostPreference (getHost serverSettings') ++ ":" ++
             show (getPort serverSettings')
     let url = "http://" ++ netloc ++ "/"
     hPutStrLn stderr url
-    runSettings serverSettings' $ app (debugDelayMs * 1000)
+    runSettings serverSettings' $ app appOptions

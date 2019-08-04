@@ -103,6 +103,13 @@ The HTTP API server would respond like this:
       "resultHtml": "<p>하늘과 바람과 별과 시</p>"
     }
 
+If a web app needs to use the HTTP API server, [CORS] should be configured
+through `--allow-origin`/`-o` option:
+
+    seonbi-api -o https://example.com
+
+[CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+
 
 License
 -------
