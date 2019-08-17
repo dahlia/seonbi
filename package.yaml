@@ -30,17 +30,31 @@ custom-setup:
   - temporary >= 1.2 && < 1.4
   - text
   - zip >= 1.1 && < 1.2
-ghc-options:
-- -Werror
-- -Wall
-- -fwarn-incomplete-uni-patterns
-- -fprint-explicit-kinds
 dependencies:
 - aeson >= 1.3.1 && < 1.4
 - base >= 4.7 && < 5
 - bytestring
 - containers
 - text
+flags:
+  static:
+    description: Static link
+    manual: true
+    default: false
+when:
+- condition: os(darwin)
+  else:
+    ghc-options:
+    - -Werror
+    - -Wall
+    - -fprint-explicit-kinds
+  then:
+    ghc-options:
+    - -Werror
+    - -Wall
+    - -fprint-explicit-kinds
+    - -optP-Wno-nonportable-include-path
+    # The above option works around https://github.com/haskell/cabal/issues/4739
 library:
   source-dirs: src
   dependencies:
@@ -54,23 +68,52 @@ executables:
   seonbi:
     main: seonbi.hs
     source-dirs: app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - cases == 0.1.3.2
     - html-charset >= 0.1 && < 0.2
     - iconv >= 0.4 && < 0.5
     - optparse-applicative >= 0.14 && < 0.15
     - seonbi
+    when: &executable-ghc-options
+    - condition: flag(static)
+      then:
+        when:
+        - condition: os(darwin) || os(windows)
+          then:
+            ghc-options:
+            - -Wall
+            - -fwarn-incomplete-uni-patterns
+            - -threaded
+            - -rtsopts
+            - -with-rtsopts=-N
+            # Static link
+            - -static
+            - -optc-Os
+          else:
+            ghc-options:
+            - -Wall
+            - -fwarn-incomplete-uni-patterns
+            - -threaded
+            - -rtsopts
+            - -with-rtsopts=-N
+            # Static link
+            - -static
+            - -optl-static
+            - -optl-pthread
+            - -optc-Os
+            - -fPIC
+        ld-options:
+        - -static
+      else:
+        ghc-options:
+        - -Wall
+        - -fwarn-incomplete-uni-patterns
+        - -threaded
+        - -rtsopts
+        - -with-rtsopts=-N
   seonbi-api:
     main: seonbi-api.hs
     source-dirs: app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - http-api-data >= 0.3.8 && < 0.4
     - http-types >= 0.12 && < 0.13
@@ -78,6 +121,7 @@ executables:
     - seonbi
     - wai >= 3.2 && < 3.3
     - warp >= 3.2 && < 3.3
+    when: *executable-ghc-options
 tests:
   doctest:
     main: doctest.hs
