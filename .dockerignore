@@ -1,0 +1,8 @@
+*.cabal
+*~
+.dockerignore
+.git/
+.gitignore
+.stack-work/
+Dockerfile
+src/Text/Seonbi/kHangul.txt
