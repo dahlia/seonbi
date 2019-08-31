@@ -48,13 +48,13 @@ instance FromJSON Input where
                             , intercalate ", " (M.keys presets')
                             ]
             Nothing -> do
-                xhtml' <- v .: "xhtml"
-                quote' <- v .: "quote"
-                cite' <- v .: "cite"
-                arrow' <- v .: "arrow"
-                ellipsis' <- v .: "ellipsis"
-                emDash' <- v .: "emDash"
-                hanja' <- v .: "hanja"
+                xhtml' <- v .:? "xhtml" .!= False
+                quote' <- v .:? "quote"
+                cite' <- v .:? "cite"
+                arrow' <- v .:? "arrow"
+                ellipsis' <- v .:? "ellipsis" .!= False
+                emDash' <- v .:? "emDash" .!= False
+                hanja' <- v .:? "hanja" .!= Nothing
                 return Configuration
                     { debugLogger = Nothing
                     , xhtml = xhtml'
