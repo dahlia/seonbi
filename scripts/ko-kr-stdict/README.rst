@@ -18,7 +18,16 @@ NIKL has distributed *Standard Korean Language Dictionary* under CC BY-SA
 `since 11th March, 2019`__.  The data can be downloaded from the
 `Standard Korean Language Dictionary`__ website --- although this website
 does not have English version and you need to make an account to download
-the data.
+the data.  Or, in short, you could download using ``curl`` in one-shot::
+
+    # Works as of August 2019.
+    curl \
+        -LOJ \
+        -X POST \
+        -F link_key=559806 \
+        -F pageUnit=10 \
+        -F pageIndex=1 \
+        https://stdict.korean.go.kr/common/download.do
 
 The data is contained by a *.zip* archive, and if you extract it there are
 several Microsoft Excel (*.xls*) spreadsheet files.  This script reads
