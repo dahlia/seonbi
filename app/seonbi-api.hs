@@ -3,15 +3,19 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
 import Control.Concurrent (threadDelay)
+import Control.Monad
 import Data.String
 import Data.Version
+import GHC.Exts (IsList (..))
 import System.IO
 
 import Data.Aeson
+import qualified Data.Aeson.Types
 import qualified Data.ByteString as B
 import qualified Data.Map.Strict as M
 import Data.Text
@@ -78,9 +82,32 @@ instance FromJSON HanjaOption where
         <*> v .: "reading"
 
 instance FromJSON HanjaReadingOption where
-    parseJSON = withObject "HanjaReadingOption" $ \ v ->
-        (`HanjaReadingOption` Trie.empty)
-            <$> v .: "initialSoundLaw"
+    parseJSON = withObject "HanjaReadingOption" $ \ v -> do
+        initialSoundLaw <- v .:? "initialSoundLaw" .!= False
+        wordMap <- v .:? "dictionary" .!= []
+        let wordPairs = GHC.Exts.toList (wordMap :: Object)
+        dictionary <- forM wordPairs $ \ (key, val) -> do
+            val' <- withText "Hangul string" return val
+            return (key, val')
+        let customDict = Trie.fromList dictionary
+        dictIds <- v .:? "useDictionaries" .!= []
+        useDictionaries <- forM (dictIds :: Array) $
+            withText "Dictionary ID string" getDictById
+        let dict = Prelude.foldl unionL customDict useDictionaries
+        return $ HanjaReadingOption initialSoundLaw dict
+      where
+        getDictById :: Text -> Data.Aeson.Types.Parser HanjaDictionary
+        getDictById "kr-stdict" = return southKoreanDictionaryUnsafe
+        getDictById dictId = fail ("No such dictionary ID: " ++ unpack dictId)
+        southKoreanDictionaryUnsafe :: HanjaDictionary
+        southKoreanDictionaryUnsafe = case hanja ko_KR' of
+            Just HanjaOption { reading = HanjaReadingOption { dictionary } } ->
+                dictionary
+            Nothing ->
+                Trie.empty
+        ko_KR' :: Configuration IO ()
+        ko_KR' = ko_KR
+
 
 app :: AppOptions -> Application
 app AppOptions { allowOrigin, debugDelayMs } request respond =
