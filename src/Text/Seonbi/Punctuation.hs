@@ -327,7 +327,7 @@ transformArrow options input = (`fmap` normalizeText input) $ \ case
         ]
 
 ignoredTags :: Set HtmlTag
-ignoredTags = [Code, Kbd, Pre]
+ignoredTags = [Code, Kbd, Pre, Script, Style]
 
 ignoresTagStack' :: HtmlTagStack -> Bool
 ignoresTagStack' stack =
