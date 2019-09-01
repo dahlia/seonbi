@@ -398,6 +398,8 @@ spec = do
                 , HtmlText [P] " here."
                 , HtmlEndTag [] P
                 ]
+            transformQuote' curvedQuotes [HtmlText [] "&quot;'“‘ "] `shouldBe`
+                [HtmlText [] "&quot;'“‘ "]
         forM_ ignoredTags $ \ tag' -> do
             let tagStr = '<' : unpack (htmlTagName tag') ++ ">"
             it ("does not transform anything within " ++ tagStr ++ " tags") $ do

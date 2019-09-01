@@ -496,18 +496,26 @@ transformQuote Quotes { .. } = transformPairs $
                 -> Text
                 -> Maybe ((QuotePunct, Text), Text, Text, Text)
     matchStart' prevMatches text
-      | Data.Text.null post = Nothing
-      | otherwise = Just
-            ( (matcher, entity)
-            , pre
-            , entity
-            , Data.Text.drop (Data.Text.length entity) post
-            )
+      | Prelude.null prevMatcherCandidates = Nothing
+      | otherwise =
+            let (matcher, entity, (pre, post)) = minimumBy
+                    (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+                    prevMatcherCandidates
+            in
+                if Data.Text.null post then
+                   Nothing
+                else
+                    Just
+                        ( (matcher, entity)
+                        , pre
+                        , entity
+                        , Data.Text.drop (Data.Text.length entity) post
+                        )
       where
         prevMatchers :: Set QuotePunct
         prevMatchers = Data.Set.fromList (fst <$> prevMatches)
-        (matcher, entity, (pre, post)) = minimumBy
-            (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+        prevMatcherCandidates :: [(QuotePunct, Text, (Text, Text))]
+        prevMatcherCandidates =
             [ (matcher', entity', breakOn entity' text)
             | (matcher', entities) <- punctuations
             , opens matcher'
@@ -516,16 +524,24 @@ transformQuote Quotes { .. } = transformPairs $
             ]
     matchEnd' :: Text -> Maybe ((QuotePunct, Text), Text, Text, Text)
     matchEnd' text
-      | Data.Text.null post = Nothing
-      | otherwise = Just
-            ( (matcher, entity)
-            , pre
-            , entity
-            , Data.Text.drop (Data.Text.length entity) post
-            )
+      | Prelude.null matcherCandidates = Nothing
+      | otherwise =
+            let (matcher, entity, (pre, post)) = minimumBy
+                    (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+                    matcherCandidates
+            in
+                if Data.Text.null post then
+                    Nothing
+                else
+                    Just
+                        ( (matcher, entity)
+                        , pre
+                        , entity
+                        , Data.Text.drop (Data.Text.length entity) post
+                        )
       where
-        (matcher, entity, (pre, post)) = minimumBy
-            (comparing $ \ (_, _, (pre', _)) -> Data.Text.length pre')
+        matcherCandidates :: [(QuotePunct, Text, (Text, Text))]
+        matcherCandidates =
             [ (matcher', entity', breakOn entity' text)
             | (matcher', entities) <- punctuations
             , closes matcher'
