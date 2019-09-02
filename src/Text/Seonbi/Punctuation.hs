@@ -36,7 +36,7 @@ import qualified Data.Text
 
 import Text.Seonbi.Html
 import Text.Seonbi.Html.Clipper
-import qualified Text.Seonbi.Html.TagStack as TagStack
+import Text.Seonbi.Html.Preservation
 import Text.Seonbi.Html.Wrapper
 import Text.Seonbi.PairedTransformer
 
@@ -101,7 +101,7 @@ quoteCitation quotes =
   where
     pairedTransformer :: PairedTransformer TitlePunct
     pairedTransformer = PairedTransformer
-        { ignoresTagStack = ignoresTagStack'
+        { ignoresTagStack = isPreservedTagStack
         , matchStart = \ _ -> matcher $ parser openTitle openSubtitle
         , matchEnd = matcher $ parser closeTitle closeSubtitle
         , areMatchesPaired = (==)
@@ -263,7 +263,8 @@ data ArrowTransformationOption
 --   if both 'DoubleArrow' and 'LeftRight' are configured at a time.
 transformArrow :: Set ArrowTransformationOption -> [HtmlEntity] -> [HtmlEntity]
 transformArrow options input = (`fmap` normalizeText input) $ \ case
-    e@HtmlText { tagStack = stack, rawText = txt } -> if ignoresTagStack' stack
+    e@HtmlText { tagStack = stack, rawText = txt } ->
+        if isPreservedTagStack stack
         then e
         else e { rawText = replaceText txt }
     e ->
@@ -325,18 +326,6 @@ transformArrow options input = (`fmap` normalizeText input) $ \ case
         , string "&61;"
         , asciiCI "&#x3d;"
         ]
-
-ignoredTags :: Set HtmlTag
-ignoredTags = [Code, Kbd, Pre, Script, Style]
-
-ignoresTagStack' :: HtmlTagStack -> Bool
-ignoresTagStack' stack =
-    any (`TagStack.elem` stack) ignoredTags ||
-        TagStack.any (not . isNormal . htmlTagKind) stack
-  where
-    isNormal :: HtmlTagKind -> Bool
-    isNormal Normal = True
-    isNormal _ = False
 
 lt :: Parser Text
 lt = choice
@@ -452,7 +441,7 @@ transformQuote :: Quotes -- ^ Pair of quoting punctuations and wrapping element.
                -> [HtmlEntity]
 transformQuote Quotes { .. } = transformPairs $
     PairedTransformer
-        { ignoresTagStack = ignoresTagStack'
+        { ignoresTagStack = isPreservedTagStack
         , matchStart = matchStart'
         , matchEnd = matchEnd'
         , areMatchesPaired = \ (punct, text) (punct', text') ->
@@ -635,7 +624,8 @@ transformEmDash = transformText $ \ txt ->
 
 transformText :: (Text -> Text) -> [HtmlEntity] -> [HtmlEntity]
 transformText replace' = fmap $ \ case
-    e@HtmlText { tagStack = stack, rawText = txt } -> if ignoresTagStack' stack
+    e@HtmlText { tagStack = stack, rawText = txt } ->
+        if isPreservedTagStack stack
         then e
         else e { rawText = replace' txt }
     e ->

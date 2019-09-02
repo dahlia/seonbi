@@ -298,6 +298,10 @@ spec = do
             phone [HtmlText [] "&lt;1996&#x5e74; 그들이 地球를 支配했을 때&gt;"]
                 `shouldBe`
                     [HtmlText [] "&lt;1996년 그들이 지구를 지배했을 때&gt;"]
+        it "transforms nothing in preserved tags" $ do
+            let phone = normalizeText . phoneticizeHanja def
+            phone [HtmlText [Pre] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
+                [HtmlText [Pre] "1996年 그들이 地球를 支配했을 때"]
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'

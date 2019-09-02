@@ -39,6 +39,7 @@ import Data.Text hiding (concatMap)
 
 import Text.Seonbi.Hangul
 import Text.Seonbi.Html
+import Text.Seonbi.Html.Preservation
 import Text.Seonbi.Html.TagStack (push)
 import qualified Text.Seonbi.Trie as Trie
 import Text.Seonbi.Unihan.KHangul
@@ -179,16 +180,19 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
     splitByDigits :: Text -> [Text]
     splitByDigits = Data.Text.groupBy (\ a b -> isDigit a == isDigit b)
     transform :: HtmlEntity -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
-    transform entity@HtmlText { tagStack = tagStack', rawText = rawText' } =
-        case analyzeHanjaText rawText' of
-            Nothing -> [Left $ entity { rawText = rawText' }]
-            Just pairs ->
-                [ if trueIfHanja
-                  then Right (tagStack', htmlText, phoneticizer htmlText)
-                  else Left (entity { rawText = htmlText })
-                -- Note that htmlText here can have HTML entities.
-                | (trueIfHanja, htmlText) <- pairs
-                ]
+    transform entity@HtmlText { tagStack = tagStack', rawText = rawText' }
+      | isPreservedTagStack tagStack' =
+            [Left entity]
+      | otherwise =
+            case analyzeHanjaText rawText' of
+                Nothing -> [Left $ entity { rawText = rawText' }]
+                Just pairs ->
+                    [ if trueIfHanja
+                      then Right (tagStack', htmlText, phoneticizer htmlText)
+                      else Left (entity { rawText = htmlText })
+                    -- Note that htmlText here can have HTML entities.
+                    | (trueIfHanja, htmlText) <- pairs
+                    ]
     transform entity =
         [Left entity]
     -- FIXME: This should be public:
