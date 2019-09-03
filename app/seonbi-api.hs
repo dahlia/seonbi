@@ -1,7 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -126,7 +124,7 @@ app AppOptions { allowOrigin, debugDelayMs } request respond =
                     [ "success" .= Bool False
                     , "message" .= String (pack msg)
                     ]
-        "OPTIONS" -> do
+        "OPTIONS" ->
             respond' status200 Null
         method -> respond' status405 $ object
             [ "success" .= Bool False
