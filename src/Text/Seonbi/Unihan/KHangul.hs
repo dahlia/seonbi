@@ -100,3 +100,5 @@ kHangulData' = eitherDecode $
 -- fromList [('천',HanjaReadingCitation KS_X_1001 (fromList [Education]))]
 kHangulData :: KHangulData
 kHangulData = fromRight empty kHangulData'
+
+{- HLINT ignore "Unused LANGUAGE pragma" -}

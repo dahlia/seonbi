@@ -1,0 +1,41 @@
+name: build
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, macOS-10.14]
+        resolver: [lts-12.26, lts-13.30, lts-14.6]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install toolchains
+      run: curl -sSL https://get.haskellstack.org/ | sh
+    - name: Set up resolver
+      run: |
+        sed \
+          -i \
+          -E 's/^resolver: .*$/resolver: "${{ matrix.resolver }}"/' \
+          stack.yaml
+        stack setup
+    - name: Resolve dependencies
+      run: stack install --only-dependencies
+    - name: Build
+      run: stack build
+    - name: Test
+      run: |
+        if [[ "${{ matrix.os }}" = "macOS-10.14" && \
+              "${{ matrix.resolver }}" = "lts-12.26" ]]; then
+          # On GHC-8.4 & macOS doctest does not work.
+          # See also:
+          #   https://github.com/sol/doctest/issues/199
+          #   https://ghc.haskell.org/trac/ghc/ticket/15105
+          stack test :spec
+        else
+          stack test
+        fi

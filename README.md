@@ -1,6 +1,8 @@
 Seonbi: SmartyPants for Korean language
 =======================================
 
+[![][ci-status-badge]][ci]
+
 Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
 the modern Korean orthography.
@@ -35,6 +37,8 @@ markup languages like CommonMark, Markdown, and Textile.  In a similar way to
 SmartyPants, it either does not modify characters within several sensitive
 HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
+[ci]: https://github.com/dahlia/seonbi/actions
+[ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
