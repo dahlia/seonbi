@@ -39,3 +39,10 @@ jobs:
         else
           stack test
         fi
+    - name: Copy executable binaries
+      run: cp -r "$(stack path --local-install-root)/bin" .bin
+    - name: Publish artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: binaries
+        path: .bin
