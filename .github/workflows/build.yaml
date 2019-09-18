@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macOS-10.14]
+        os: [ubuntu-18.04, macOS-10.14, windows-2019]
         resolver: [lts-12.26, lts-13.30, lts-14.6]
     steps:
     - uses: actions/checkout@v1
@@ -17,17 +17,25 @@ jobs:
     - name: Install toolchains
       run: curl -sSL https://get.haskellstack.org/ | sh
     - name: Set up resolver
+      shell: bash
       run: |
         sed \
           -i \
           -E 's/^resolver: .*$/resolver: "${{ matrix.resolver }}"/' \
           stack.yaml
+        if [[ "${{ matrix.os }}" = windows-* ]]; then
+          curl -L -o /usr/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/2.4.0/yq_windows_amd64.exe
+            yq delete -i stack.yaml flags.seonbi.iconv
+        fi
+        cat stack.yaml
         stack setup
     - name: Resolve dependencies
       run: stack install --only-dependencies
     - name: Build
       run: stack build
     - name: Test
+      shell: bash
       run: |
         if [[ "${{ matrix.os }}" = "macOS-10.14" && \
               "${{ matrix.resolver }}" = "lts-12.26" ]]; then
@@ -40,6 +48,7 @@ jobs:
           stack test
         fi
     - name: Copy executable binaries
+      shell: bash
       run: cp -r "$(stack path --local-install-root)/bin" .bin
     - name: Publish artifacts
       uses: actions/upload-artifact@v1

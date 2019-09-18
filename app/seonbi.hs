@@ -1,9 +1,13 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
+#ifndef ICONV
+import Control.Exception
+#endif
 import Control.Monad
 import Data.Char
 import Data.List (intercalate)
@@ -16,7 +20,9 @@ import System.IO (hPutStrLn, stderr)
 import System.IO.Error
 
 import Cases
+#ifdef ICONV
 import Codec.Text.IConv
+#endif
 import Data.ByteString.Lazy
 import Data.Map.Strict
 import qualified Data.Text as T
@@ -30,6 +36,10 @@ import Text.Seonbi.Facade
 import Text.Seonbi.Trie as Trie
 import Text.Seonbi.Html.Entity
 
+#ifndef ICONV
+type EncodingName = String
+#endif
+
 toUnicode :: EncodingName -> ByteString -> Text
 toUnicode encodingName =
     case normalizeEncodingName encodingName of
@@ -38,7 +48,14 @@ toUnicode encodingName =
         "utf16be" -> decodeUtf16BE
         "utf32le" -> decodeUtf32LE
         "utf32be" -> decodeUtf32BE
-        _ -> decodeUtf8 . convert encodingName "UTF-8"
+        _ ->
+#ifdef ICONV
+            decodeUtf8 . convert encodingName "UTF-8"
+#else
+            throw $ userError $
+                "Only UTF-{8,16,32} encodings are supported, " ++
+                "since it is not built with iconv."
+#endif
 
 fromUnicode :: EncodingName -> Text -> ByteString
 fromUnicode encodingName =
@@ -48,7 +65,14 @@ fromUnicode encodingName =
         "utf16be" -> encodeUtf16BE
         "utf32le" -> encodeUtf32LE
         "utf32be" -> encodeUtf32BE
-        _ -> convert "UTF-8" encodingName . encodeUtf8
+        _ ->
+#ifdef ICONV
+            convert "UTF-8" encodingName . encodeUtf8
+#else
+            throw $ userError $
+                "Only UTF-{8,16,32} encodings are supported, " ++
+                "since it is not built with iconv."
+#endif
 
 -- | Normalize the encoding name.
 --
@@ -201,7 +225,7 @@ parser = Seonbi
                 <> short 'D'
                 <> help "Do not transform folk em dashes into proper em dashes"
                 )
-            <*> ( flag' Nothing 
+            <*> ( flag' Nothing
                     ( long "maintain-hanja"
                     <> short 'H'
                     <> help ("Leave Sino-Korean words as are.  This rejects " ++
