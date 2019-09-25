@@ -12,7 +12,13 @@ jobs:
         resolver: [lts-12.26, lts-13.30, lts-14.6]
     steps:
     - uses: actions/checkout@v1
+      if: github.event_name != 'pull_request'
       with:
+        fetch-depth: 1
+    - uses: actions/checkout@master
+      if: github.event_name == 'pull_request'
+      with:
+        ref: ${{ github.pull_request.head.sha }}
         fetch-depth: 1
     - name: Install toolchains
       run: curl -sSL https://get.haskellstack.org/ | sh
