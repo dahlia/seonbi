@@ -1,5 +1,9 @@
 name: build
-on: [push, pull_request]
+on:
+  push: []
+  schedule:
+  - cron: 59 14 * * *
+  pull_request: []
 
 jobs:
   build:
