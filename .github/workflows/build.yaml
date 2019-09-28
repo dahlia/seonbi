@@ -19,7 +19,7 @@ jobs:
       if: github.event_name != 'pull_request'
       with:
         fetch-depth: 1
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v1
       if: github.event_name == 'pull_request'
       with:
         ref: ${{ github.pull_request.head.sha }}
@@ -39,7 +39,9 @@ jobs:
             yq delete -i stack.yaml flags.seonbi.iconv
         fi
         cat stack.yaml
-        stack setup
+        # Try 3 times because this sometimes fails due to network error
+        # on GitHub Actions.
+        stack setup || stack setup || stack setup
     - name: Resolve dependencies
       run: stack install --only-dependencies
     - name: Build
