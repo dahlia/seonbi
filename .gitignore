@@ -1,4 +1,5 @@
 *.cabal
+*.prof
 *~
 .stack-work/
 src/Text/Seonbi/kHangul.txt

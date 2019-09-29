@@ -67,3 +67,45 @@ jobs:
       with:
         name: binaries
         path: .bin
+
+  image:
+    name: Docker image
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+      if: github.event_name != 'pull_request'
+      with:
+        fetch-depth: 1
+    - uses: actions/checkout@v1
+      if: github.event_name == 'pull_request'
+      with:
+        ref: ${{ github.pull_request.head.sha }}
+        fetch-depth: 1
+    - run: |
+        image_name="docker.pkg.github.com/$GITHUB_REPOSITORY/bin"
+        if [[ "$GITHUB_EVENT_NAME" = "pull_request" ]]; then
+          sha="$(git log -n1 --format=%h)"
+          tag="$image_name:git-$sha"
+          docker build -t "$tag"
+        else
+          if [[ "$GITHUB_REF" = "refs/heads/master" ]]; then
+            tag="$image_name:latest"
+          else
+            tag="$image_name:${GITHUB_REF:11}"
+          fi
+          docker build -t "$tag" .
+          docker login \
+            docker.pkg.github.com \
+            --username "${GITHUB_REPOSITORY#*/}" \
+            --password "${{ secrets.GH_TOKEN }}"
+          docker push "$tag"
+        fi
+        docker save -o /tmp/image.tar "$tag"
+        mkdir -p /tmp/images
+        pushd /tmp/images
+        tar xvf /tmp/image.tar
+        popd
+    - uses: actions/upload-artifact@v1
+      with:
+        name: image
+        path: /tmp/images
