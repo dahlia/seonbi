@@ -83,17 +83,29 @@ jobs:
         fetch-depth: 1
     - run: |
         image_name="docker.pkg.github.com/$GITHUB_REPOSITORY/bin"
+        declare -a build_opts=()
         if [[ "$GITHUB_EVENT_NAME" = "pull_request" ]]; then
           sha="$(git log -n1 --format=%h)"
           tag="$image_name:git-$sha"
-          docker build -t "$tag"
         else
           if [[ "$GITHUB_REF" = "refs/heads/master" ]]; then
             tag="$image_name:latest"
+          elif [[ "$GITHUB_REF" = refs/tags/* ]]; then
+            tag="$image_name:${GITHUB_REF:10}"
+            build_opts+=(--label "org.opencontainers.image.version=$tag")
           else
             tag="$image_name:${GITHUB_REF:11}"
           fi
-          docker build -t "$tag" .
+        fi
+        docker build \
+          --tag "$tag" \
+          --label org.opencontainers.image.revision=`git log -1 --format=%H` \
+          --label \
+            org.opencontainers.image.url=https://github.com/$GITHUB_REPOSITORY \
+          --label org.opencontainers.image.description="$(cat README.md)" \
+          "${build_opts[@]}" \
+          .
+        if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
           docker login \
             docker.pkg.github.com \
             --username "${GITHUB_REPOSITORY#*/}" \

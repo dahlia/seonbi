@@ -3,6 +3,9 @@
 # statically linked.
 FROM alpine:3.10 AS build
 
+LABEL "org.opencontainers.image.title"="Seonbi"
+LABEL "org.opencontainers.image.licenses"="LGPL-2.1"
+
 RUN apk add --no-cache \
   build-base=0.5-r1 \
   bzip2-dev=1.0.6-r7 \
