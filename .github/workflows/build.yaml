@@ -25,6 +25,7 @@ jobs:
         ref: ${{ github.pull_request.head.sha }}
         fetch-depth: 1
     - name: Install toolchains
+      if: "!startsWith(matrix.os, 'ubuntu-')"
       run: curl -sSL https://get.haskellstack.org/ | sh
     - name: Set up resolver
       shell: bash
@@ -118,7 +119,7 @@ jobs:
           docker push "$gh_image_name:$tag"
           docker push "$image_name:$tag"
         fi
-        docker save -o /tmp/image.tar "$tag"
+        docker save -o /tmp/image.tar "$image_name:$tag"
         mkdir -p /tmp/images
         pushd /tmp/images
         tar xvf /tmp/image.tar

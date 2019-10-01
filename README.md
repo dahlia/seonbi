@@ -1,7 +1,7 @@
 Seonbi: SmartyPants for Korean language
 =======================================
 
-[![][ci-status-badge]][ci]
+[![][ci-status-badge]][ci] [![][dockerhub-badge]][dockerhub]
 
 Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
@@ -39,8 +39,19 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
 [ci]: https://github.com/dahlia/seonbi/actions
 [ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
+[dockerhub]: https://hub.docker.com/r/dahlia/seonbi
+[dockerhub-badge]: https://img.shields.io/microbadger/image-size/dahlia/seonbi
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
+
+
+Installation
+------------
+
+Seonbi is distributed as a [Docker image][dockerhub]:
+
+    $ echo '訓民正音' | docker run -i dahlia/seonbi:latest seonbi
+    훈민정음
 
 
 CLI
