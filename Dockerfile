@@ -30,14 +30,22 @@ WORKDIR /src/seonbi
 # modify source code without re-installing dependencies
 # (unless the .cabal file changes!)
 RUN stack setup
-RUN stack build --only-snapshot --flag seonbi:static
+RUN stack build \
+  --only-snapshot \
+  --flag seonbi:iconv \
+  --flag seonbi:static
 
 COPY . /src/seonbi
 RUN cp /tmp/stack.yaml /src/seonbi/stack.yaml
 
-RUN stack build --flag seonbi:static --copy-bins
+RUN stack build \
+  --flag seonbi:iconv \
+  --flag seonbi:static \
+  --copy-bins
 
 FROM alpine:3.10
 
 COPY --from=build /root/.local/bin/seonbi* /usr/local/bin/
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 CMD ["seonbi"]
