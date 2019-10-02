@@ -66,7 +66,7 @@ jobs:
     - name: Publish artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: binaries
+        name: binaries-${{ matrix.os }}-${{ matrix.resolver }}
         path: .bin
 
   image:
@@ -124,7 +124,68 @@ jobs:
         pushd /tmp/images
         tar xvf /tmp/image.tar
         popd
+        mkdir -p /tmp/image-metadata
+        docker images "$image_name:$tag" | tail -n 1 | awk '{print $3}' \
+          > /tmp/image-metadata/image_id.txt
     - uses: actions/upload-artifact@v1
       with:
         name: image
         path: /tmp/images
+    - uses: actions/upload-artifact@v1
+      with:
+        name: image-metadata
+        path: /tmp/image-metadata
+
+  binaries:
+    name: Distribute executable binaries
+    needs:
+    - build
+    - image
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        name: binaries-macOS-10.14-lts-14.6
+        path: /tmp/binaries-macos
+    - uses: actions/download-artifact@v1
+      with:
+        name: binaries-windows-2019-lts-14.6
+        path: /tmp/binaries-windows
+    - uses: actions/download-artifact@v1
+      with:
+        name: image
+        path: /tmp/images
+    - uses: actions/download-artifact@v1
+      with:
+        name: image-metadata
+        path: /tmp/image-metadata
+    - run: |
+        mkdir -p /tmp/dists
+        # Linux
+        pushd /tmp/images
+        tar cvf ../image.tar .
+        popd
+        docker load -i /tmp/image.tar
+        mkdir -p /tmp/binaries-linux
+        image_id="$(cat /tmp/image-metadata/image_id.txt)"
+        docker run -i "$image_id" cat /usr/local/bin/seonbi \
+          > /tmp/binaries-linux/seonbi
+        docker run -i "$image_id" cat /usr/local/bin/seonbi-api \
+          > /tmp/binaries-linux/seonbi-api
+        pushd /tmp/binaries-linux
+        chmod +x *
+        tar cvfj /tmp/dists/seonbi.linux-x86_64.tar.bz2 *
+        popd
+        # macOS
+        pushd /tmp/binaries-macos
+        chmod +x *
+        tar cvfj /tmp/dists/seonbi.macos-x86_64.tar.bz2 *
+        popd
+        # Windows
+        pushd /tmp/binaries-windows
+        zip /tmp/dists/seonbi.win64.zip *
+        popd
+    - uses: actions/upload-artifact@v1
+      with:
+        name: dists
+        path: /tmp/dists
