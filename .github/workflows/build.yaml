@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04, macOS-10.14, windows-2019]
-        resolver: [lts-12.26, lts-13.30, lts-14.6]
+        resolver: [lts-12.26, lts-13.30, lts-14.7]
     steps:
     - uses: actions/checkout@v1
       if: github.event_name != 'pull_request'
@@ -51,7 +51,7 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" = "macOS-10.14" && \
-              "${{ matrix.resolver }}" = "lts-12.26" ]]; then
+              "${{ matrix.resolver }}" = lts-12.* ]]; then
           # On GHC-8.4 & macOS doctest does not work.
           # See also:
           #   https://github.com/sol/doctest/issues/199
@@ -145,11 +145,11 @@ jobs:
     steps:
     - uses: actions/download-artifact@v1
       with:
-        name: binaries-macOS-10.14-lts-14.6
+        name: binaries-macOS-10.14-lts-14.7
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v1
       with:
-        name: binaries-windows-2019-lts-14.6
+        name: binaries-windows-2019-lts-14.7
         path: /tmp/binaries-windows
     - uses: actions/download-artifact@v1
       with:
