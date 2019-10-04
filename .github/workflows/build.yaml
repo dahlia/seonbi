@@ -60,10 +60,25 @@ jobs:
         else
           stack test
         fi
+    - name: Package source distribution
+      if: startsWith(matrix.os, 'ubuntu-')
+      run: |
+        # Hackage disallows -Werror
+        sed -i 's/^ *- -Werror$//g' package.yaml
+        stack sdist --ignore-check || true
+        mkdir -p /tmp/sdist
+        mv "$(stack path --dist-dir)"/*.tar.gz /tmp/sdist/
+        ls -al /tmp/sdist
+    - name: Save source distribution
+      if: startsWith(matrix.os, 'ubuntu-')
+      uses: actions/upload-artifact@v1
+      with:
+        name: sdist-${{ matrix.os }}-${{ matrix.resolver }}
+        path: /tmp/sdist
     - name: Copy executable binaries
       shell: bash
       run: cp -r "$(stack path --local-install-root)/bin" .bin
-    - name: Publish artifacts
+    - name: Save executable binaries
       uses: actions/upload-artifact@v1
       with:
         name: binaries-${{ matrix.os }}-${{ matrix.resolver }}
@@ -137,7 +152,7 @@ jobs:
         path: /tmp/image-metadata
 
   binaries:
-    name: Distribute executable binaries
+    name: Package executable binaries
     needs:
     - build
     - image
