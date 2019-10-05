@@ -43,6 +43,18 @@ jobs:
         # Try 3 times because this sometimes fails due to network error
         # on GitHub Actions.
         stack setup || stack setup || stack setup
+    - name: Check version
+      if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        pkg_ver="$(stack query locals seonbi version)"
+        echo "Package version: $pkg_ver"
+        tag_ver="${GITHUB_REF:10}"
+        echo "Git tag version: $tag_ver"
+        [[ "$tag_ver" = "$pkg_ver" ]]
+        ! grep -i "to be released" CHANGES.md
     - name: Resolve dependencies
       run: stack install --only-dependencies
     - name: Build
@@ -204,3 +216,79 @@ jobs:
       with:
         name: dists
         path: /tmp/dists
+
+  release:
+    name: Release dist files
+    needs:
+    - build
+    - binaries
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        name: sdist-ubuntu-18.04-lts-14.7
+        path: /tmp/sdist
+    - uses: actions/download-artifact@v1
+      with:
+        name: dists
+        path: /tmp/dists
+    - if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        mkdir -p "$HOME/bin"
+        export PATH="$HOME/bin:$PATH"
+        curl -L -o "$HOME/bin/submark" \
+          https://github.com/dahlia/submark/releases/download/0.2.0/submark-linux-x86_64
+        chmod +x "$HOME/bin/submark"
+        curl -L -o /tmp/github-release.tar.bz2 \
+          https://github.com/aktau/github-release/releases/download/v0.7.2/linux-amd64-github-release.tar.bz2
+        tar xvfj /tmp/github-release.tar.bz2 -C /tmp
+        mv /tmp/bin/linux/amd64/github-release $HOME/bin
+
+        version="${GITHUB_REF:10}"
+        github_user="${GITHUB_REPOSITORY%/*}"
+        github_repo="${GITHUB_REPOSITORY#*/}"
+
+        # Release note
+        submark -iO --h2 "Version $version" \
+        | github-release release \
+            --user "$github_user" \
+            --repo "$github_repo" \
+            --tag "$version" \
+            --name "Seonbi $version" \
+            --description -
+
+        # Source distribution
+        for file in /tmp/sdist/*; do
+          github-release upload \
+            --user "$github_user" \
+            --repo "$github_repo" \
+            --tag "$version" \
+            --name "$(basename "$file")" \
+            --file "$file"
+        done
+
+        # Binaries
+        for file in /tmp/dists/*; do
+          github-release upload \
+            --user "$github_user" \
+            --repo "$github_repo" \
+            --tag "$version" \
+            --name "$(basename "$file")" \
+            --file "$file"
+        done
+    - if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      env:
+        HACKAGE_API_KEY: ${{ secrets.HACKAGE_API_KEY }}
+      run: |
+        for file in /tmp/sdist/*; do
+          curl \
+            -H "Authorization: X-ApiKey $HACKAGE_API_KEY" \
+            -F package=@"$file" \
+            https://hackage.haskell.org/packages/
+        done

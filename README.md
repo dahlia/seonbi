@@ -1,7 +1,7 @@
 Seonbi: SmartyPants for Korean language
 =======================================
 
-[![][ci-status-badge]][ci] [![][dockerhub-badge]][dockerhub]
+[![][releases-badge]][releases] [![][hackage-badge]][hackage] [![][dockerhub-badge]][dockerhub] [![][ci-status-badge]][ci]
 
 Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
@@ -37,10 +37,14 @@ markup languages like CommonMark, Markdown, and Textile.  In a similar way to
 SmartyPants, it either does not modify characters within several sensitive
 HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
-[ci]: https://github.com/dahlia/seonbi/actions
-[ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
+[releases]: https://github.com/dahlia/seonbi/releases
+[releases-badge]: https://img.shields.io/github/v/release/dahlia/seonbi
+[hackage]: https://hackage.haskell.org/package/seonbi
+[hackage-badge]: https://img.shields.io/hackage/v/seonbi
 [dockerhub]: https://hub.docker.com/r/dahlia/seonbi
 [dockerhub-badge]: https://img.shields.io/microbadger/image-size/dahlia/seonbi
+[ci]: https://github.com/dahlia/seonbi/actions
+[ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
@@ -48,10 +52,16 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 Installation
 ------------
 
-Seonbi is distributed as a [Docker image][dockerhub]:
+Seonbi provides the official executable binaries for Linux (x86_64), macOS,
+and Windows (64-bit).  You can find download them from the [releases] page.
+
+It is also distributed as a [Docker image][dockerhub]:
 
     $ echo '訓民正音' | docker run -i dahlia/seonbi:latest seonbi
     훈민정음
+
+If you want to use it as a Haskell library install the [seonbi][hackage] package
+using Stack or Cabal.
 
 
 CLI
