@@ -293,3 +293,37 @@ jobs:
             -F package=@"$file" \
             https://hackage.haskell.org/packages/
         done
+
+  demo:
+    name: Deploy demo app
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+      if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      with:
+        fetch-depth: 1
+    - if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      run: |
+        pushd /tmp
+        curl -L -o elm.gz \
+          https://github.com/elm/compiler/releases/download/0.19.0/binary-for-linux-64-bit.gz
+        gunzip elm.gz
+        chmod +x elm
+        popd
+        git config --global user.name "$GITHUB_ACTOR"
+        git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        git init /tmp/html
+        cd demo/
+        /tmp/elm make --optimize --output=/tmp/html/index.html src/Demo.elm
+        cd /tmp/html
+        git add index.html
+        git commit -m 'Demo app'
+        git branch --move gh-pages
+        auth="$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}"
+        git remote add origin \
+          "https://$auth@github.com/$GITHUB_REPOSITORY.git"
+        git push -f origin gh-pages

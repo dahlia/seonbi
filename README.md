@@ -3,6 +3,8 @@ Seonbi: SmartyPants for Korean language
 
 [![][releases-badge]][releases] [![][hackage-badge]][hackage] [![][dockerhub-badge]][dockerhub] [![][ci-status-badge]][ci]
 
+(TL;DR: See the [demo web app].)
+
 Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
 the modern Korean orthography.
@@ -45,6 +47,7 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 [dockerhub-badge]: https://img.shields.io/microbadger/image-size/dahlia/seonbi
 [ci]: https://github.com/dahlia/seonbi/actions
 [ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
+[demo web app]: https://dahlia.github.io/seonbi/
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
@@ -132,6 +135,8 @@ If a web app needs to use the HTTP API server, [CORS] should be configured
 through `--allow-origin`/`-o` option:
 
     seonbi-api -o https://example.com
+
+To learn more parameters interactively, try the [demo web app].
 
 [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
