@@ -136,6 +136,15 @@ through `--allow-origin`/`-o` option:
 [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
 
+Haskell API
+-----------
+
+All functions and types lie inside `Text.Seonbi` module and its submodules.
+The highest-level API is `Text.Seonbi.Facade` module.
+
+See also the API docs on [Hackage].
+
+
 License
 -------
 
