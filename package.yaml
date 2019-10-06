@@ -68,6 +68,12 @@ library:
   - filepath >= 1 && < 2
   - file-embed >= 0.0.10 && < 0.0.12
   - text-trie >= 0.2.5 && < 0.3
+  when:
+  - condition: flag(static)
+    then:
+      cpp-options:
+      - -DSTATIC
+    else: {}
 executables:
   seonbi:
     main: seonbi.hs

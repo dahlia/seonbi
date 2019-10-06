@@ -1,7 +1,11 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+#ifdef STATIC
+{-# LANGUAGE TemplateHaskell #-}
+#endif
 -- | Provides higher-level APIs.  Read 'transformHtmlText' function first,
 -- and then see also 'Configuration' type.
 module Text.Seonbi.Facade
@@ -32,13 +36,23 @@ import System.IO.Unsafe
 
 import Data.ByteString.Lazy
 import Data.Csv
+#ifdef STATIC
+import Data.FileEmbed
+#endif
 import Data.Map.Strict
 import Data.Set
 import Data.Text
 import qualified Data.Text.Lazy as LT
-import System.FilePath ((</>))
+import System.FilePath
+    ( (</>)
+#ifdef STATIC
+    , takeDirectory
+#endif
+    )
 
+#ifndef STATIC
 import Paths_seonbi (getDataDir)
+#endif
 import Text.Seonbi.Hanja
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
@@ -49,7 +63,7 @@ import Text.Seonbi.Trie as Trie
 --
 -- - 'ko_KR'
 -- - 'ko_KP'
-data Monad m => Configuration m a = Configuration 
+data Monad m => Configuration m a = Configuration
     { -- | An optional debugging logger to print its internal AST.
       debugLogger :: Maybe (HtmlEntity -> m a)
       -- | Whether to take and result in XHTML instead of HTML.
@@ -91,10 +105,10 @@ data QuoteOption
     = CurvedQuotes
     -- | East Asian guillemets (@〈@: U+3008, @〉@: U+3009, @《@: U+300A, @》@:
     -- U+300B), which are used by North Korean orthography.
-    | Guillemets 
+    | Guillemets
     -- | Use English-style curved quotes (@‘@: U+2018, @’@: U+2019) for single
     -- quotes, and HTML @\<q\>@ tags for double quotes.
-    | CurvedSingleQuotesWithQ 
+    | CurvedSingleQuotesWithQ
     deriving (Enum, Eq, Generic, Read, Show)
 
 -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@) into
@@ -300,12 +314,20 @@ presets =
 readDictionaryFile :: FilePath -> IO HanjaDictionary
 readDictionaryFile path = do
     byteString <- Data.ByteString.Lazy.readFile path
+    case readDictionaryByteString byteString of
+        Right dic -> return dic
+        Left err -> fail err
+
+-- | Reads a dictionary from TSV bytes.
+readDictionaryByteString :: Data.ByteString.Lazy.ByteString
+                         -> Either String HanjaDictionary
+readDictionaryByteString byteString =
     case decodeWith tsvDecodeOptions NoHeader byteString of
-        Right vector -> return $ Prelude.foldl
+        Right vector -> Right $ Prelude.foldl
             (\ d (DictionaryPair k v) -> Trie.insert k v d)
             Trie.empty
             (GHC.Exts.toList vector)
-        Left err -> fail err
+        Left err -> Left err
   where
     tsvDecodeOptions :: DecodeOptions
     tsvDecodeOptions = defaultDecodeOptions
@@ -324,9 +346,22 @@ southKoreanDictionaryUnsafe =
 -- | Loads [Standard Korean Language Dictionary](https://stdict.korean.go.kr/)
 -- (標準國語大辭典) data.
 southKoreanDictionary :: IO HanjaDictionary
+#ifdef STATIC
+southKoreanDictionary =
+    case readDictionaryByteString bytes of
+        Right dic -> return dic
+        Left err -> fail err
+  where
+    bytes :: Data.ByteString.Lazy.ByteString
+    bytes = Data.ByteString.Lazy.fromStrict $ $(embedFile $
+        takeDirectory __FILE__ </> ".." </> ".." </> ".." </> "data" </>
+        "ko-kr-stdict.tsv")
+
+#else
 southKoreanDictionary = do
     dataDir <- getDataDir
     readDictionaryFile (dataDir </> "ko-kr-stdict.tsv")
+#endif
 
 data DictionaryPair = DictionaryPair !Text !Text deriving (Generic, Show)
 
