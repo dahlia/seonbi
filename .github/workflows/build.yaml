@@ -273,11 +273,12 @@ jobs:
 
         # Binaries
         for file in /tmp/dists/*; do
+          name="$(basename "$file")"
           github-release upload \
             --user "$github_user" \
             --repo "$github_repo" \
             --tag "$version" \
-            --name "$(basename "$file")" \
+            --name "${name/seonbi/seonbi-$version}" \
             --file "$file"
         done
     - if: >-
