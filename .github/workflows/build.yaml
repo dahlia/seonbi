@@ -253,7 +253,7 @@ jobs:
         github_repo="${GITHUB_REPOSITORY#*/}"
 
         # Release note
-        submark -iO --h2 "Version $version" \
+        submark -iO --h2 "Version $version" CHANGES.md \
         | github-release release \
             --user "$github_user" \
             --repo "$github_repo" \
