@@ -3,7 +3,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
-#ifdef STATIC
+#ifdef EMBED_DICTIONARY
 {-# LANGUAGE TemplateHaskell #-}
 #endif
 -- | Provides higher-level APIs.  Read 'transformHtmlText' function first,
@@ -36,7 +36,7 @@ import System.IO.Unsafe
 
 import Data.ByteString.Lazy
 import Data.Csv
-#ifdef STATIC
+#ifdef EMBED_DICTIONARY
 import Data.FileEmbed
 #endif
 import Data.Map.Strict
@@ -45,12 +45,12 @@ import Data.Text
 import qualified Data.Text.Lazy as LT
 import System.FilePath
     ( (</>)
-#ifdef STATIC
+#ifdef EMBED_DICTIONARY
     , takeDirectory
 #endif
     )
 
-#ifndef STATIC
+#ifndef EMBED_DICTIONARY
 import Paths_seonbi (getDataDir)
 #endif
 import Text.Seonbi.Hanja
@@ -346,7 +346,7 @@ southKoreanDictionaryUnsafe =
 -- | Loads [Standard Korean Language Dictionary](https://stdict.korean.go.kr/)
 -- (標準國語大辭典) data.
 southKoreanDictionary :: IO HanjaDictionary
-#ifdef STATIC
+#ifdef EMBED_DICTIONARY
 southKoreanDictionary =
     case readDictionaryByteString bytes of
         Right dic -> return dic

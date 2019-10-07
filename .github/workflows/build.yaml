@@ -87,6 +87,8 @@ jobs:
       with:
         name: sdist-${{ matrix.os }}-${{ matrix.resolver }}
         path: /tmp/sdist
+    - name: Build using -fembed-dictionary
+      run: stack build --flag seonbi:embed-dictionary
     - name: Copy executable binaries
       shell: bash
       run: cp -r "$(stack path --local-install-root)/bin" .bin

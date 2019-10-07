@@ -45,6 +45,10 @@ flags:
     description: Use iconv
     manual: true
     default: false
+  embed-dictionary:
+    description: Embed dictionary rather than load from file
+    manual: true
+    default: false
 when:
 - condition: os(darwin)
   else:
@@ -69,11 +73,13 @@ library:
   - file-embed >= 0.0.10 && < 0.0.12
   - text-trie >= 0.2.5 && < 0.3
   when:
-  - condition: flag(static)
+  - condition: flag(static) || flag(embed-dictionary)
     then:
       cpp-options:
-      - -DSTATIC
-    else: {}
+      - -DEMBED_DICTIONARY
+    else:
+      cpp-options:
+      - -DNO_EMBED_DICTIONARY
 executables:
   seonbi:
     main: seonbi.hs
