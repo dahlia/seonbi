@@ -226,6 +226,12 @@ jobs:
     - binaries
     runs-on: ubuntu-18.04
     steps:
+    - uses: actions/checkout@v1
+      if: >-
+        github.event_name != 'pull_request' &&
+        startsWith(github.ref, 'refs/tags/')
+      with:
+        fetch-depth: 1
     - uses: actions/download-artifact@v1
       with:
         name: sdist-ubuntu-18.04-lts-14.7

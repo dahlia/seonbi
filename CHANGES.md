@@ -6,6 +6,7 @@ Version 0.1.1
 
 To be released.
 
+ -  Added the `embed-dictionary` flag to the Cabal package.
  -  Fixed a bug that *Standard Korean Language Dictionary* had not been
     included in executables if `flag(static)` is turned on.  [[#1]]
 
