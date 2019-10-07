@@ -56,7 +56,7 @@ Installation
 ------------
 
 Seonbi provides the official executable binaries for Linux (x86_64), macOS,
-and Windows (64-bit).  You can find download them from the [releases] page.
+and Windows (64-bit).  You can download them from the [releases] page.
 
 It is also distributed as a [Docker image][dockerhub]:
 
