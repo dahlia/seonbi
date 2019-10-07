@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.1.1
 -------------
 
-To be released.
+Released on October 7, 2019.
 
  -  Added the `embed-dictionary` flag to the Cabal package.
  -  Fixed a bug that *Standard Korean Language Dictionary* had not been
