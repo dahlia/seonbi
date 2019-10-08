@@ -97,7 +97,8 @@ type alias Model =
     , loading : Bool
     , lastTransformation : Maybe Source
     , resultHtml : Maybe String
-    , tabState : Tab.State
+    , sourceTabState : Tab.State
+    , resultTabState : Tab.State
     , customDictionaryVisibility : Modal.Visibility
     , customDictionarySource : String
     , customDictionary : Dict.Dict String String
@@ -196,7 +197,8 @@ init _ =
             , loading = True
             , lastTransformation = Nothing
             , resultHtml = Just ""
-            , tabState = Tab.initialState
+            , sourceTabState = Tab.initialState
+            , resultTabState = Tab.initialState
             , customDictionaryVisibility = Modal.hidden
             , customDictionarySource = ""
             , customDictionary = Dict.empty
@@ -210,7 +212,8 @@ type Msg
     | UpdateSourceHtml String
     | BeginTransform
     | EndTransform Source (Result Http.Error String)
-    | ChangeTab Tab.State
+    | ChangeSourceTab Tab.State
+    | ChangeResultTab Tab.State
     | UpdateOptions Options
     | ShowCustomDictionary
     | CloseCustomDictionary
@@ -390,8 +393,11 @@ update msg model =
             , Cmd.none
             )
 
-        ChangeTab tabState ->
-            ( { model | tabState = tabState }, Cmd.none )
+        ChangeSourceTab sourceTabState ->
+            ( { model | sourceTabState = sourceTabState }, Cmd.none )
+
+        ChangeResultTab resultTabState ->
+            ( { model | resultTabState = resultTabState }, Cmd.none )
 
         UpdateOptions options ->
             let
@@ -527,21 +533,21 @@ view model =
         [ Cdn.stylesheet
         , Grid.row []
             [ Grid.col []
-                [ Tab.config ChangeTab
+                [ Tab.config ChangeSourceTab
                     |> Tab.items
                         [ viewMarkdownTab model
                         , viewHtmlTab model
                         , viewHttpTab model
                         ]
-                    |> Tab.view model.tabState
+                    |> Tab.view model.sourceTabState
                 ]
             , Grid.col []
-                [ Tab.config ChangeTab
+                [ Tab.config ChangeResultTab
                     |> Tab.items
                         [ viewRenderTab model
                         , viewCodeTab model
                         ]
-                    |> Tab.view model.tabState
+                    |> Tab.view model.resultTabState
                 ]
             ]
         , Grid.row []
