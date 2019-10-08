@@ -5,13 +5,13 @@ Seonbi: SmartyPants for Korean language
 
 (TL;DR: See the [demo web app].)
 
-Seonbi (선비) is is an HTML preprocessor that makes typographic adjustments
+Seonbi (선비) is an HTML preprocessor that makes typographic adjustments
 to an HTML so that the result uses accurate punctuations according to
 the modern Korean orthography.
-(It's similar to what [SmartyPants] does for a text written in English.)
+(It's similar to what [SmartyPants] does for text written in English.)
 
-It also transforms a `ko-Kore` text (國漢文混用; [Korean mixed script]) into
-a `ko-Hang` text (한글전용; Hangul-only script).
+It also transforms `ko-Kore` text (國漢文混用; [Korean mixed script]) into
+`ko-Hang` text (한글전용; Hangul-only script).
 
 Seonbi provides a Haskell library, a CLI, and an HTTP API; any of them can
 perform the following transformations:
@@ -36,7 +36,7 @@ perform the following transformations:
 
 Since its transformations work in HTML-level, it also plays well with web
 markup languages like CommonMark, Markdown, and Textile.  In a similar way to
-SmartyPants, it either does not modify characters within several sensitive
+SmartyPants, it does not modify characters within several sensitive
 HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 
 [releases]: https://github.com/dahlia/seonbi/releases
@@ -55,7 +55,7 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 Installation
 ------------
 
-Seonbi provides the official executable binaries for Linux (x86_64), macOS,
+Seonbi provides official executable binaries for Linux (x86_64), macOS,
 and Windows (64-bit).  You can download them from the [releases] page.
 
 It is also distributed as a [Docker image][dockerhub]:
@@ -71,7 +71,7 @@ CLI
 ---
 
 The `seonbi` command basically takes the input HTML as standard input, and
-then transformes it into the output HTML as standard output:
+then transforms it into the output HTML as standard output:
 
     seonbi < input.html > output.html
 
@@ -136,7 +136,7 @@ through `--allow-origin`/`-o` option:
 
     seonbi-api -o https://example.com
 
-To learn more parameters interactively, try the [demo web app].
+To learn more about parameters interactively, try the [demo web app].
 
 [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
