@@ -4,7 +4,7 @@ synopsis: SmartyPants for Korean language
 category: Text
 author: Hong Minhee <hong.minhee@gmail.com>
 maintainer: Hong Minhee <hong.minhee@gmail.com>
-copyright: "\xa9 2018\u20132019 Hong Minhee"
+copyright: "\xa9 2018\u20132020 Hong Minhee"
 license: LGPL-2.1
 homepage: https://github.com/dahlia/seonbi
 bug-reports: https://github.com/dahlia/seonbi/issues
