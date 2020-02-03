@@ -24,9 +24,8 @@ import os.path
 import re
 import sys
 import tempfile
+import xml.dom.pulldom
 import zipfile
-
-from xlrd import open_workbook
 
 HANJA_PATTERN = '''
     # Ideographic Description Character
@@ -54,10 +53,11 @@ HANJA_PATTERN = '''
 '''
 HANJA_RE = re.compile(HANJA_PATTERN, re.VERBOSE)
 SQUARE_BRACKETS_HANJA_RE = re.compile(
-    f'\[((?:{HANJA_PATTERN})+)\]$'
+    f'^\[((?:{HANJA_PATTERN})+)\]$'
 , re.VERBOSE)
 HANJA_ONLY_RE = re.compile(f'^(?:{HANJA_PATTERN})+$', re.VERBOSE)
-DISAMBIGUATOR = re.compile(r'\(\d+\)$|(?:^|(?<=[가-힣]))-(?:(?=[가-힣])|$)')
+DISAMBIGUATOR = re.compile(r'\d{2}$|(?:^|(?<=[가-힣]))-(?:(?=[가-힣])|$)')
+
 
 EQU_RE = re.compile('<equ>&#x([A-Fa-f0-9]+);</equ>')
 
@@ -78,11 +78,10 @@ def expand_equ(match):
     return EQU_TABLE.get(codepoint, match.group(0))
 
 
-def filter_workbook(xls_path, output, hanja_only=True, meaning_column=False):
-    book = open_workbook(xls_path)
-    sheet = book.sheet_by_index(0)
+def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
+    doc = xml.dom.pulldom.parse(xml_path)
     has_hanja = HANJA_RE.search
-    search_square_brackets_hanja = SQUARE_BRACKETS_HANJA_RE.search
+    match_square_brackets_hanja = SQUARE_BRACKETS_HANJA_RE.match
     if hanja_only:
         includes = HANJA_ONLY_RE.match
     else:
@@ -90,29 +89,113 @@ def filter_workbook(xls_path, output, hanja_only=True, meaning_column=False):
     equ_re = EQU_RE
     writer = csv.writer(output, 'excel-tab')
     write = writer.writerow
-    for row in itertools.islice(sheet.get_rows(), 1, None):
-        hangul, _, _, origin, *_ = row
-        meaning = row[15].value.strip()
-        if meaning.startswith('→ '):
+    START_ELEMENT = xml.dom.pulldom.START_ELEMENT
+    END_ELEMENT = xml.dom.pulldom.END_ELEMENT
+    CHARACTERS = xml.dom.pulldom.CHARACTERS
+    word = None
+    hangul = None
+    origin = None
+    origin_lang = None
+    origin_type = None
+    sense = None
+    skip = False
+    for ev, node in doc:
+        tag = node.tagName if ev == START_ELEMENT or ev == END_ELEMENT else ''
+        if ev == START_ELEMENT and tag == 'relation_info':
+            skip = True
             continue
-        hanja = equ_re.sub(expand_equ, origin.value)
-        if not has_hanja(hanja):
+        elif ev == END_ELEMENT and tag == 'relation_info':
+            skip = False
             continue
-        square_brackets_hanja = search_square_brackets_hanja(hanja)
-        if square_brackets_hanja:
-            hanja_only = square_brackets_hanja.group(1)
+        elif skip:
+            continue
+        if word is None:
+            if ev == START_ELEMENT and tag == 'word_info':
+                word = {'meaning': [], 'hanja': []}
+                hangul = None
+                origin = None
+                sense = None
         else:
-            hanja_only = hanja
-        if len(hanja_only) < 2 or not includes(hanja_only):
-            continue
-        meaning = meaning.replace('\r', '').replace('\n', ' ')
-        if meaning.endswith(' 우리 한자음으로 읽은 이름.'):
-            continue
-        reading = DISAMBIGUATOR.sub('', hangul.value).replace('^', ' ')
-        if meaning_column:
-            write((hanja_only, reading, meaning))
-        else:
-            write((hanja_only, reading))
+            if ev == START_ELEMENT and tag == 'conju_info':
+                word = None
+                continue
+            if hangul is None:
+                if ev == START_ELEMENT and tag == 'word':
+                    hangul = ''
+            else:
+                if ev == CHARACTERS:
+                    hangul += node.data
+                elif ev == END_ELEMENT and tag == 'word':
+                    word['reading'] = \
+                        DISAMBIGUATOR.sub('', hangul.strip()).replace('^', ' ')
+                    hangul = None
+            if origin is None:
+                if ev == START_ELEMENT and tag == 'original_language_info':
+                    origin = ('', None)
+            else:
+                if origin_lang is None:
+                    if ev == START_ELEMENT and tag == 'original_language':
+                        origin_lang = ''
+                else:
+                    if ev == CHARACTERS:
+                        origin_lang += node.data
+                    elif ev == END_ELEMENT and tag == 'original_language':
+                        origin = (origin_lang, origin[1])
+                        origin_lang = None
+                if origin_type is None:
+                    if ev == START_ELEMENT and tag == 'language_type':
+                        origin_type = ''
+                else:
+                    if ev == CHARACTERS:
+                        origin_type += node.data
+                    elif ev == END_ELEMENT and tag == 'language_type':
+                        origin = (origin[0], origin_type.strip())
+                        origin_type = None
+                if ev == END_ELEMENT and tag == 'original_language_info':
+                    if origin[1] == '/(병기)':
+                        if word['hanja']:
+                            word['hanja'].append('')
+                    elif has_hanja(origin[0]):
+                        square_brackets_hanja = \
+                            match_square_brackets_hanja(origin[0])
+                        if square_brackets_hanja:
+                            hanja_only = square_brackets_hanja.group(1)
+                        else:
+                            hanja_only = origin[0]
+                        if includes(hanja_only):
+                            if word['hanja']:
+                                word['hanja'][-1] += hanja_only
+                            else:
+                                word['hanja'].append(hanja_only)
+                    origin = None
+            if sense is None:
+                if ev == START_ELEMENT and tag == 'definition':
+                    sense = ''
+            else:
+                if ev == CHARACTERS:
+                    sense += node.data
+                elif ev == END_ELEMENT and tag == 'definition':
+                    sense = sense.replace('\r', '').replace('\n', ' ')
+                    word['meaning'].append(sense)
+                    sense = None
+            if ev == END_ELEMENT and tag == 'word_info':
+                if any(m.endswith(' 우리 한자음으로 읽은 이름.')
+                       for m in word['meaning']):
+                    word = None
+                    continue
+                reading = word['reading']
+                meaning = ' '.join(
+                    f'{i + 1}. {m}' for (i, m) in enumerate(word['meaning'])
+                )
+                for hanja in word['hanja']:
+                    hanja = hanja.strip()
+                    if not hanja:
+                        continue
+                    if meaning_column:
+                        write((hanja, reading, meaning))
+                    else:
+                        write((hanja, reading))
+                word = None
 
 
 def main():
@@ -126,7 +209,7 @@ def main():
         metavar='FILE',
         type=argparse.FileType('rb'),
         help=(
-            'a dictionary .zip file consists of .xls files.  download one '
+            'a dictionary .zip file consists of .xml files.  download one '
             'from https://stdict.korean.go.kr/'
         )
     )
@@ -149,7 +232,7 @@ def main():
             if filename == '.' or filename == '..':
                 continue
             try:
-                filter_workbook(
+                filter_xml(
                     os.path.join(td, filename),
                     bstdout,
                     meaning_column=args.meaning_column

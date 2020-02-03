@@ -9,10 +9,8 @@ on older versions, I've never tested.  I'm sure it won't work on Python 2.
 It also works well with PyPy3.5 v6.0 or higher, and is even about 5 times
 faster than CPython --- so I recommend PyPy more than CPython.
 
-This script depends on some other Python libraries.  You can install them
-using ``pip``::
-
-    pip install -r requirements.txt
+Note that this script does not depend on any other than the Python standard
+library.
 
 NIKL has distributed *Standard Korean Language Dictionary* under CC BY-SA
 `since 11th March, 2019`__.  The data can be downloaded from the
@@ -24,17 +22,16 @@ the data.  Or, in short, you could download using ``curl`` in one-shot::
     curl \
         -LOJ \
         -X POST \
-        -F link_key=627305 \
+        -F link_key=627366 \
         -F pageUnit=10 \
         -F pageIndex=1 \
         https://stdict.korean.go.kr/common/download.do
 
 The data is contained by a *.zip* archive, and if you extract it there are
-several Microsoft Excel (*.xls*) spreadsheet files.  This script reads
-the *.zip* archive (not *.xls* files) and then prints the result in
-the TSV format that Seonbi can interpret::
+several XML data files.  This script reads the *.zip* archive (not *.xml* files)
+and then prints the result in the TSV format that Seonbi can interpret::
 
-    ./main.py 627305.zip > kr-stdict.tsv
+    ./main.py 627366.zip > kr-stdict.tsv
 
 __ https://stdict.korean.go.kr/notice/noticeView.do?board_no=1129
 __ https://stdict.korean.go.kr/
