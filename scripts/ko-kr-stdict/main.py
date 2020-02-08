@@ -22,6 +22,7 @@ import itertools
 import os
 import os.path
 import re
+import sqlite3
 import sys
 import tempfile
 import xml.dom.pulldom
@@ -53,7 +54,7 @@ HANJA_PATTERN = '''
 '''
 HANJA_RE = re.compile(HANJA_PATTERN, re.VERBOSE)
 SQUARE_BRACKETS_HANJA_RE = re.compile(
-    f'^\[((?:{HANJA_PATTERN})+)\]$'
+    f'\[((?:{HANJA_PATTERN})+)\]$'
 , re.VERBOSE)
 HANJA_ONLY_RE = re.compile(f'^(?:{HANJA_PATTERN})+$', re.VERBOSE)
 DISAMBIGUATOR = re.compile(r'\d{2}$|(?:^|(?<=[가-힣]))-(?:(?=[가-힣])|$)')
@@ -78,17 +79,15 @@ def expand_equ(match):
     return EQU_TABLE.get(codepoint, match.group(0))
 
 
-def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
+def filter_xml(xml_path, hanja_only=True):
     doc = xml.dom.pulldom.parse(xml_path)
     has_hanja = HANJA_RE.search
-    match_square_brackets_hanja = SQUARE_BRACKETS_HANJA_RE.match
+    match_square_brackets_hanja = SQUARE_BRACKETS_HANJA_RE.search
     if hanja_only:
         includes = HANJA_ONLY_RE.match
     else:
-        includes = lambda _: True
+        includes = has_hanja
     equ_re = EQU_RE
-    writer = csv.writer(output, 'excel-tab')
-    write = writer.writerow
     START_ELEMENT = xml.dom.pulldom.START_ELEMENT
     END_ELEMENT = xml.dom.pulldom.END_ELEMENT
     CHARACTERS = xml.dom.pulldom.CHARACTERS
@@ -111,7 +110,7 @@ def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
             continue
         if word is None:
             if ev == START_ELEMENT and tag == 'word_info':
-                word = {'meaning': [], 'hanja': []}
+                word = {'meaning': [], 'origin': []}
                 hangul = None
                 origin = None
                 sense = None
@@ -153,20 +152,22 @@ def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
                         origin_type = None
                 if ev == END_ELEMENT and tag == 'original_language_info':
                     if origin[1] == '/(병기)':
-                        if word['hanja']:
-                            word['hanja'].append('')
-                    elif has_hanja(origin[0]):
-                        square_brackets_hanja = \
-                            match_square_brackets_hanja(origin[0])
-                        if square_brackets_hanja:
-                            hanja_only = square_brackets_hanja.group(1)
-                        else:
-                            hanja_only = origin[0]
-                        if includes(hanja_only):
-                            if word['hanja']:
-                                word['hanja'][-1] += hanja_only
+                        if word['origin']:
+                            word['origin'].append('')
+                    else:
+                        if has_hanja(origin[0]):
+                            square_brackets_hanja = \
+                                match_square_brackets_hanja(origin[0])
+                            if square_brackets_hanja:
+                                origin_sub = square_brackets_hanja.group(1)
                             else:
-                                word['hanja'].append(hanja_only)
+                                origin_sub = origin[0]
+                        else:
+                            origin_sub = origin[0]
+                        if word['origin']:
+                            word['origin'][-1] += origin_sub
+                        else:
+                            word['origin'].append(origin_sub)
                     origin = None
             if sense is None:
                 if ev == START_ELEMENT and tag == 'definition':
@@ -179,6 +180,9 @@ def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
                     word['meaning'].append(sense)
                     sense = None
             if ev == END_ELEMENT and tag == 'word_info':
+                word['origin'] = list(filter(includes, word['origin']))
+                if not word['origin']:
+                    continue
                 if any(m.endswith(' 우리 한자음으로 읽은 이름.')
                        for m in word['meaning']):
                     word = None
@@ -187,14 +191,11 @@ def filter_xml(xml_path, output, hanja_only=True, meaning_column=False):
                 meaning = ' '.join(
                     f'{i + 1}. {m}' for (i, m) in enumerate(word['meaning'])
                 )
-                for hanja in word['hanja']:
+                for hanja in word['origin']:
                     hanja = hanja.strip()
                     if not hanja:
                         continue
-                    if meaning_column:
-                        write((hanja, reading, meaning))
-                    else:
-                        write((hanja, reading))
+                    yield hanja, reading, meaning
                 word = None
 
 
@@ -228,17 +229,49 @@ def main():
                           newline='',
                           write_through=True) as bstdout:
         zf.extractall(td)
-        for filename in os.listdir(td):
-            if filename == '.' or filename == '..':
-                continue
-            try:
-                filter_xml(
-                    os.path.join(td, filename),
-                    bstdout,
-                    meaning_column=args.meaning_column
+        with sqlite3.connect(os.path.join(td, '.__tmpdic__.db'),
+                             isolation_level=None) as db:
+            cursor = db.cursor()
+            cursor.execute('''
+                CREATE TABLE dic (
+                    hanja text PRIMARY KEY,
+                    reading text,
+                    meaning hanja
                 )
-            except (KeyboardInterrupt, BrokenPipeError):
-                raise SystemExit(130)
+            ''')
+            for filename in os.listdir(td):
+                if filename.startswith('.'):
+                    continue
+                try:
+                    words = filter_xml(os.path.join(td, filename))
+                    for hanja, reading, meaning in words:
+                        cursor.execute(
+                            'SELECT meaning FROM dic WHERE hanja = ?',
+                            (hanja,)
+                        )
+                        existing = cursor.fetchone()
+                        if existing:
+                            if len(existing[0]) < len(meaning):
+                                cursor.execute('''
+                                    UPDATE dic
+                                    SET reading = ?, meaning = ?
+                                    WHERE hanja = ?
+                                ''', (reading, meaning, hanja))
+                            continue
+                        cursor.execute('''
+                            INSERT INTO dic (hanja, reading, meaning)
+                            VALUES (?, ?, ?)
+                        ''', (hanja, reading, meaning))
+                except (KeyboardInterrupt, BrokenPipeError):
+                    raise SystemExit(130)
+            if args.meaning_column:
+                cursor.execute('SELECT hanja, reading, meaning FROM dic')
+            else:
+                cursor.execute('SELECT hanja, reading FROM dic')
+            writer = csv.writer(bstdout, 'excel-tab')
+            write = writer.writerow
+            for row in cursor:
+                write(tuple(row))
 
 
 if __name__ == '__main__':

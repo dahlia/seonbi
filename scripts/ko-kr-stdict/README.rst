@@ -6,7 +6,7 @@ Dictionary* (標準國語大辭典) published by NIKL (國立國語院) of South
 
 First of all, this script requires Python 3.6 or higher.  Though it might work
 on older versions, I've never tested.  I'm sure it won't work on Python 2.
-It also works well with PyPy3.5 v6.0 or higher, and is even about 5 times
+It also works well with PyPy3.5 v6.0 or higher, and is even about 2 times
 faster than CPython --- so I recommend PyPy more than CPython.
 
 Note that this script does not depend on any other than the Python standard
