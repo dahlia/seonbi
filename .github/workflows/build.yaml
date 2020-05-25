@@ -25,7 +25,7 @@ jobs:
         ref: ${{ github.pull_request.head.sha }}
         fetch-depth: 1
     - name: Install toolchains
-      if: "!startsWith(matrix.os, 'ubuntu-')"
+      if: "startsWith(matrix.os, 'macOS-')"
       run: curl -sSL https://get.haskellstack.org/ | sh
     - name: Set up resolver
       shell: bash
