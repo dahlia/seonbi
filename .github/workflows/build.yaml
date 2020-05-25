@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04, macos-10.15, windows-2019]
-        resolver: [lts-12.26, lts-13.30, lts-14.7]
+        resolver: [lts-12.26, lts-13.30, lts-14.27]
     steps:
     - uses: actions/checkout@v1
       if: github.event_name != 'pull_request'
@@ -174,11 +174,11 @@ jobs:
     steps:
     - uses: actions/download-artifact@v1
       with:
-        name: binaries-macOS-10.15-lts-14.7
+        name: binaries-macOS-10.15-lts-14.27
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v1
       with:
-        name: binaries-windows-2019-lts-14.7
+        name: binaries-windows-2019-lts-14.27
         path: /tmp/binaries-windows
     - uses: actions/download-artifact@v1
       with:
@@ -234,7 +234,7 @@ jobs:
         fetch-depth: 1
     - uses: actions/download-artifact@v1
       with:
-        name: sdist-ubuntu-18.04-lts-14.7
+        name: sdist-ubuntu-18.04-lts-14.27
         path: /tmp/sdist
     - uses: actions/download-artifact@v1
       with:
