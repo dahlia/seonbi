@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macOS-10.14, windows-2019]
+        os: [ubuntu-18.04, macos-10.15, windows-2019]
         resolver: [lts-12.26, lts-13.30, lts-14.7]
     steps:
     - uses: actions/checkout@v1
@@ -62,7 +62,7 @@ jobs:
     - name: Test
       shell: bash
       run: |
-        if [[ "${{ matrix.os }}" = "macOS-10.14" && \
+        if [[ "${{ matrix.os }}" = "macos-10.15" && \
               "${{ matrix.resolver }}" = lts-12.* ]]; then
           # On GHC-8.4 & macOS doctest does not work.
           # See also:
@@ -174,7 +174,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v1
       with:
-        name: binaries-macOS-10.14-lts-14.7
+        name: binaries-macOS-10.15-lts-14.7
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v1
       with:
