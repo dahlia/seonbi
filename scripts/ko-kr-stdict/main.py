@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 # Extract Sino-Korean words from Standard Korean Language Dictionary
-# Copyright (C) 2019  Hong Minhee
+# Copyright (C) 2019--2020  Hong Minhee
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

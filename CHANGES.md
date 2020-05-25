@@ -7,7 +7,7 @@ Version 0.1.2
 To be released.
 
  -  Updated the *Standard Korean Language Dictionary* data
-    (*data/ko-kr-stdict.tsv*) to the revision 2019-10-14.
+    (*data/ko-kr-stdict.tsv*) to the revision 2020-03-25.
 
 
 Version 0.1.1
