@@ -51,7 +51,7 @@ import Text.Seonbi.PairedTransformer
 -- @
 data CitationQuotes = CitationQuotes
     { -- | The leading and trailing punctuations to surround a title of
-      -- novel, newspaper, magazine, movie, televison program, etc.
+      -- novel, newspaper, magazine, movie, television program, etc.
       title :: (Text, Text)
     , -- | The leading and trailing punctuations to surround a title of
       -- short story, chapter, article, episode, etc.
