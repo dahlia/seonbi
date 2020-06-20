@@ -60,6 +60,7 @@ initialContent =
 - 모든 漢字語(例: `漢字`)를 한글로 (例: `한자`).
 - 直線形 따옴標(`"` 및  `'`)를 曲線形 따옴標(`“`·`”` 및 `‘`·`’`)로.
 - 連달아 찍은 마침標(`...`)를 말줄임標(`…`)로.
+- 고리點(`。`) 및 모點(`、`)을 온點(`.`) 및 半點(`,`)으로.
 - 數學 不等號 짝(`<`와 `>`)을 제대로 된 홑화살括弧 짝(`〈`와 `〉`)으로.
 - 두 겹의 數學 不等號 짝(`<<`와 `>>`)을 제대로 된 겹화살括弧 짝(`《`와
   `》`)으로.
@@ -82,6 +83,7 @@ initialContent =
 """
 
 
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
@@ -125,6 +127,7 @@ type alias CustomOptions =
     , arrow : Maybe ArrowOption
     , ellipsis : Bool
     , emDash : Bool
+    , stop : Maybe StopOption
     , hanja : Maybe HanjaOption
     }
 
@@ -146,6 +149,12 @@ type alias ArrowOption =
     { bidirArrow : Bool
     , doubleArrow : Bool
     }
+
+
+type StopOption
+    = Horizontal
+    | HorizontalWithSlashes
+    | Vertical
 
 
 type alias HanjaOption =
@@ -184,6 +193,7 @@ init _ =
                 , arrow = Just { bidirArrow = True, doubleArrow = True }
                 , ellipsis = True
                 , emDash = True
+                , stop = Just Horizontal
                 , hanja =
                     Just
                         { rendering = DisambiguatingHanjaInParentheses
@@ -283,6 +293,23 @@ makeInput source =
                       )
                     , ( "ellipsis", Json.Encode.bool options.ellipsis )
                     , ( "emDash", Json.Encode.bool options.emDash )
+                    , ( "stop"
+                      , case options.stop of
+                            Nothing ->
+                                Json.Encode.null
+
+                            Just s ->
+                                Json.Encode.string <|
+                                    case s of
+                                        Horizontal ->
+                                            "Horizontal"
+
+                                        HorizontalWithSlashes ->
+                                            "HorizontalWithSlashes"
+
+                                        Vertical ->
+                                            "Vertical"
+                      )
                     , ( "hanja"
                       , case options.hanja of
                             Nothing ->
@@ -523,7 +550,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -589,7 +616,7 @@ view model =
 tabPaneAttrs : List (Attribute msg)
 tabPaneAttrs =
     [ Spacing.mt3
-    , style "height" "calc(100vh - 380px)"
+    , style "height" "calc(100vh - 450px)"
     , style "width" "540px"
     , style "overflow" "scroll"
     ]
@@ -819,14 +846,14 @@ viewOptions model =
 
         select attrs getOption updateOption items =
             Select.select
-                ([ Select.onChange <|
+                ((Select.onChange <|
                     \v ->
                         (UpdateOptions << Custom << updateOption) <|
                             Maybe.andThen
                                 (Maybe.andThen Tuple.first << listAt items)
                                 (String.toInt v)
-                 ]
-                    ++ attrs
+                 )
+                    :: attrs
                 )
             <|
                 List.indexedMap
@@ -848,7 +875,7 @@ viewOptions model =
     Form.form []
         [ Form.row []
             [ Form.colLabel [ GCol.sm1 ] [ text "Preset" ]
-            , Form.col [ GCol.sm6, GCol.attrs [ Spacing.mt2 ] ] <|
+            , Form.col [ GCol.sm11, GCol.attrs [ Spacing.mt2 ] ] <|
                 Radio.radioList
                     "preset"
                     [ Radio.create
@@ -870,13 +897,6 @@ viewOptions model =
                         ]
                         "Custom"
                     ]
-            , Form.colLabel [ GCol.sm1 ] [ text "Format" ]
-            , Form.col [ GCol.sm4, GCol.attrs [ Spacing.mt2 ] ] <|
-                [ checkbox
-                    (\o -> o.xhtml)
-                    (\checked -> { lastOptions | xhtml = checked })
-                    "XHTML"
-                ]
             ]
         , Form.row []
             [ Form.colLabel [ GCol.sm1 ] [ text "Quotes" ]
@@ -1188,6 +1208,84 @@ viewOptions model =
                         }
                     )
                     "South Korean Standard Dictionary"
+                ]
+            ]
+        , Form.row []
+            [ Form.colLabel [ GCol.sm1 ] [ text "Stop" ]
+            , Form.col [ GCol.sm6, GCol.attrs [ Spacing.mt2 ] ] <|
+                Radio.radioList
+                    "stop"
+                    [ Radio.create
+                        [ Radio.inline
+                        , Radio.disabled preset
+                        , Radio.checked <|
+                            case options of
+                                Custom o ->
+                                    o.stop == Just Horizontal
+
+                                _ ->
+                                    False
+                        , Radio.onClick <|
+                            UpdateOptions <|
+                                Custom
+                                    { lastOptions | stop = Just Horizontal }
+                        ]
+                        "Horizontal"
+                    , Radio.create
+                        [ Radio.inline
+                        , Radio.disabled preset
+                        , Radio.checked <|
+                            case options of
+                                Custom o ->
+                                    o.stop == Just HorizontalWithSlashes
+
+                                _ ->
+                                    False
+                        , Radio.onClick <|
+                            UpdateOptions <|
+                                Custom
+                                    { lastOptions | stop = Just HorizontalWithSlashes }
+                        ]
+                        "Horizontal with slashes"
+                    , Radio.create
+                        [ Radio.inline
+                        , Radio.disabled preset
+                        , Radio.checked <|
+                            case options of
+                                Custom o ->
+                                    o.stop == Just Vertical
+
+                                _ ->
+                                    False
+                        , Radio.onClick <|
+                            UpdateOptions <|
+                                Custom
+                                    { lastOptions | stop = Just Vertical }
+                        ]
+                        "Vertical"
+                    , Radio.create
+                        [ Radio.inline
+                        , Radio.disabled preset
+                        , Radio.checked <|
+                            case options of
+                                Custom o ->
+                                    o.stop == Nothing
+
+                                _ ->
+                                    False
+                        , Radio.onClick <|
+                            UpdateOptions <|
+                                Custom
+                                    { lastOptions | stop = Nothing }
+                        ]
+                        "As is"
+                    ]
+            , Form.colLabel [ GCol.sm1 ] [ text "Format" ]
+            , Form.col [ GCol.sm4, GCol.attrs [ Spacing.mt2 ] ] <|
+                [ checkbox
+                    (\o -> o.xhtml)
+                    (\checked -> { lastOptions | xhtml = checked })
+                    "XHTML"
                 ]
             ]
         ]

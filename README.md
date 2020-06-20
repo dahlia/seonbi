@@ -21,6 +21,8 @@ perform the following transformations:
  -  Straight quotes and apostrophes (`"` & `'`) into curly quotes HTML
     entities (`“`, `”`, `‘`, & `’`)
  -  Three consecutive periods (`...`) into an ellipsis entity (`…`)
+ -  Classical (Chinese-style) stops (`。` & `、`) into modern (English-style)
+    stops (`.` & `,`)
  -  Pairs of less-than and greater-than inequality symbols (`<` & `>`) into
     pairs of proper angle quotes (`〈` & `〉`)
  -  Pairs of two consecutive inequality symbols (`<<` & `>>`) into

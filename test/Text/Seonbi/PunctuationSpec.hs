@@ -1,13 +1,18 @@
+{-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module Text.Seonbi.PunctuationSpec (spec) where
 
 import Control.Monad
 import Data.Maybe
+import System.IO.Unsafe
 
 import Data.Set
 import Data.Text
+import System.Random
 import Test.Hspec
+import Text.InterpolatedString.Perl6 (qc)
 
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
@@ -454,3 +459,54 @@ spec = do
                     "한글 모음&mdash;U+3161 HANGUL LETTER EU&mdash;을 줄표로"
                 , HtmlEndTag [] P
                 ]
+
+    describe "normalizeStops" $ do
+        let periods =
+                [ ". ", "&period;", "&#46;", "&#x2e;"
+                , "。", "&#12290;", "&#x3002;"
+                ] :: [Text]
+        let commas =
+                [ ", ", "&comma; ", "&#44; ", "&#x2c; "
+                , "、", "&#12289;", "&#x3001;"
+                ] :: [Text]
+        let interpuncts =
+                [ "·", "&middot;", "&centerdot;", "&CenterDot;"
+                , "&#xB7;", "&#xb7;", "&#183;"
+                ] :: [Text]
+        let examples =
+                [ [qc|봄{i1}여름{i2}가을{i3}겨울{p1}어제{c}오늘{p2}|]
+                | p1 <- periods, p2 <- periods
+                , c <- commas
+                , i1 <- interpuncts, i2 <- interpuncts, i3 <- interpuncts
+                ] :: [Text]
+        let gen = unsafePerformIO getStdGen :: StdGen
+        let randomInts = randomRs (0, 499) gen :: [Int]
+        let sampledExamples =
+                [ e
+                | (e, r) <- Prelude.zip examples randomInts
+                , r < 1
+                ] :: [Text]
+        forM_ sampledExamples $ \ example' ->
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] example'
+                    , HtmlEndTag [] P
+                    ] :: [HtmlEntity]
+            in specify ("normalizeStops " ++ show (unpack example')) $ do
+                normalizeStops horizontalStops input `shouldBe`
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P]
+                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. 어제, 오늘. "
+                    , HtmlEndTag [] P
+                    ]
+                normalizeStops verticalStops input `shouldBe`
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P]
+                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울&#x3002;어제&#x3001;오늘&#x3002;"
+                    , HtmlEndTag [] P
+                    ]
+                normalizeStops horizontalStopsWithSlashes input `shouldBe`
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "봄/여름/가을/겨울. 어제, 오늘. "
+                    , HtmlEndTag [] P
+                    ]

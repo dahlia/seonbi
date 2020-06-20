@@ -17,6 +17,7 @@ module Text.Seonbi.Facade
     , HanjaReadingOption (..)
     , HanjaRenderingOption (..)
     , QuoteOption (..)
+    , StopOption (..)
     , ko_KP
     , ko_KR
     , presets
@@ -81,6 +82,9 @@ data Monad m => Configuration m a = Configuration
     , ellipsis :: Bool
       -- | Whether to transform folk em dashes into proper em dashes.
     , emDash :: Bool
+      -- | Settings to normalize stops (periods, commas, and interpuncts).
+      -- If 'Nothing' stops are never touched.
+    , stop :: Maybe StopOption
       -- | Settings to deal with Sino-Korean words.
     , hanja :: Maybe HanjaOption
     }
@@ -95,6 +99,7 @@ instance Monad m => Show (Configuration m a) where
         "  cite = " <> show (arrow c) <> "," <>
         "  ellipsis = " <> show (ellipsis c) <> "," <>
         "  emDash = " <> show (emDash c) <> "," <>
+        "  stop = " <> show (stop c) <> "," <>
         "  hanja = " <> show (hanja c) <>
         "}"
 
@@ -136,6 +141,25 @@ data ArrowOption = ArrowOption
       -- | Whether to transform double arrows as well as single arrows.
     , doubleArrow :: Bool
     } deriving (Eq, Generic, Show)
+
+-- | Settings to normalize stops (periods, commas, and interpuncts) in docs.
+data StopOption
+    -- | Stop sentences in the modern Korean style which follows Western stops.
+    -- E.g.:
+    --
+    -- > 봄·여름·가을·겨울. 어제, 오늘.
+    = Horizontal
+    -- | Similar to 'horizontalStops' except slashes are used instead of
+    -- interpuncts. E.g.:
+    --
+    -- > 봄/여름/가을/겨울. 어제, 오늘.
+    | HorizontalWithSlashes
+    -- | Stop sentences in the pre-modern Korean style which follows Chinese
+    -- stops.  E.g.:
+    --
+    -- > 봄·여름·가을·겨울。어제、오늘。
+    | Vertical
+    deriving (Enum, Eq, Generic, Read, Show)
 
 -- | Settings to deal with Sino-Korean words.
 data HanjaOption = HanjaOption
@@ -211,7 +235,14 @@ transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
       | otherwise = printHtml
 
 toTransformers :: Monad m => Configuration m a -> [[HtmlEntity] -> [HtmlEntity]]
-toTransformers Configuration { quote, cite, arrow, ellipsis, emDash, hanja } =
+toTransformers Configuration { quote
+                             , cite
+                             , arrow
+                             , ellipsis
+                             , emDash
+                             , stop
+                             , hanja
+                             } =
     [ case quote of
         Nothing -> id
         Just quoteOption -> transformQuote $
@@ -236,6 +267,13 @@ toTransformers Configuration { quote, cite, arrow, ellipsis, emDash, hanja } =
                 ]
     , if ellipsis then transformEllipsis else id
     , if emDash then transformEmDash else id
+    , case stop of
+        Nothing -> id
+        Just stopOption -> normalizeStops $
+            case stopOption of
+                Horizontal -> horizontalStops
+                HorizontalWithSlashes -> horizontalStopsWithSlashes
+                Vertical -> verticalStops
     , case hanja of
         Nothing ->
             id
@@ -279,6 +317,7 @@ ko_KR = Configuration
     , arrow = Just ArrowOption { bidirArrow = True, doubleArrow = True }
     , ellipsis = True
     , emDash = True
+    , stop = Just Horizontal
     , hanja = Just HanjaOption
         { rendering = DisambiguatingHanjaInParentheses
         , reading = HanjaReadingOption

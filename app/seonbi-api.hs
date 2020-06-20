@@ -56,6 +56,7 @@ instance FromJSON Input where
                 arrow' <- v .:? "arrow"
                 ellipsis' <- v .:? "ellipsis" .!= False
                 emDash' <- v .:? "emDash" .!= False
+                stop' <- v .:? "stop"
                 hanja' <- v .:? "hanja" .!= Nothing
                 return Configuration
                     { debugLogger = Nothing
@@ -65,6 +66,7 @@ instance FromJSON Input where
                     , arrow = arrow'
                     , ellipsis = ellipsis'
                     , emDash = emDash'
+                    , stop = stop'
                     , hanja = hanja'
                     }
         return $ Input sourceHtml' config
@@ -72,6 +74,7 @@ instance FromJSON Input where
 instance FromJSON QuoteOption
 instance FromJSON CiteOption
 instance FromJSON ArrowOption
+instance FromJSON StopOption
 instance FromJSON HanjaRenderingOption
 
 instance FromJSON HanjaOption where

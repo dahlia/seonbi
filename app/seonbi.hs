@@ -192,7 +192,7 @@ parser = Seonbi
                 <> short 'c'
                 <> metavar "CITE_STYLE"
                 <> value Nothing
-                <> help ("Transform citating quotes.  Available styles: " ++
+                <> help ("Transform citation quotes.  Available styles: " ++
                          enumKeywords (Proxy :: Proxy CiteOption))
                 )
             <*> ( flag' Nothing
@@ -224,6 +224,15 @@ parser = Seonbi
                 ( long "no-em-dash"
                 <> short 'D'
                 <> help "Do not transform folk em dashes into proper em dashes"
+                )
+            <*> option (fmap Just enum)
+                ( long "stop"
+                <> short 's'
+                <> metavar "STOP_STYLE"
+                <> value Nothing
+                <> help ("Normalize stops (periods/commas/interpuncts).  " ++
+                         "Available styles: " ++
+                         enumKeywords (Proxy :: Proxy StopOption))
                 )
             <*> ( flag' Nothing
                     ( long "maintain-hanja"

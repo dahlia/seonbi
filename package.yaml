@@ -170,6 +170,8 @@ tests:
     dependencies:
     - hspec >= 2.4.8 && < 3
     - hspec-discover >= 2.4.8 && < 3
+    - interpolatedstring-perl6 >= 1.0.1 && < 2
+    - random >= 1.1 && < 1.2
     - seonbi
   hlint:
     main: hlint.hs

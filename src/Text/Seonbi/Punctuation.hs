@@ -8,16 +8,21 @@ module Text.Seonbi.Punctuation
     , CitationQuotes (..)
     , Quotes (..)
     , QuotePair (..)
+    , Stops (..)
     , angleQuotes
     , cornerBrackets
     , curvedQuotes
     , curvedSingleQuotesWithQ
     , guillemets
+    , horizontalStops
+    , horizontalStopsWithSlashes
+    , normalizeStops
     , quoteCitation
     , transformArrow
     , transformEllipsis
     , transformEmDash
     , transformQuote
+    , verticalStops
     ) where
 
 import Prelude hiding (takeWhile)
@@ -28,6 +33,7 @@ import Data.Either
 import Data.List (minimumBy)
 import Data.Maybe
 import Data.Ord
+import Numeric
 
 import Data.Attoparsec.Text
 import Data.Set
@@ -231,6 +237,116 @@ data TitlePunct
     | DoubleCorner | Corner
     | DoubleInequal | Inequal
     deriving (Eq, Show)
+
+
+-- | A set of stops—'period', 'comma', and 'interpunct'—to be used by
+-- 'normalizeStops' function.
+--
+-- There are three presets: 'horizontalStops', 'verticalStops', and
+-- 'horizontalStopsWithSlashes'.
+data Stops = Stops
+    { period :: Text
+    , comma :: Text
+    , interpunct :: Text
+    } deriving (Eq, Show)
+
+-- | Stop sentences in the modern Korean style which follows Western stops.
+-- E.g.:
+--
+-- > 봄·여름·가을·겨울. 어제, 오늘.
+horizontalStops :: Stops
+horizontalStops = Stops
+    { period = ". "
+    , comma = ", "
+    , interpunct = "·"
+    }
+
+-- | Stop sentences in the pre-modern Korean style which follows Chinese stops.
+-- E.g.:
+--
+-- > 봄·여름·가을·겨울。어제、오늘。
+verticalStops :: Stops
+verticalStops = Stops
+    { period = "。"
+    , comma = "、"
+    , interpunct = "·"
+    }
+
+-- | Similar to 'horizontalStops' except slashes are used instead of
+-- interpuncts. E.g.:
+--
+-- > 봄/여름/가을/겨울. 어제, 오늘.
+horizontalStopsWithSlashes :: Stops
+horizontalStopsWithSlashes = Stops
+    { period = ". "
+    , comma = ", "
+    , interpunct = "/"
+    }
+
+
+-- | Normalizes sentence stops (periods, commas, and interpuncts).
+normalizeStops :: Stops -> [HtmlEntity] -> [HtmlEntity]
+normalizeStops stops input = (`fmap` normalizeText input) $ \ case
+    e@HtmlText { tagStack = stack, rawText = txt } ->
+        if isPreservedTagStack stack
+        then e
+        else e { rawText = replaceText txt }
+    e ->
+        e
+  where
+    replaceText :: Text -> Text
+    replaceText txt =
+        case parseOnly parser txt of
+            Left _ -> error "unexpected error: failed to parse text node"
+            Right t -> t
+    parser :: Parser Text
+    parser = do
+        chunks <- many' $ choice
+            [ stops'
+            , Data.Text.singleton <$> anyChar
+            ]
+        endOfInput
+        return $ Data.Text.concat chunks
+    stops' :: Parser Text
+    stops' = choice
+        [ period' >> return (toEntity $ period stops)
+        , comma' >> return (toEntity $ comma stops)
+        , interpunct' >> return (toEntity $ interpunct stops)
+        ]
+    toEntity :: Text -> Text
+    toEntity = Data.Text.concatMap $ \ c ->
+        if c < '\x80' -- ASCII compatible characters
+        then Data.Text.singleton c
+        else Data.Text.concat ["&#x", pack $ showHex (fromEnum c) "", ";"]
+    period' :: Parser ()
+    period' = void $ choice
+        [ char '.' >> takeWhile isSpace >> return ""
+        , char '。' >> return ""
+        , string "&period;"
+        , string "&#46;"
+        , string "&#12290;"
+        , asciiCI "&#x2e;"
+        , asciiCI "&#x3002;"
+        ]
+    comma' :: Parser ()
+    comma' = void $ choice
+        [ char '、' >> return ""
+        , string ", "
+        , string "&comma; "
+        , string "&#44; "
+        , string "&#12289;"
+        , asciiCI "&#x2c; "
+        , asciiCI "&#x3001;"
+        ]
+    interpunct' :: Parser ()
+    interpunct' = void $ choice
+        [ char '·' >> return ""
+        , string "&middot;"
+        , string "&centerdot;"
+        , string "&CenterDot;"
+        , string "&#183;"
+        , asciiCI "&#xb7;"
+        ]
 
 
 -- | Substitution options for 'transformArrow' function.  These options can
