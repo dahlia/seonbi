@@ -89,6 +89,12 @@ jobs:
     - name: Copy executable binaries
       shell: bash
       run: cp -r "$(stack path --local-install-root)/bin" .bin
+    - name: Compress executable binaries
+      if: "startsWith(matrix.os, 'ubuntu-')"
+      uses: gacts/upx@master
+      with:
+        dir: .bin
+        upx_args: "-9"
     - name: Save executable binaries
       uses: actions/upload-artifact@v1
       with:
