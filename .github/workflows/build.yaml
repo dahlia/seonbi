@@ -227,12 +227,12 @@ jobs:
     needs:
     - build
     - binaries
+    if: >-
+      github.event_name != 'pull_request' &&
+      startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-      if: >-
-        github.event_name != 'pull_request' &&
-        startsWith(github.ref, 'refs/tags/')
       with:
         fetch-depth: 1
     - uses: actions/download-artifact@v1
@@ -243,10 +243,7 @@ jobs:
       with:
         name: dists
         path: /tmp/dists
-    - if: >-
-        github.event_name != 'pull_request' &&
-        startsWith(github.ref, 'refs/tags/')
-      env:
+    - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mkdir -p "$HOME/bin"
@@ -292,10 +289,7 @@ jobs:
             --name "${name/seonbi/seonbi-$version}" \
             --file "$file"
         done
-    - if: >-
-        github.event_name != 'pull_request' &&
-        startsWith(github.ref, 'refs/tags/')
-      env:
+    - env:
         HACKAGE_API_KEY: ${{ secrets.HACKAGE_API_KEY }}
       run: |
         for file in /tmp/sdist/*; do
@@ -307,24 +301,21 @@ jobs:
 
   demo:
     name: Deploy demo app
+    needs:
+    - binaries
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/master'
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-      if: >-
-        github.event_name != 'pull_request' &&
-        (
-          startsWith(github.ref, 'refs/tags/') ||
-          contains(github.event.head_commit.message, '[deploy demo]')
-        )
       with:
         fetch-depth: 1
-    - if: >-
-        github.event_name != 'pull_request' &&
-        (
-          startsWith(github.ref, 'refs/tags/') ||
-          contains(github.event.head_commit.message, '[deploy demo]')
-        )
-      run: |
+    - uses: actions/download-artifact@v1
+      with:
+        name: dists
+        path: /tmp/dists
+    - run: |
         pushd /tmp
         curl -L -o elm.gz \
           https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
@@ -338,6 +329,9 @@ jobs:
         /tmp/elm make --optimize --output=/tmp/html/index.html src/Demo.elm
         cd /tmp/html
         git add index.html
+        mkdir dists
+        mv /tmp/dists dists/latest
+        git add dists
         git commit -m 'Demo app'
         git branch --move gh-pages
         auth="$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}"
