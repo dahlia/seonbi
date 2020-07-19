@@ -327,6 +327,14 @@ jobs:
         git init /tmp/html
         cd demo/
         /tmp/elm make --optimize --output=/tmp/html/index.html src/Demo.elm
+
+        # GitHub Corners <https://github.com/tholman/github-corners>
+        sed -Ezi 's|\s*</body>\s*</html>\s*$||' /tmp/html/index.html
+        {
+          cat github-corner.html
+          echo '</body></html>'
+        } >> /tmp/html/index.html
+
         cd /tmp/html
         git add index.html
         mkdir dists
