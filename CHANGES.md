@@ -23,7 +23,7 @@ To be released.
     HTTP API-wise, the optional field `"stop"` was added.
 
  -  Updated the *Standard Korean Language Dictionary* data
-    (*data/ko-kr-stdict.tsv*) to the revision 2020-03-25.
+    (*data/ko-kr-stdict.tsv*) to the revision 2020-08-01.
 
 
 Version 0.1.1

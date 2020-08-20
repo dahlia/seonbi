@@ -18,11 +18,11 @@ NIKL has distributed *Standard Korean Language Dictionary* under CC BY-SA
 does not have English version and you need to make an account to download
 the data.  Or, in short, you could download using ``curl`` in one-shot::
 
-    # Works as of May 2020.
+    # Works as of August 2020.
     curl \
         -LOJ \
         -X POST \
-        -F link_key=672865 \
+        -F link_key=723699 \
         -F pageUnit=10 \
         -F pageIndex=1 \
         https://stdict.korean.go.kr/common/download.do
@@ -31,7 +31,7 @@ The data is contained by a *.zip* archive, and if you extract it there are
 several XML data files.  This script reads the *.zip* archive (not *.xml* files)
 and then prints the result in the TSV format that Seonbi can interpret::
 
-    ./main.py 672865.zip > kr-stdict.tsv
+    ./main.py 723699.zip > kr-stdict.tsv
 
 __ https://stdict.korean.go.kr/notice/noticeView.do?board_no=1129
 __ https://stdict.korean.go.kr/

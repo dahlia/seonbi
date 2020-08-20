@@ -93,6 +93,7 @@ def filter_xml(xml_path, hanja_only=True):
     CHARACTERS = xml.dom.pulldom.CHARACTERS
     word = None
     hangul = None
+    hangul_filled = False
     origin = None
     origin_lang = None
     origin_type = None
@@ -100,7 +101,17 @@ def filter_xml(xml_path, hanja_only=True):
     skip = False
     for ev, node in doc:
         tag = node.tagName if ev == START_ELEMENT or ev == END_ELEMENT else ''
-        if ev == START_ELEMENT and tag == 'relation_info':
+        if ev == START_ELEMENT and tag == 'item':
+            word = None
+            hangul = None
+            hangul_filled = False
+            origin = None
+            origin_lang = None
+            origin_type = None
+            sense = None
+            skip = False
+            continue
+        elif ev == START_ELEMENT and tag == 'relation_info':
             skip = True
             continue
         elif ev == END_ELEMENT and tag == 'relation_info':
@@ -112,22 +123,26 @@ def filter_xml(xml_path, hanja_only=True):
             if ev == START_ELEMENT and tag == 'word_info':
                 word = {'meaning': [], 'origin': []}
                 hangul = None
+                hangul_filled = False
                 origin = None
+                origin_lang = None
+                origin_type = None
                 sense = None
         else:
             if ev == START_ELEMENT and tag == 'conju_info':
                 word = None
                 continue
-            if hangul is None:
+            if hangul is None and not hangul_filled:
                 if ev == START_ELEMENT and tag == 'word':
                     hangul = ''
-            else:
+            elif not hangul_filled:
                 if ev == CHARACTERS:
                     hangul += node.data
                 elif ev == END_ELEMENT and tag == 'word':
                     word['reading'] = \
                         DISAMBIGUATOR.sub('', hangul.strip()).replace('^', ' ')
                     hangul = None
+                    hangul_filled = True
             if origin is None:
                 if ev == START_ELEMENT and tag == 'original_language_info':
                     origin = ('', None)
