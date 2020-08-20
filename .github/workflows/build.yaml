@@ -122,7 +122,7 @@ jobs:
           sha="$(git log -n1 --format=%h)"
           tag="git-$sha"
         else
-          if [[ "$GITHUB_REF" = "refs/heads/master" ]]; then
+          if [[ "$GITHUB_REF" = "refs/heads/main" ]]; then
             tag=latest
           elif [[ "$GITHUB_REF" = refs/tags/* ]]; then
             tag="${GITHUB_REF:10}"
@@ -305,7 +305,7 @@ jobs:
     - binaries
     if: >-
       github.event_name != 'pull_request' &&
-      github.ref == 'refs/heads/master'
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
