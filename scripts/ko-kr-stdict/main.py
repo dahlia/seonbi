@@ -111,10 +111,10 @@ def filter_xml(xml_path, hanja_only=True):
             sense = None
             skip = False
             continue
-        elif ev == START_ELEMENT and tag == 'relation_info':
+        elif ev == START_ELEMENT and tag in ('relation_info', 'conju_info'):
             skip = True
             continue
-        elif ev == END_ELEMENT and tag == 'relation_info':
+        elif ev == END_ELEMENT and tag in ('relation_info', 'conju_info'):
             skip = False
             continue
         elif skip:
@@ -129,9 +129,6 @@ def filter_xml(xml_path, hanja_only=True):
                 origin_type = None
                 sense = None
         else:
-            if ev == START_ELEMENT and tag == 'conju_info':
-                word = None
-                continue
             if hangul is None and not hangul_filled:
                 if ev == START_ELEMENT and tag == 'word':
                     hangul = ''
