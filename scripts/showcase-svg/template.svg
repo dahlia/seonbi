@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     fill="none" height="650" viewBox="0 0 800 650" width="800">
+  <foreignObject height="100%" width="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="root">
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;300;700;900&amp;display=swap"
+        rel="stylesheet"
+        type="text/css" />
+      <style>
+      div, p, ruby, rt {
+        box-sizing: border-box;
+        font-family: 'Noto Serif CJK KR', 'Noto Serif KR', serif;
+        text-justify: inter-character;
+        line-height: 1.6;
+        text-align: justify;
+      }
+      .root {
+        width: 100%; height: 100%;
+        margin: 0; padding: 0;
+      }
+      .top {
+        width: 100%; height: 10%;
+        margin: 0; padding-top: 1.5rem;
+        position: absolute;
+        left: 0; top: 0;
+        background: #333;
+        color: white;
+        text-align: center;
+      }
+      .top ruby { letter-spacing: 0.1rem; }
+      .top rt { letter-spacing: 0; text-align: center; }
+      @supports (-moz-appearance:none) {
+        .top { padding-top: 0.8rem; }
+        .top rt { letter-spacing: -0.1rem; }
+      }
+      .title {
+        width: 100%; height: 4%;
+        position: absolute;
+        left: 0; top: 10%;
+        padding: 0.5rem;
+        font-family: smaller;
+        font-variant: small-caps;
+        text-align: center;
+        background: #eee;
+      }
+      .left {
+        width: 50%; height: 86%;
+        margin: 0; padding: 0 1.2rem;
+        position: absolute;
+        left: 0; bottom: 0;
+        background: #eee;
+      }
+      .right {
+        width: 50%; height: 86%;
+        margin: 0; padding: 0 1.2rem;
+        position: absolute;
+        right: 0; bottom: 0;
+        background: #eee
+      }
+      .right.ko-kore, .right.ko-kore * {
+        line-height: 1.3;
+      }
+      .right.ko-kore ruby rt {
+        margin-bottom: -2rem;
+        text-align: center;
+      }
+      @supports (-moz-appearance:none) {
+        .right.ko-kore, .right.ko-kore * {
+          line-height: 1.6;
+        }
+        .right.ko-kore ruby rt {
+            margin-bottom: -0.25rem;
+        }
+      }
+      .arrow {
+        width: 1em; height: 2em;
+        border-top: 1em solid transparent;
+        border-bottom: 1em solid transparent;
+        border-left: 1em solid #333;
+        position: absolute;
+        left: 49.3%; top: 50%;
+      }
+      @keyframes ko-kr {
+        from { opacity: 1; }
+        31%  { opacity: 1; }
+        35%  { opacity: 0; }
+        98%  { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      @keyframes ko-kp {
+        from { opacity: 0; }
+        31%  { opacity: 0; }
+        35%  { opacity: 1; }
+        64%  { opacity: 1; }
+        68%  { opacity: 0; }
+        to   { opacity: 0; }
+      }
+      @keyframes ko-kore {
+        from { opacity: 0; }
+        64%  { opacity: 0; }
+        68%  { opacity: 1; }
+        98%  { opacity: 1; }
+        to   { opacity: 0; }
+      }
+      .ko-kr {
+        animation-name: ko-kr;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      .ko-kp {
+        animation-name: ko-kp;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      .ko-kore {
+        animation-name: ko-kore;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      </style>
+      <div class="top">
+        <ruby>선비<rt>Seonbi</rt></ruby> trasforms:
+      </div>
+      <div class="left">
+        <p id="input">悠久한 歷史와 傳統에 빛나는 우리 大韓國民은 3·1運動으로
+        建立된 大韓民國臨時政府의 法統과 不義에 抗拒한 4·19民主理念을 계승하고,
+        祖國의 民主改革과 平和的 統一의 使命에 입각하여 正義·人道와 同胞愛로써
+        民族의 團結을 공고히 하고, 모든 社會的 弊習과 不義를 타파하며,
+        自律과 調和를 바탕으로 自由民主的 基本秩序를 더욱 확고히 하여
+        政治·經濟·社會·文化의 모든 領域에 있어서 各人의 機會를 균등히 하고,
+        能力을 最高度로 발휘하게 하며, 自由와 權利에 따르는 責任과 義務를
+        완수하게 하여, 안으로는 國民生活의 균등한 향상을 기하고 밖으로는
+        항구적인 世界平和와 人類共榮에 이바지함으로써 우리들과 우리들의 子孫의
+        安全과 自由와 幸福을 영원히 확보할 것을 다짐하면서 1948年 7月 12日에
+        制定되고 8次에 걸쳐 改正된 憲法을 이제 國會의 議決을 거쳐 國民投票에
+        의하여 改正한다.</p>
+      </div>
+      <div class="title ko-kr">South Korean orthography</div>
+      <div class="right ko-kr">
+        <p id="placeholder-ko-kr">PLACEHOLDER: ko-kp</p>
+      </div>
+      <div class="title ko-kp">North Korean orthography</div>
+      <div class="right ko-kp">
+        <p id="placeholder-ko-kp">PLACEHOLDER: ko-kp</p>
+      </div>
+      <div class="title ko-kore">Mixed script with
+        <code>&lt;ruby&gt;</code></div>
+      <div class="right ko-kore">
+        <p id="placeholder-ko-kore">PLACEHOLDER: ko-Kore</p>
+      </div>
+      <div class="arrow"/>
+    </div>
+  </foreignObject>
+</svg>

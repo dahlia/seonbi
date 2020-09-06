@@ -1,0 +1,37 @@
+SEONBI=seonbi
+XQILLA=xqilla
+
+build/showcase.svg: template.svg build/ko-kr.html build/ko-kp.html build/ko-kore.html
+	cp template.svg build/showcase.svg
+	$(XQILLA) \
+		-u \
+		-i build/showcase.svg \
+		-v ko-kr build/ko-kr.html \
+		-v ko-kp build/ko-kp.html \
+		-v ko-kore build/ko-kore.html \
+		replace.xq
+
+build/ko-kr.html: build/input.html
+	$(SEONBI) \
+		--preset ko-kr \
+		--xhtml \
+		--output build/ko-kr.html \
+		build/input.html
+
+build/ko-kp.html: build/input.html
+	$(SEONBI) \
+		--preset ko-kp \
+		--xhtml \
+		--output build/ko-kp.html \
+		build/input.html
+
+build/ko-kore.html: build/input.html
+	$(SEONBI) \
+		--render-hanja hanja-in-ruby \
+		--xhtml \
+		--output build/ko-kore.html \
+		build/input.html
+
+build/input.html: template.svg
+	mkdir -p build
+	$(XQILLA) -i template.svg -o build/input.html extract.xq
