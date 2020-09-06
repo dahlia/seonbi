@@ -326,6 +326,16 @@ jobs:
       with:
         name: dists
         path: /tmp/dists
+    # Generates a showcase SVG image
+    - run: |
+        mkdir "$HOME/bin/"
+        pushd "$HOME/bin/"
+        tar xvfj /tmp/dists/seonbi.linux-x86_64.tar.bz2
+        popd
+        sudo apt-get install -y xqilla
+        pushd scripts/showcase-svg/
+        make build/showcase.svg SEONBI="$HOME/bin/seonbi"
+        popd
     - run: |
         pushd /tmp
         curl -L -o elm.gz \
@@ -336,7 +346,7 @@ jobs:
         git config --global user.name "$GITHUB_ACTOR"
         git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
         git init /tmp/html
-        cd demo/
+        pushd demo/
         /tmp/elm make --optimize --output=/tmp/html/index.html src/Demo.elm
 
         # GitHub Corners <https://github.com/tholman/github-corners>
@@ -345,12 +355,20 @@ jobs:
           cat github-corner.html
           echo '</body></html>'
         } >> /tmp/html/index.html
+        popd
+
+        # Showcase SVG
+        cp scripts/showcase-svg/build/showcase.svg /tmp/html/
 
         cd /tmp/html
         git add index.html
+        git add showcase.svg
+
+        # Bleeding-edge binaries
         mkdir dists
         mv /tmp/dists dists/latest
         git add dists
+
         git commit -m 'Demo app'
         git branch --move gh-pages
         auth="$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}"
