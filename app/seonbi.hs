@@ -92,6 +92,7 @@ data Seonbi = Seonbi
     , config :: Configuration IO ()
     , dictionaries :: [FilePath]
     , noKrStdict :: Bool
+    , xhtml :: Bool
     , debug :: Bool
     , version :: Bool
     , input :: FilePath
@@ -165,13 +166,8 @@ parser = Seonbi
                      "Available presets: " ++
                      Data.List.intercalate ", " (Data.Map.Strict.keys presets'))
             )
-        <|> ( Configuration Nothing
-            <$> switch
-                ( long "xhtml"
-                <> short 'x'
-                <> help "XHTML mode"
-                )
-            <*> ( flag' Nothing
+        <|> ( Configuration Nothing False
+            <$> ( flag' Nothing
                     ( long "no-quote"
                     <> short 'Q'
                     <> help ("Do not transform any quotes at all.  " ++
@@ -300,6 +296,11 @@ parser = Seonbi
         <> short 'S'
         <> help ("Do not use Standard Korean Language Dictionary " ++
                  "(標準國語大辭典) by South Korean NIKL (國立國語院)")
+        )
+    <*> switch
+        ( long "xhtml"
+        <> short 'x'
+        <> help "XHTML mode"
         )
     <*> switch
         ( long "debug"

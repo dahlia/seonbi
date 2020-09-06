@@ -22,6 +22,9 @@ To be released.
 
     HTTP API-wise, the optional field `"stop"` was added.
 
+ -  The CLI option `-x`/`--xhtml` became usable with the `-p`/`--preset` option
+    at a time.
+
  -  Updated the *Standard Korean Language Dictionary* data
     (*data/ko-kr-stdict.tsv*) to the revision 2020-08-01.
 
