@@ -24,6 +24,14 @@ jobs:
       with:
         ref: ${{ github.pull_request.head.sha }}
         fetch-depth: 1
+    - name: Cache Stack files
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cabal/packages
+          ~/.cabal/store
+          ~/.stack
+        key: ${{ matrix.os }}-stack-${{ matrix.resolver }}
     - name: Set up resolver
       shell: bash
       run: |
