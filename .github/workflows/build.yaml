@@ -67,8 +67,11 @@ jobs:
     - name: Test
       shell: bash
       run: |
-        if [[ "${{ matrix.os }}" = "macos-10.15" && \
+        if [[ "${{ matrix.os }}" = windows-* && \
+              "${{ matrix.resolver }}" = lts-14.* ||
+              "${{ matrix.os }}" = macos-* && \
               "${{ matrix.resolver }}" = lts-12.* ]]; then
+          # On GHC-8.6 & Windows alex (hence hlint) does not work.
           # On GHC-8.4 & macOS doctest does not work.
           # See also:
           #   https://github.com/sol/doctest/issues/199
