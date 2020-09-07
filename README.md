@@ -3,6 +3,8 @@ Seonbi: SmartyPants for Korean language
 
 [![][releases-badge]][releases] [![][hackage-badge]][hackage] [![][dockerhub-badge]][dockerhub] [![][ci-status-badge]][ci]
 
+[![](https://dahlia.github.io/seonbi/showcase.svg)][demo web app]
+
 (TL;DR: See the [demo web app].)
 
 Seonbi (선비) is an HTML preprocessor that makes typographic adjustments
