@@ -22,7 +22,7 @@ perform the following transformations:
     (e.g., `한자`)
  -  Straight quotes and apostrophes (`"` & `'`) into curly quotes HTML
     entities (`“`, `”`, `‘`, & `’`)
- -  Three consecutive periods (`...`) into an ellipsis entity (`…`)
+ -  Three consecutive periods (`...` or `。。。`) into an ellipsis entity (`…`)
  -  Classical (Chinese-style) stops (`。` & `、`) into modern (English-style)
     stops (`.` & `,`)
  -  Pairs of less-than and greater-than inequality symbols (`<` & `>`) into

@@ -22,6 +22,9 @@ To be released.
 
     HTTP API-wise, the optional field `"stop"` was added.
 
+ -  `Text.Seonbi.Punctuation.transformEllipsis` became aware of Chinese stops
+    (`。。。`) besides Western stops (`...`).
+
  -  The CLI option `-x`/`--xhtml` became usable with the `-p`/`--preset` option
     at a time.
 

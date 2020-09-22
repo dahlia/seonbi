@@ -477,7 +477,7 @@ transformEllipsis = transformText $ \ txt ->
     parser :: Parser Text
     parser = do
         chunks <- many' $ choice
-            [ takeWhile1 (`notElem` (['&', '.'] :: Set Char))
+            [ takeWhile1 (`notElem` (['&', '.', '。'] :: Set Char))
             , ellipsis
             , Data.Text.singleton <$> anyChar
             ]
@@ -485,7 +485,10 @@ transformEllipsis = transformText $ \ txt ->
         return $ Data.Text.concat chunks
     ellipsis :: Parser Text
     ellipsis = do
-        void $ period >> period >> period
+        void $ choice
+            [ period >> period >> period
+            , chinesePeriod >> chinesePeriod >> chinesePeriod
+            ]
         return "&hellip;"
     period :: Parser Text
     period = choice
@@ -493,6 +496,12 @@ transformEllipsis = transformText $ \ txt ->
         , string "&period;"
         , string "&#46;"
         , asciiCI "&#x2e;"
+        ]
+    chinesePeriod :: Parser Text
+    chinesePeriod = choice
+        [ string "。"
+        , string "&#12290;"
+        , asciiCI "&#x3002;"
         ]
 
 -- | Pairs of substitute folk single and double quotes.

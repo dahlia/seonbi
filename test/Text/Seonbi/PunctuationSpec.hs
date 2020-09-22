@@ -324,6 +324,8 @@ spec = do
             ellipsisSample "&hellip;" "..."
         transformEllipsis (sample "&period;.&#46;") `shouldBe`
             ellipsisSample "&hellip;" "&period;.&#46;"
+        transformEllipsis (sample "。&#12290;&#x3002;") `shouldBe`
+            ellipsisSample "&hellip;" "。&#12290;&#x3002;"
 
     describe "transformQuote" $ do
         it "transforms apostrophes and straight quotes into typographic ones" $
