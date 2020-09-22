@@ -265,8 +265,6 @@ toTransformers Configuration { quote
                 [ if bidirArrow then Just LeftRight else Nothing
                 , if doubleArrow then Just DoubleArrow else Nothing
                 ]
-    , if ellipsis then transformEllipsis else id
-    , if emDash then transformEmDash else id
     , case stop of
         Nothing -> id
         Just stopOption -> normalizeStops $
@@ -274,6 +272,8 @@ toTransformers Configuration { quote
                 Horizontal -> horizontalStops
                 HorizontalWithSlashes -> horizontalStopsWithSlashes
                 Vertical -> verticalStops
+    , if ellipsis then transformEllipsis else id
+    , if emDash then transformEmDash else id
     , case hanja of
         Nothing ->
             id
