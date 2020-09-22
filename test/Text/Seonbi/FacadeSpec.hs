@@ -2,41 +2,58 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Seonbi.FacadeSpec (spec) where
 
-import Data.String (IsString)
+import Control.Monad
 
+import Data.Text.Lazy.IO
+import System.Directory
+import System.FilePath
 import Test.Hspec
 
 import Text.Seonbi.Facade
 
-input :: (IsString a, Monoid a) => a
-input =
-    "<blockquote><p>아이들에게 하로의 乾燥한 學課로<br>" <>
-    "해말간 倦怠가 깃들고、<br>" <>
-    "&quot;矛盾&quot; 두자를 理解치 못하도록<br>" <>
-    "머리가 單純하였구나。</p>" <>
-    "</blockquote><p>尹東柱 &lt;이런날&gt;</p>"
+dataDirPath :: FilePath
+dataDirPath = "test" </> "data"
 
-output :: (IsString a, Monoid a) => a
-output =
-    "<blockquote><p>아이들에게 하로의 건조한 학과로<br>" <>
-    "해말간 권태가 깃들고, <br>" <>
-    "&ldquo;모순&rdquo; 두자를 이해치 못하도록<br>" <>
-    "머리가 단순하였구나. </p>" <>
-    "</blockquote><p>윤동주 &#12296;이런날&#12297;</p>"
+inputExtension :: String
+inputExtension = ".ko-Kore.html"
+
+outputExtensions :: Monad m => [(String, Configuration m a)]
+outputExtensions =
+    [ (".ko-KR.html", ko_KR)
+    , (".ko-KP.html", ko_KP)
+    ]
+
 
 spec :: Spec
-spec =
-    specify "transformHtmlLazyText" $ do
-        let noOp = Configuration
-                { quote = Nothing
-                , cite = Nothing
-                , arrow = Nothing
-                , ellipsis = False
-                , emDash = False
-                , stop = Nothing
-                , hanja = Nothing
-                , xhtml = False
-                , debugLogger = Nothing
-                }
-        transformHtmlLazyText noOp input `shouldBe` Just input
-        transformHtmlLazyText ko_KR input `shouldBe` Just output
+spec = do
+    testData <- runIO $ do
+        files <- listDirectory dataDirPath
+        let inputFiles = [f | f <- files, inputExtension `isExtensionOf` f]
+        testFiles <- filterM
+            (\(_, o, _) -> doesFileExist (dataDirPath </> o))
+            [ (i, dropExtension i -<.> oExt, oCfg)
+            | i <- inputFiles
+            , (oExt, oCfg) <- outputExtensions
+            ]
+        forM testFiles $ \ (input, output, cfg) -> do
+            let name = dropExtension $ dropExtension input
+            inputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> input)
+            outputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> output)
+            return (name, inputData, outputData, cfg)
+    forM_ testData $ \ (name, input, output, cfg) ->
+        specify ("transformHtmlLazyText: " ++ name) $ do
+            transformHtmlLazyText noOp input `shouldBe` Just input
+            transformHtmlLazyText cfg input `shouldBe` Just output
+  where
+    noOp :: Monad m => Configuration m a
+    noOp = Configuration
+        { quote = Nothing
+        , cite = Nothing
+        , arrow = Nothing
+        , ellipsis = False
+        , emDash = False
+        , stop = Nothing
+        , hanja = Nothing
+        , xhtml = False
+        , debugLogger = Nothing
+        }

@@ -168,11 +168,14 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - directory >= 1 && < 2
+    - filepath >= 1 && < 2
     - hspec >= 2.4.8 && < 3
     - hspec-discover >= 2.4.8 && < 3
     - interpolatedstring-perl6 >= 1.0.1 && < 2
     - random >= 1.1 && < 1.2
     - seonbi
+    - text
   hlint:
     main: hlint.hs
     source-dirs: test
