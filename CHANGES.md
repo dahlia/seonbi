@@ -29,7 +29,7 @@ To be released.
     at a time.
 
  -  Updated the *Standard Korean Language Dictionary* data
-    (*data/ko-kr-stdict.tsv*) to the revision 2020-08-01.
+    (*data/ko-kr-stdict.tsv*) to the revision 2020-09-01.
 
 
 Version 0.1.1
