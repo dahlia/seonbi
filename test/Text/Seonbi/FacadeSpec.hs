@@ -36,12 +36,11 @@ spec = do
             , (oExt, oCfg) <- outputExtensions
             ]
         forM testFiles $ \ (input, output, cfg) -> do
-            let name = dropExtension $ dropExtension input
             inputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> input)
             outputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> output)
-            return (name, inputData, outputData, cfg)
-    forM_ testData $ \ (name, input, output, cfg) ->
-        specify ("transformHtmlLazyText: " ++ name) $ do
+            return (input, output, inputData, outputData, cfg)
+    forM_ testData $ \ (iname, oname, input, output, cfg) ->
+        specify ("transformHtmlLazyText: " ++ iname ++ " -> " ++ oname) $ do
             transformHtmlLazyText noOp input `shouldBe` Just input
             transformHtmlLazyText cfg input `shouldBe` Just output
   where

@@ -136,8 +136,9 @@ def filter_xml(xml_path, hanja_only=True):
                 if ev == CHARACTERS:
                     hangul += node.data
                 elif ev == END_ELEMENT and tag == 'word':
-                    word['reading'] = \
-                        DISAMBIGUATOR.sub('', hangul.strip()).replace('^', ' ')
+                    word['reading'] = DISAMBIGUATOR.sub('', hangul.strip()) \
+                        .strip('-') \
+                        .replace('^', ' ')
                     hangul = None
                     hangul_filled = True
             if origin is None:
