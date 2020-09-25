@@ -1,16 +1,36 @@
+-- | Since Seonbi's primitive unit to transform is HTML, this module deals with
+-- HTML.
 module Text.Seonbi.Html
-    ( HtmlEntity (..)
-    , HtmlRawAttrs
-    , HtmlTag (..)
-    , HtmlTagKind (..)
-    , HtmlTagStack
-    , Result (..)
-    , htmlTagKind
-    , htmlTagName
-    , normalizeText
+    ( -- * HTML scanner
+      --
+      -- | See more on "Text.Seonbi.Html.Scanner" module.
+      Result (..)
+    , scanHtml
+      -- * HTML printer
+      --
+      -- | See more on "Text.Seonbi.Html.Printer" module.
     , printHtml
     , printXhtml
-    , scanHtml
+    , -- * HTML entities
+      --
+      -- | See more on "Text.Seonbi.Html.Entity" module.
+      HtmlEntity (..)
+    , HtmlRawAttrs
+      -- * HTML tags
+      --
+      -- | See more on "Text.Seonbi.Html.Tag" module.
+    , HtmlTag (..)
+    , HtmlTagKind (..)
+    , htmlTagKind
+    , htmlTagName
+      -- * HTML text normalization
+      --
+      -- | See more on "Text.Seonbi.Html.TextNormalizer" module.
+    , normalizeText
+      -- * HTML hierarchical stacks
+      --
+      -- | See more on "Text.Seonbi.Html.TagStack" module.
+    , HtmlTagStack
     ) where
 
 import Text.Seonbi.Html.Entity

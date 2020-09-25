@@ -3,26 +3,31 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
+-- | This module deals with punctuations in Korean text.
 module Text.Seonbi.Punctuation
-    ( ArrowTransformationOption (..)
+    ( -- * Arrows
+      ArrowTransformationOption (..)
+    , transformArrow
+      -- * Quotes
     , CitationQuotes (..)
     , Quotes (..)
     , QuotePair (..)
-    , Stops (..)
     , angleQuotes
     , cornerBrackets
     , curvedQuotes
     , curvedSingleQuotesWithQ
     , guillemets
+    , quoteCitation
+    , transformQuote
+      -- * Stops: periods, commas, & interpuncts
+    , Stops (..)
     , horizontalStops
     , horizontalStopsWithSlashes
     , normalizeStops
-    , quoteCitation
-    , transformArrow
     , transformEllipsis
-    , transformEmDash
-    , transformQuote
     , verticalStops
+      -- * Dashes
+    , transformEmDash
     ) where
 
 import Prelude hiding (takeWhile)

@@ -9,22 +9,26 @@
 -- | Provides higher-level APIs.  Read 'transformHtmlText' function first,
 -- and then see also 'Configuration' type.
 module Text.Seonbi.Facade
-    ( ArrowOption (..)
-    , CiteOption (..)
+    ( -- * HTML transformation
+      transformHtmlText
+    , transformHtmlLazyText
+      -- * Configuration and presets
     , Configuration (..)
+    , ko_KP
+    , ko_KR
+    , presets
+      -- * Dictionaries
     , HanjaDictionary
+    , readDictionaryFile
+    , southKoreanDictionary
+      -- * Options
+    , ArrowOption (..)
+    , CiteOption (..)
     , HanjaOption (..)
     , HanjaReadingOption (..)
     , HanjaRenderingOption (..)
     , QuoteOption (..)
     , StopOption (..)
-    , ko_KP
-    , ko_KR
-    , presets
-    , readDictionaryFile
-    , southKoreanDictionary
-    , transformHtmlText
-    , transformHtmlLazyText
     ) where
 
 import Data.Char
@@ -341,6 +345,8 @@ ko_KP = ko_KR
         }
     }
 
+-- | A mapping of locale code strings (e.g., @"ko-kr"@) to the corresponding
+-- 'Configuration' presets (e.g., 'ko_KR').
 presets :: (Ord k, IsString k, Monad m) => Map k (Configuration m a)
 presets =
     [ ("ko-kp", ko_KP)

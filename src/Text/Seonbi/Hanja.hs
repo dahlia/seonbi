@@ -2,24 +2,31 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
+-- | This module deals with Chinese characters and Sino-Korean words written in
+-- hanja.
 module Text.Seonbi.Hanja
-    ( HanjaDictionary
-    , HanjaPhoneticization (..)
-    , HanjaWordPhoneticizer
-    , HanjaWordRenderer
-    , convertInitialSoundLaw
+    ( -- * Korean mixed-script (國漢文混用) transformation
+      HanjaPhoneticization (..)
     , def
+    , phoneticizeHanja
+      -- * Single character phoneticization
+    , phoneticizeHanjaChar
+      -- * Word phoneticization
+    , HanjaDictionary
+    , HanjaWordPhoneticizer
+    , phoneticizeHanjaWord
+    , phoneticizeHanjaWordWithInitialSoundLaw
+    , withDictionary
+      -- * Word rendering
+    , HanjaWordRenderer
     , hangulOnly
     , hanjaInParentheses
     , hanjaInRuby
+      -- * Initial sound law (頭音法則)
+    , convertInitialSoundLaw
     , initialSoundLawTable
     , initialSoundLawTable'
-    , phoneticizeHanja
-    , phoneticizeHanjaChar
-    , phoneticizeHanjaWord
-    , phoneticizeHanjaWordWithInitialSoundLaw
     , revertInitialSoundLaw
-    , withDictionary
     ) where
 
 import Prelude hiding (lookup)
@@ -48,6 +55,8 @@ import Text.Seonbi.Unihan.KHangul
 -- >>> import qualified Text.Show.Unicode
 -- >>> :set -interactive-print=Text.Show.Unicode.uprint
 
+-- | Settings to transform Sino-Korean words written in hanja into hangul
+-- letters.
 data HanjaPhoneticization = HanjaPhoneticization
     { -- | A function to phoneticize a hanja word.
       -- Use 'phoneticizeHanjaWordWithInitialSoundLaw' for South Korean
