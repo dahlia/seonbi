@@ -12,7 +12,7 @@ exit_code=1
 {
   yq write --inplace "$package" description "$description"
   cd "$root"
-  stack haddock
+  stack haddock --no-haddock-deps
   exit_code=0
 } || true
 cd "$cwd"
