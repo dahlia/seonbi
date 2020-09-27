@@ -1,4 +1,9 @@
 #!/bin/bash
+# Prerequisites:
+# - Pandoc 2.0+
+# - yq
+# - Haskell Stack
+# - GNU sed
 set -e
 root="$(dirname "$0")/../.."
 package="$root/package.yaml"
@@ -13,6 +18,11 @@ exit_code=1
   yq write --inplace "$package" description "$description"
   cd "$root"
   stack haddock --no-haddock-deps
+  cd "$(stack path --dist-dir)/doc/html/"
+  hackage_url='https://hackage.haskell.org/package/\1/docs/'
+  sed -i -E \
+    's|\.\./(([A-Za-z][[:alnum:]]*-)+[0-9]+(\.[0-9]+)*)/|'"$hackage_url|g" \
+    ./*/*.html
   exit_code=0
 } || true
 cd "$cwd"
