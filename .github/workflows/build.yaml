@@ -95,6 +95,34 @@ jobs:
       with:
         name: sdist-${{ matrix.os }}-${{ matrix.resolver }}
         path: /tmp/sdist
+    - name: Build docs
+      if: >-
+        startsWith(matrix.os, 'ubuntu-') &&
+        startsWith(matrix.resolver, 'lts-14.')
+      shell: bash
+      run: |
+        curl -L -o /tmp/pandoc.deb \
+          https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.1-1-amd64.deb
+        sudo dpkg -i /tmp/pandoc.deb
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
+        sudo add-apt-repository ppa:rmescandon/yq
+        sudo apt update
+        sudo apt-get install -y yq
+        bash scripts/haddock-prologue/build.sh
+    - name: Copy docs
+      if: >-
+        startsWith(matrix.os, 'ubuntu-') &&
+        startsWith(matrix.resolver, 'lts-14.')
+      shell: bash
+      run: cp -r "$(stack path --dist-dir)/doc/html/seonbi" .docs
+    - name: Save docs
+      if: >-
+        startsWith(matrix.os, 'ubuntu-') &&
+        startsWith(matrix.resolver, 'lts-14.')
+      uses: actions/upload-artifact@v1
+      with:
+        name: docs
+        path: .docs
     - name: Build using -fembed-dictionary
       run: stack build --flag seonbi:embed-dictionary
     - name: Copy executable binaries
@@ -326,6 +354,10 @@ jobs:
       with:
         name: dists
         path: /tmp/dists
+    - uses: actions/download-artifact@v1
+      with:
+        name: docs
+        path: /tmp/docs
     # Generates a showcase SVG image
     - run: |
         mkdir "$HOME/bin/"
@@ -360,16 +392,20 @@ jobs:
         # Showcase SVG
         cp scripts/showcase-svg/build/showcase.svg /tmp/html/
 
+        # Docs
+        cp -r /tmp/docs /tmp/html/docs
+
         cd /tmp/html
         git add index.html
         git add showcase.svg
+        git add docs/
 
         # Bleeding-edge binaries
         mkdir dists
         mv /tmp/dists dists/latest
         git add dists
 
-        git commit -m 'Demo app'
+        git commit -m 'Demo app and docs'
         git branch --move gh-pages
         auth="$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}"
         git remote add origin \

@@ -67,7 +67,7 @@ data HanjaPhoneticization = HanjaPhoneticization
       -- | A function to render a hanja word which should be disambiguated.
       -- It's used instead of 'wordRenderer' when two or more words in
       -- a text have the same hangul reading but actually are dictinct
-      -- each other in hanja characters, e.g., 小數/素數 (소수).
+      -- each other in hanja characters, e.g., 小數\/素數 (소수).
     , homophoneRenderer :: HanjaWordRenderer
       -- | Whether to insert some HTML comments that contain useful information
       -- for debugging into the result.  This does not affect the rendering
@@ -333,7 +333,7 @@ type HanjaDictionary = Trie.Trie Text
 -- "자전거"
 --
 -- But, if it faces any words or characters that are not registered in
--- the dictionary, it does the best to interpolate prefixes/infixes/suffixes
+-- the dictionary, it does the best to interpolate prefixes\/infixes\/suffixes
 -- using the fallback phoneticizer:
 --
 -- >>> phone "自轉車道路"

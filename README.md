@@ -151,7 +151,9 @@ Haskell API
 All functions and types lie inside `Text.Seonbi` module and its submodules.
 The highest-level API is `Text.Seonbi.Facade` module.
 
-See also the API docs on [Hackage].
+See also the [API docs] or [Hackage].
+
+[API docs]: https://dahlia.github.io/seonbi/docs/
 
 
 License
