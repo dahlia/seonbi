@@ -25,6 +25,38 @@ To be released.
  -  `Text.Seonbi.Punctuation.transformEllipsis` became aware of Chinese stops
     (`。。。`) besides Western stops (`...`).
 
+ -  Added options to use horizontal/vertical corner brackets for quotes.
+
+    Haskell API-wise, the below functions were added:
+
+     -  `Text.Seonbi.Punctuation.verticalCornerBrackets` function
+     -  `Text.Seonbi.Punctuation.horizontalCornerBrackets` function
+     -  `Text.Seonbi.Punctuation.verticalCornerBracketsWithQ` function
+     -  `Text.Seonbi.Punctuation.horizontalCornerBracketsWithQ` function
+     -  `VerticalCornerBrackets` data constructor for
+        `Text.Seonbi.Facade.QuoteOption` type
+     -  `HorizontalCornerBrackets` data constructor for
+        `Text.Seonbi.Facade.QuoteOption` type
+     -  `VerticalCornerBracketsWithQ` data constructor for
+        `Text.Seonbi.Facade.QuoteOption` type
+     -  `HorizontalCornerBracketsWithQ` data constructor for
+        `Text.Seonbi.Facade.QuoteOption` type
+
+    CLI-wise, the `-q`/`--quote` option became to have the below new styles:
+
+     -  `vertical-corner-brackets`
+     -  `horizontal-corner-brakcets`
+     -  `vertical-corner-brackets-with-q`
+     -  `horizontal-corner-brakcets-with-q`
+
+    HTTP API-wise, the optional field `"quote"` became to have the below new
+    styles:
+
+     -  `VerticalCornerBrackets`
+     -  `HorizontalCornerBrackets`
+     -  `VerticalCornerBracketsWithQ`
+     -  `HorizontalCornerBracketsWithQ`
+
  -  The CLI option `-x`/`--xhtml` became usable with the `-p`/`--preset` option
     at a time.
 

@@ -17,8 +17,12 @@ module Text.Seonbi.Punctuation
     , curvedQuotes
     , curvedSingleQuotesWithQ
     , guillemets
+    , horizontalCornerBrackets
+    , horizontalCornerBracketsWithQ
     , quoteCitation
     , transformQuote
+    , verticalCornerBrackets
+    , verticalCornerBracketsWithQ
       -- * Stops: periods, commas, & interpuncts
     , Stops (..)
     , horizontalStops
@@ -544,6 +548,22 @@ curvedQuotes = Quotes
     , doubleQuotes = QuotePair "&ldquo;" "&rdquo;"
     }
 
+-- | Vertical corner brackets (@﹁@: U+FE41, @﹂@: U+FE42, @﹃@: U+FE43,
+-- @﹄@: U+FE44), which are used by East Asian orthography.
+verticalCornerBrackets :: Quotes
+verticalCornerBrackets = Quotes
+    { singleQuotes = QuotePair "&#xfe41;" "&#xfe42;"
+    , doubleQuotes = QuotePair "&#xfe43;" "&#xfe44;"
+    }
+
+-- | Traditional horizontal corner brackets (@「@: U+300C, @」@: U+300D,
+-- @『@: U+300E, @』@: U+300F), which are used by East Asian orthography.
+horizontalCornerBrackets :: Quotes
+horizontalCornerBrackets = Quotes
+    { singleQuotes = QuotePair "&#x300c;" "&#x300d;"
+    , doubleQuotes = QuotePair "&#x300e;" "&#x300f;"
+    }
+
 -- | East Asian guillemets (@〈@: U+3008, @〉@: U+3009, @《@: U+300A, @》@:
 -- U+300B), which are used by North Korean orthography.
 guillemets :: Quotes
@@ -557,6 +577,22 @@ guillemets = Quotes
 curvedSingleQuotesWithQ :: Quotes
 curvedSingleQuotesWithQ = Quotes
     { singleQuotes = QuotePair "&lsquo;" "&rsquo;"
+    , doubleQuotes = HtmlElement Q ""
+    }
+
+-- | Use vertical corner brackets (@﹁@: U+FE41, @﹂@: U+FE42) for single quotes,
+-- and HTML @\<q\>@ tags for double quotes.
+verticalCornerBracketsWithQ :: Quotes
+verticalCornerBracketsWithQ = Quotes
+    { singleQuotes = QuotePair "&#xfe41;" "&#xfe42;"
+    , doubleQuotes = HtmlElement Q ""
+    }
+
+-- | Use horizontal corner brackets (@「@: U+300C, @」@: U+300D)
+-- for single quotes, and HTML @\<q\>@ tags for double quotes.
+horizontalCornerBracketsWithQ :: Quotes
+horizontalCornerBracketsWithQ = Quotes
+    { singleQuotes = QuotePair "&#x300c;" "&#x300d;"
     , doubleQuotes = HtmlElement Q ""
     }
 

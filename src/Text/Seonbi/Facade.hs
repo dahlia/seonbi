@@ -112,12 +112,24 @@ data QuoteOption
     -- | English-style curved quotes (@‘@: U+2018, @’@: U+2019, @“@: U+201C,
     -- @”@: U+201D), which are used by South Korean orthography.
     = CurvedQuotes
+    -- | Vertical corner brackets (@﹁@: U+FE41, @﹂@: U+FE42, @﹃@: U+FE43,
+    -- @﹄@: U+FE44), which are used by East Asian orthography.
+    | VerticalCornerBrackets
+    -- | Traditional horizontal corner brackets (@「@: U+300C, @」@: U+300D,
+    -- @『@: U+300E, @』@: U+300F), which are used by East Asian orthography.
+    | HorizontalCornerBrackets
     -- | East Asian guillemets (@〈@: U+3008, @〉@: U+3009, @《@: U+300A, @》@:
     -- U+300B), which are used by North Korean orthography.
     | Guillemets
     -- | Use English-style curved quotes (@‘@: U+2018, @’@: U+2019) for single
     -- quotes, and HTML @\<q\>@ tags for double quotes.
     | CurvedSingleQuotesWithQ
+    -- | Use vertical corner brackets (@﹁@: U+FE41, @﹂@: U+FE42)
+    -- for single quotes, and HTML @\<q\>@ tags for double quotes.
+    | VerticalCornerBracketsWithQ
+    -- | Use horizontal corner brackets (@「@: U+300C, @」@: U+300D)
+    -- for single quotes, and HTML @\<q\>@ tags for double quotes.
+    | HorizontalCornerBracketsWithQ
     deriving (Enum, Eq, Generic, Read, Show)
 
 -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@) into
@@ -253,7 +265,11 @@ toTransformers Configuration { quote
             case quoteOption of
                 CurvedQuotes -> curvedQuotes
                 Guillemets -> guillemets
+                VerticalCornerBrackets -> verticalCornerBrackets
+                HorizontalCornerBrackets -> horizontalCornerBrackets
                 CurvedSingleQuotesWithQ -> curvedSingleQuotesWithQ
+                VerticalCornerBracketsWithQ -> verticalCornerBracketsWithQ
+                HorizontalCornerBracketsWithQ -> horizontalCornerBracketsWithQ
     , case cite of
         Nothing -> id
         Just citeOption -> quoteCitation $
