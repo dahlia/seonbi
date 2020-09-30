@@ -77,7 +77,7 @@ data Monad m => Configuration m a = Configuration
       -- If 'Nothing' no quotes are transformed.
     , quote :: Maybe QuoteOption
       -- | An option to transform folk-citing quotes (e.g., @\<\<한겨레\>\>@)
-      -- into proper citing quotes (e.g., @《한겨레》).
+      -- into proper citing quotes (e.g., @《한겨레》@).
     , cite :: Maybe CiteOption
       -- | Settings to transform arrow-looking punctuations into proper arrows.
       -- If 'Nothing' no arrows are transformed.
