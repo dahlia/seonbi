@@ -90,7 +90,7 @@ There is `-o`/`--output` option as well:
 Although it automatically detects text encoding of the input file,
 you could explicitly specify `-e`/`--encoding`:
 
-    seobni -e euc-kr -o output.html input.html
+    seonbi -e euc-kr -o output.html input.html
 
 Although there are several style options, e.g., `-q`/`--quote`, `-c`/`--cite`,
 `-r`/`--render-hanja`, in most cases, giving `-p`/`--preset` is enough:
