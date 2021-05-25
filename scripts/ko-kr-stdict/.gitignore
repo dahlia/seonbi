@@ -1,5 +1,6 @@
 *.pyc
 *.tsv
+*.zip
 .env/
 .venv/
 env/
