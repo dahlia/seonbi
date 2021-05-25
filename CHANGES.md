@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.2.0
 -------------
 
-To be released.
+Released May 26, 2021.
 
  -  Added stops (periods/commas/interpuncts) normalizer.
 
