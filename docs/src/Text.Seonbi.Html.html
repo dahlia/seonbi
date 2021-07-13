@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Since Seonbi's primitive unit to transform is HTML, this module deals with</span><span>
+</span><a name="line-2"></a><span class="hs-comment">-- HTML.</span><span>
+</span><a name="line-3"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html</span><span>
+</span><a name="line-4"></a><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * HTML scanner</span><span>
+</span><a name="line-5"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-6"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.Scanner&quot; module.</span><span>
+</span><a name="line-7"></a><span>      </span><span class="hs-identifier hs-type">Result</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Scanner.html#scanHtml"><span class="hs-identifier hs-var">scanHtml</span></a><span>
+</span><a name="line-9"></a><span>      </span><span class="hs-comment">-- * HTML printer</span><span>
+</span><a name="line-10"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-11"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.Printer&quot; module.</span><span>
+</span><a name="line-12"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Printer.html#printHtml"><span class="hs-identifier hs-var">printHtml</span></a><span>
+</span><a name="line-13"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Printer.html#printXhtml"><span class="hs-identifier hs-var">printXhtml</span></a><span>
+</span><a name="line-14"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- * HTML entities</span><span>
+</span><a name="line-15"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-16"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.Entity&quot; module.</span><span>
+</span><a name="line-17"></a><span>      </span><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-type">HtmlRawAttrs</span></a><span>
+</span><a name="line-19"></a><span>      </span><span class="hs-comment">-- * HTML tags</span><span>
+</span><a name="line-20"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-21"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.Tag&quot; module.</span><span>
+</span><a name="line-22"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Tag.html#HtmlTagKind"><span class="hs-identifier hs-type">HtmlTagKind</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Tag.html#htmlTagKind"><span class="hs-identifier hs-var">htmlTagKind</span></a><span>
+</span><a name="line-25"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.Tag.html#htmlTagName"><span class="hs-identifier hs-var">htmlTagName</span></a><span>
+</span><a name="line-26"></a><span>      </span><span class="hs-comment">-- * HTML text normalization</span><span>
+</span><a name="line-27"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-28"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.TextNormalizer&quot; module.</span><span>
+</span><a name="line-29"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.TextNormalizer.html#normalizeText"><span class="hs-identifier hs-var">normalizeText</span></a><span>
+</span><a name="line-30"></a><span>      </span><span class="hs-comment">-- * HTML hierarchical stacks</span><span>
+</span><a name="line-31"></a><span>      </span><span class="hs-comment">--</span><span>
+</span><a name="line-32"></a><span>      </span><span class="hs-comment">-- | See more on &quot;Text.Seonbi.Html.TagStack&quot; module.</span><span>
+</span><a name="line-33"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a><span>
+</span><a name="line-34"></a><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-35"></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.Entity.html"><span class="hs-identifier">Text.Seonbi.Html.Entity</span></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.Printer.html"><span class="hs-identifier">Text.Seonbi.Html.Printer</span></a><span>
+</span><a name="line-38"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.Scanner.html"><span class="hs-identifier">Text.Seonbi.Html.Scanner</span></a><span>
+</span><a name="line-39"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.Tag.html"><span class="hs-identifier">Text.Seonbi.Html.Tag</span></a><span>
+</span><a name="line-40"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.TagStack.html"><span class="hs-identifier">Text.Seonbi.Html.TagStack</span></a><span>
+</span><a name="line-41"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Seonbi.Html.TextNormalizer.html"><span class="hs-identifier">Text.Seonbi.Html.TextNormalizer</span></a><span>
+</span><a name="line-42"></a></pre></body></html>

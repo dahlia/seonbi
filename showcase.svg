@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><svg xmlns="http://www.w3.org/2000/svg" fill="none" height="650" viewBox="0 0 800 650" width="800">
+  <foreignObject height="100%" width="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="root">
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@100;300;700;900&amp;display=swap" rel="stylesheet" type="text/css"/>
+      <style>
+      div, p, ruby, rt {
+        box-sizing: border-box;
+        font-family: 'Noto Serif CJK KR', 'Noto Serif KR', serif;
+        text-justify: inter-character;
+        line-height: 1.6;
+        text-align: justify;
+      }
+      .root {
+        width: 100%; height: 100%;
+        margin: 0; padding: 0;
+      }
+      .top {
+        width: 100%; height: 10%;
+        margin: 0; padding-top: 1.5rem;
+        position: absolute;
+        left: 0; top: 0;
+        background: #333;
+        color: white;
+        text-align: center;
+      }
+      .top ruby { letter-spacing: 0.1rem; }
+      .top rt { letter-spacing: 0; text-align: center; }
+      @supports (-moz-appearance:none) {
+        .top { padding-top: 0.8rem; }
+        .top rt { letter-spacing: -0.1rem; }
+      }
+      .title {
+        width: 100%; height: 4%;
+        position: absolute;
+        left: 0; top: 10%;
+        padding: 0.5rem;
+        font-family: smaller;
+        font-variant: small-caps;
+        text-align: center;
+        background: #eee;
+      }
+      .left {
+        width: 50%; height: 86%;
+        margin: 0; padding: 0 1.2rem;
+        position: absolute;
+        left: 0; bottom: 0;
+        background: #eee;
+      }
+      .right {
+        width: 50%; height: 86%;
+        margin: 0; padding: 0 1.2rem;
+        position: absolute;
+        right: 0; bottom: 0;
+        background: #eee
+      }
+      .right.ko-kore, .right.ko-kore * {
+        line-height: 1.3;
+      }
+      .right.ko-kore ruby rt {
+        margin-bottom: -2rem;
+        text-align: center;
+      }
+      @supports (-moz-appearance:none) {
+        .right.ko-kore, .right.ko-kore * {
+          line-height: 1.6;
+        }
+        .right.ko-kore ruby rt {
+            margin-bottom: -0.25rem;
+        }
+      }
+      .arrow {
+        width: 1em; height: 2em;
+        border-top: 1em solid transparent;
+        border-bottom: 1em solid transparent;
+        border-left: 1em solid #333;
+        position: absolute;
+        left: 49.3%; top: 50%;
+      }
+      @keyframes ko-kr {
+        from { opacity: 1; }
+        31%  { opacity: 1; }
+        35%  { opacity: 0; }
+        98%  { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      @keyframes ko-kp {
+        from { opacity: 0; }
+        31%  { opacity: 0; }
+        35%  { opacity: 1; }
+        64%  { opacity: 1; }
+        68%  { opacity: 0; }
+        to   { opacity: 0; }
+      }
+      @keyframes ko-kore {
+        from { opacity: 0; }
+        64%  { opacity: 0; }
+        68%  { opacity: 1; }
+        98%  { opacity: 1; }
+        to   { opacity: 0; }
+      }
+      .ko-kr {
+        animation-name: ko-kr;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      .ko-kp {
+        animation-name: ko-kp;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      .ko-kore {
+        animation-name: ko-kore;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+      }
+      </style>
+      <div class="top">
+        <ruby>선비<rt>Seonbi</rt></ruby> trasforms:
+      </div>
+      <div class="left">
+        <p id="input">悠久한 歷史와 傳統에 빛나는 우리 大韓國民은 3·1運動으로
+        建立된 大韓民國臨時政府의 法統과 不義에 抗拒한 4·19民主理念을 계승하고,
+        祖國의 民主改革과 平和的 統一의 使命에 입각하여 正義·人道와 同胞愛로써
+        民族의 團結을 공고히 하고, 모든 社會的 弊習과 不義를 타파하며,
+        自律과 調和를 바탕으로 自由民主的 基本秩序를 더욱 확고히 하여
+        政治·經濟·社會·文化의 모든 領域에 있어서 各人의 機會를 균등히 하고,
+        能力을 最高度로 발휘하게 하며, 自由와 權利에 따르는 責任과 義務를
+        완수하게 하여, 안으로는 國民生活의 균등한 향상을 기하고 밖으로는
+        항구적인 世界平和와 人類共榮에 이바지함으로써 우리들과 우리들의 子孫의
+        安全과 自由와 幸福을 영원히 확보할 것을 다짐하면서 1948年 7月 12日에
+        制定되고 8次에 걸쳐 改正된 憲法을 이제 國會의 議決을 거쳐 國民投票에
+        의하여 改正한다.</p>
+      </div>
+      <div class="title ko-kr">South Korean orthography</div>
+      <div class="right ko-kr">
+        <p id="input" xmlns="http://www.w3.org/1999/xhtml">유구한 역사와 전통에 빛나는 우리 대한국민은 3·1운동으로
+        건립된 대한민국 임시 정부의 법통과 불의에 항거한 4·19민주이념을 계승하고,
+        조국의 민주개혁과 평화적 통일의 사명에 입각하여 정의·인도와 동포애로써
+        민족의 단결을 공고히 하고, 모든 사회적 폐습과 불의를 타파하며,
+        자율과 조화를 바탕으로 자유민주적 기본질서를 더욱 확고히 하여
+        정치·경제·사회·문화의 모든 영역에 있어서 각인의 기회를 균등히 하고,
+        능력을 최고도로 발휘하게 하며, 자유와 권리에 따르는 책임과 의무를
+        완수하게 하여, 안으로는 국민생활의 균등한 향상을 기하고 밖으로는
+        항구적인 세계평화와 인류공영에 이바지함으로써 우리들과 우리들의 자손의
+        안전과 자유와 행복을 영원히 확보할 것을 다짐하면서 1948년 7월 12일에
+        제정되고 8차에 걸쳐 개정된 헌법을 이제 국회의 의결을 거쳐 국민 투표에
+        의하여 개정한다. </p>
+      </div>
+      <div class="title ko-kp">North Korean orthography</div>
+      <div class="right ko-kp">
+        <p id="input" xmlns="http://www.w3.org/1999/xhtml">유구한 력사와 전통에 빛나는 우리 대한국민은 3·1운동으로
+        건립된 대한민국림시정부의 법통과 불의에 항거한 4·19민주리념을 계승하고,
+        조국의 민주개혁과 평화적 통일의 사명에 입각하여 정의·인도와 동포애로써
+        민족의 단결을 공고히 하고, 모든 사회적 폐습과 불의를 타파하며,
+        자률과 조화를 바탕으로 자유민주적 기본질서를 더욱 확고히 하여
+        정치·경제·사회·문화의 모든 령역에 있어서 각인의 기회를 균등히 하고,
+        능력을 최고도로 발휘하게 하며, 자유와 권리에 따르는 책임과 의무를
+        완수하게 하여, 안으로는 국민생활의 균등한 향상을 기하고 밖으로는
+        항구적인 세계평화와 인류공영에 이바지함으로써 우리들과 우리들의 자손의
+        안전과 자유와 행복을 영원히 확보할 것을 다짐하면서 1948년 7월 12일에
+        제정되고 8차에 걸쳐 개정된 헌법을 이제 국회의 의결을 거쳐 국민투표에
+        의하여 개정한다. </p>
+      </div>
+      <div class="title ko-kore">Mixed script with
+        <code>&lt;ruby&gt;</code></div>
+      <div class="right ko-kore">
+        <p id="input" xmlns="http://www.w3.org/1999/xhtml"><ruby>悠久<rp>(</rp><rt>유구</rt><rp>)</rp></ruby>한 <ruby>歷史<rp>(</rp><rt>역사</rt><rp>)</rp></ruby>와 <ruby>傳統<rp>(</rp><rt>전통</rt><rp>)</rp></ruby>에 빛나는 우리 <ruby>大韓國民<rp>(</rp><rt>대한국민</rt><rp>)</rp></ruby>은 3·1<ruby>運動<rp>(</rp><rt>운동</rt><rp>)</rp></ruby>으로
+        <ruby>建立<rp>(</rp><rt>건립</rt><rp>)</rp></ruby>된 <ruby>大韓民國臨時政府<rp>(</rp><rt>대한민국 임시 정부</rt><rp>)</rp></ruby>의 <ruby>法統<rp>(</rp><rt>법통</rt><rp>)</rp></ruby>과 <ruby>不義<rp>(</rp><rt>불의</rt><rp>)</rp></ruby>에 <ruby>抗拒<rp>(</rp><rt>항거</rt><rp>)</rp></ruby>한 4·19<ruby>民主理念<rp>(</rp><rt>민주이념</rt><rp>)</rp></ruby>을 계승하고,
+        <ruby>祖國<rp>(</rp><rt>조국</rt><rp>)</rp></ruby>의 <ruby>民主改革<rp>(</rp><rt>민주개혁</rt><rp>)</rp></ruby>과 <ruby>平和的<rp>(</rp><rt>평화적</rt><rp>)</rp></ruby> <ruby>統一<rp>(</rp><rt>통일</rt><rp>)</rp></ruby>의 <ruby>使命<rp>(</rp><rt>사명</rt><rp>)</rp></ruby>에 입각하여 <ruby>正義<rp>(</rp><rt>정의</rt><rp>)</rp></ruby>·<ruby>人道<rp>(</rp><rt>인도</rt><rp>)</rp></ruby>와 <ruby>同胞愛<rp>(</rp><rt>동포애</rt><rp>)</rp></ruby>로써
+        <ruby>民族<rp>(</rp><rt>민족</rt><rp>)</rp></ruby>의 <ruby>團結<rp>(</rp><rt>단결</rt><rp>)</rp></ruby>을 공고히 하고, 모든 <ruby>社會的<rp>(</rp><rt>사회적</rt><rp>)</rp></ruby> <ruby>弊習<rp>(</rp><rt>폐습</rt><rp>)</rp></ruby>과 <ruby>不義<rp>(</rp><rt>불의</rt><rp>)</rp></ruby>를 타파하며,
+        <ruby>自律<rp>(</rp><rt>자율</rt><rp>)</rp></ruby>과 <ruby>調和<rp>(</rp><rt>조화</rt><rp>)</rp></ruby>를 바탕으로 <ruby>自由民主的<rp>(</rp><rt>자유민주적</rt><rp>)</rp></ruby> <ruby>基本秩序<rp>(</rp><rt>기본질서</rt><rp>)</rp></ruby>를 더욱 확고히 하여
+        <ruby>政治<rp>(</rp><rt>정치</rt><rp>)</rp></ruby>·<ruby>經濟<rp>(</rp><rt>경제</rt><rp>)</rp></ruby>·<ruby>社會<rp>(</rp><rt>사회</rt><rp>)</rp></ruby>·<ruby>文化<rp>(</rp><rt>문화</rt><rp>)</rp></ruby>의 모든 <ruby>領域<rp>(</rp><rt>영역</rt><rp>)</rp></ruby>에 있어서 <ruby>各人<rp>(</rp><rt>각인</rt><rp>)</rp></ruby>의 <ruby>機會<rp>(</rp><rt>기회</rt><rp>)</rp></ruby>를 균등히 하고,
+        <ruby>能力<rp>(</rp><rt>능력</rt><rp>)</rp></ruby>을 <ruby>最高度<rp>(</rp><rt>최고도</rt><rp>)</rp></ruby>로 발휘하게 하며, <ruby>自由<rp>(</rp><rt>자유</rt><rp>)</rp></ruby>와 <ruby>權利<rp>(</rp><rt>권리</rt><rp>)</rp></ruby>에 따르는 <ruby>責任<rp>(</rp><rt>책임</rt><rp>)</rp></ruby>과 <ruby>義務<rp>(</rp><rt>의무</rt><rp>)</rp></ruby>를
+        완수하게 하여, 안으로는 <ruby>國民生活<rp>(</rp><rt>국민생활</rt><rp>)</rp></ruby>의 균등한 향상을 기하고 밖으로는
+        항구적인 <ruby>世界平和<rp>(</rp><rt>세계평화</rt><rp>)</rp></ruby>와 <ruby>人類共榮<rp>(</rp><rt>인류공영</rt><rp>)</rp></ruby>에 이바지함으로써 우리들과 우리들의 <ruby>子孫<rp>(</rp><rt>자손</rt><rp>)</rp></ruby>의
+        <ruby>安全<rp>(</rp><rt>안전</rt><rp>)</rp></ruby>과 <ruby>自由<rp>(</rp><rt>자유</rt><rp>)</rp></ruby>와 <ruby>幸福<rp>(</rp><rt>행복</rt><rp>)</rp></ruby>을 영원히 확보할 것을 다짐하면서 1948<ruby>年<rp>(</rp><rt>년</rt><rp>)</rp></ruby> 7<ruby>月<rp>(</rp><rt>월</rt><rp>)</rp></ruby> 12<ruby>日<rp>(</rp><rt>일</rt><rp>)</rp></ruby>에
+        <ruby>制定<rp>(</rp><rt>제정</rt><rp>)</rp></ruby>되고 8<ruby>次<rp>(</rp><rt>차</rt><rp>)</rp></ruby>에 걸쳐 <ruby>改正<rp>(</rp><rt>개정</rt><rp>)</rp></ruby>된 <ruby>憲法<rp>(</rp><rt>헌법</rt><rp>)</rp></ruby>을 이제 <ruby>國會<rp>(</rp><rt>국회</rt><rp>)</rp></ruby>의 <ruby>議決<rp>(</rp><rt>의결</rt><rp>)</rp></ruby>을 거쳐 <ruby>國民投票<rp>(</rp><rt>국민 투표</rt><rp>)</rp></ruby>에
+        의하여 <ruby>改正<rp>(</rp><rt>개정</rt><rp>)</rp></ruby>한다.</p>
+      </div>
+      <div class="arrow"/>
+    </div>
+  </foreignObject>
+</svg>
