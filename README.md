@@ -156,6 +156,13 @@ See also the [API docs] or [Hackage].
 [API docs]: https://dahlia.github.io/seonbi/docs/
 
 
+Deno API
+--------
+
+There is a simple client library for Deno as well.  See also
+the [scripts/deno/](scripts/deno/) directory.
+
+
 License
 -------
 

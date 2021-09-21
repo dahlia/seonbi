@@ -15,23 +15,25 @@ jobs:
         os: [ubuntu-18.04, macos-10.15, windows-2019]
         resolver: [lts-12.26, lts-13.30, lts-14.27]
     steps:
-    - uses: actions/checkout@v1
-      if: github.event_name != 'pull_request'
-      with:
-        fetch-depth: 1
-    - uses: actions/checkout@v1
-      if: github.event_name == 'pull_request'
-      with:
-        ref: ${{ github.pull_request.head.sha }}
-        fetch-depth: 1
-    - name: Cache Stack files
+    - uses: actions/checkout@v2
+    - name: Cache Stack files (non-Windows)
+      if: "!startsWith(matrix.os, 'windows-')"
       uses: actions/cache@v2
       with:
         path: |
           ~/.cabal/packages
           ~/.cabal/store
           ~/.stack
-        key: ${{ matrix.os }}-stack-${{ matrix.resolver }}
+        key: stack-${{ matrix.os }}-${{ matrix.resolver }}
+    - name: Cache Stack files (Windows)
+      if: "startsWith(matrix.os, 'windows-')"
+      uses: actions/cache@v2
+      with:
+        path: |
+          %APPDATA%\cabal\packages
+          %APPDATA%\cabal\store
+          %APPDATA%\stack
+        key: stack-${{ matrix.os }}-${{ matrix.resolver }}
     - name: Set up resolver
       shell: bash
       run: |
@@ -102,7 +104,7 @@ jobs:
       shell: bash
       run: |
         curl -L -o /tmp/pandoc.deb \
-          https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.1-1-amd64.deb
+          https://github.com/jgm/pandoc/releases/download/2.14.2/pandoc-2.14.2-1-amd64.deb
         sudo dpkg -i /tmp/pandoc.deb
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
         sudo add-apt-repository ppa:rmescandon/yq
@@ -140,19 +142,77 @@ jobs:
         name: binaries-${{ matrix.os }}-${{ matrix.resolver }}
         path: .bin
 
+  deno:
+    name: Deno client library
+    needs:
+    - build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2019]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: denoland/setup-deno@v1
+      with:
+        deno-version: v1.x
+    - uses: actions/download-artifact@v1
+      with:
+        name: binaries-${{ matrix.os }}-lts-14.27
+        path: ${{ runner.temp }}/bin
+    - run: chmod +x ${{ runner.temp }}/bin/*
+      if: "!startsWith(matrix.os, 'windows-')"
+    - working-directory: scripts/deno/
+      env:
+        SEONBI_API: >-
+          ${{ runner.temp }}/bin/seonbi-api${{
+            startsWith(matrix.os, 'windows-') && '.exe' || ''
+          }}
+      run: '"$SEONBI_API" --help'
+      if: "!startsWith(matrix.os, 'windows-')"
+    - working-directory: scripts/deno/
+      env:
+        SEONBI_API: >-
+          ${{ runner.temp }}/bin/seonbi-api${{
+            startsWith(matrix.os, 'windows-') && '.exe' || ''
+          }}
+      shell: cmd
+      run: '%SEONBI_API% --help'
+      if: "startsWith(matrix.os, 'windows-')"
+    - name: Test (manual install)
+      working-directory: scripts/deno/
+      env:
+        SEONBI_API: >-
+          ${{ runner.temp }}/bin/seonbi-api${{
+            startsWith(matrix.os, 'windows-') && '.exe' || ''
+          }}
+        SEONBI_API_PORT: ${{ startsWith(matrix.os, 'macos-') && 8800 || 3800 }}
+      run: >-
+        deno test
+        --allow-env=SEONBI_API,SEONBI_API_PORT
+        --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }}
+        --allow-run
+        --unstable
+        --jobs=1
+    - name: Test (auto install)
+      working-directory: scripts/deno/
+      env:
+        SEONBI_API_PORT: ${{ startsWith(matrix.os, 'macos-') && 8800 || 3800 }}
+      run: >-
+        deno test
+        --allow-env=SEONBI_API,SEONBI_API_PORT,TMPDIR,TEMP
+        --allow-read
+        --allow-write
+        --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }},github.com,github-releases.githubusercontent.com
+        --allow-run
+        --unstable
+        --jobs=1
+
   image:
     name: Docker image
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
-      if: github.event_name != 'pull_request'
-      with:
-        fetch-depth: 1
-    - uses: actions/checkout@v1
-      if: github.event_name == 'pull_request'
-      with:
-        ref: ${{ github.pull_request.head.sha }}
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - run: |
         image_name="dahlia/seonbi"
         gh_image_name="docker.pkg.github.com/$GITHUB_REPOSITORY/bin"
@@ -271,9 +331,7 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - uses: actions/download-artifact@v1
       with:
         name: sdist-ubuntu-18.04-lts-14.27
@@ -347,9 +405,7 @@ jobs:
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - uses: actions/download-artifact@v1
       with:
         name: dists
@@ -391,6 +447,18 @@ jobs:
 
         # Showcase SVG
         cp scripts/showcase-svg/build/showcase.svg /tmp/html/
+
+        # Deno client library
+        mkdir /tmp/html/deno
+        rm -rf /tmp/html/deno/latest
+        cp -r scripts/deno /tmp/html/deno/latest
+        if [[ "$GITHUB_REF" = refs/tags/* ]]; then
+          rmf -rf /tmp/html/deno/"${GITHUB_REF:10}"
+          cp -r scripts/deno /tmp/html/deno/"${GITHUB_REF:10}"
+        fi
+        pushd /tmp/html
+        git add deno
+        popd
 
         # Docs
         cp -r /tmp/docs /tmp/html/docs
