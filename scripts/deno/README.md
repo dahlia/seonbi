@@ -1,7 +1,10 @@
-Seonbi client library for Deno
-==============================
+[Seonbi] client library for Deno
+================================
 
 [![Latest version][Tag badge]][Deno module]
+
+*[Seonbi] is an HTML preprocessor that makes typographic/orthographic
+adjustments on Korean text.  See the [website][Seonbi] for details.*
 
 This directory contains a simple client library which manages and communicates
 with Seonbi HTTP API server.  The `transform()` function and `Seonbi` class
@@ -51,5 +54,6 @@ console.log(outputs);
 */
 ~~~~
 
+[Seonbi]: https://github.com/dahlia/seonbi
 [Tag badge]: https://img.shields.io/github/v/tag/dahlia/seonbi
 [Deno module]: https://deno.land/x/seonbi
