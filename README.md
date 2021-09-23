@@ -48,7 +48,7 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 [hackage]: https://hackage.haskell.org/package/seonbi
 [hackage-badge]: https://img.shields.io/hackage/v/seonbi
 [dockerhub]: https://hub.docker.com/r/dahlia/seonbi
-[dockerhub-badge]: https://img.shields.io/microbadger/image-size/dahlia/seonbi
+[dockerhub-badge]: https://img.shields.io/docker/v/dahlia/seonbi?label=docker%20image&sort=semver
 [ci]: https://github.com/dahlia/seonbi/actions
 [ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
 [demo web app]: https://dahlia.github.io/seonbi/
