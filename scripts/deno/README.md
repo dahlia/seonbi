@@ -1,6 +1,8 @@
 Seonbi client library for Deno
 ==============================
 
+[![Latest version][Tag badge]][Deno module]
+
 This directory contains a simple client library which manages and communicates
 with Seonbi HTTP API server.  The `transform()` function and `Seonbi` class
 automatically downloads the Seonbi executable binary and runs the server under
@@ -9,7 +11,7 @@ the hood.
 Here's an example code for one-shot transformation:
 
 ~~~~ typescript
-import { transform } from "https://dahlia.github.io/seonbi/deno/mod.ts";
+import { transform } from "https://deno.land/x/seonbi/mod.ts";
 
 const input = "디노를 通해 쓰는 선비";
 const output = transform(input);
@@ -22,7 +24,7 @@ are not spawned needlessly more than once:
 
 
 ~~~~ typescript
-import { Seonbi } from "https://dahlia.github.io/seonbi/deno/mod.ts";
+import { Seonbi } from "https://deno.land/x/seonbi/mod.ts";
 
 const inputs = [
   "序詩",
@@ -48,3 +50,6 @@ console.log(outputs);
 ]
 */
 ~~~~
+
+[Tag badge]: https://img.shields.io/github/v/tag/dahlia/seonbi
+[Deno module]: https://deno.land/x/seonbi
