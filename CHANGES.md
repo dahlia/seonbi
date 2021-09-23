@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.2.1
 -------------
 
-To be released.
+Released on September 23, 2021.
 
  -  Updated the *Standard Korean Language Dictionary* data
     (*data/ko-kr-stdict.tsv*) to the revision 2021-09.
@@ -13,7 +13,7 @@ To be released.
 Version 0.2.0
 -------------
 
-Released May 26, 2021.
+Released on May 26, 2021.
 
  -  Added stops (periods/commas/interpuncts) normalizer.
 
