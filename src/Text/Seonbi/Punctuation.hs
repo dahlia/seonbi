@@ -315,7 +315,7 @@ normalizeStops stops input = (`fmap` normalizeText input) $ \ case
             , Data.Text.singleton <$> anyChar
             ]
         endOfInput
-        return $ Data.Text.concat chunks
+        return $ Data.Text.dropWhileEnd (' ' ==) $ Data.Text.concat chunks
     stops' :: Parser Text
     stops' = choice
         [ period' >> return (toEntity $ period stops)

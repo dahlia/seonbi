@@ -498,7 +498,7 @@ spec = do
                 normalizeStops horizontalStops input `shouldBe`
                     [ HtmlStartTag [] P ""
                     , HtmlText [P]
-                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. 어제, 오늘. "
+                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. 어제, 오늘."
                     , HtmlEndTag [] P
                     ]
                 normalizeStops verticalStops input `shouldBe`
@@ -509,6 +509,6 @@ spec = do
                     ]
                 normalizeStops horizontalStopsWithSlashes input `shouldBe`
                     [ HtmlStartTag [] P ""
-                    , HtmlText [P] "봄/여름/가을/겨울. 어제, 오늘. "
+                    , HtmlText [P] "봄/여름/가을/겨울. 어제, 오늘."
                     , HtmlEndTag [] P
                     ]
