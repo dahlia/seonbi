@@ -43,14 +43,22 @@ export interface Options {
   /** Whether to format the result in XHTML. */
   xhtml: boolean;
   /** Quoting options. */
-  quote: null | "CurvedQuotes" | "Guillemets" | "CurvedSingleQuotesWithQ";
+  quote:
+    | "CurvedQuotes"
+    | "VerticalCornerBrackets"
+    | "HorizontalCornerBrackets"
+    | "Guillemets"
+    | "CurvedSingleQuotesWithQ"
+    | "VerticalCornerBracketsWithQ"
+    | "HorizontalCornerBracketsWithQ"
+    | null;
   /** Citing options. */
   cite:
-    | null
     | "AngleQuotes"
     | "AngleQuotesWithCite"
     | "CornerBrackets"
-    | "CornerBracketsWithCite";
+    | "CornerBracketsWithCite"
+    | null;
   /** How to transform arrows. */
   arrow: null | {
     bidirArrow: boolean;
@@ -61,7 +69,11 @@ export interface Options {
   /** How to transform em dashes. */
   emDash: boolean;
   /** How to transform full and half stops. */
-  stop: "Horizontal" | "HorizontalWithSlashes" | "Vertical" | null;
+  stop:
+    | "Horizontal"
+    | "HorizontalWithSlashes"
+    | "Vertical"
+    | null;
   /** How to transform Sino-Korean words. */
   hanja: null | {
     rendering:
