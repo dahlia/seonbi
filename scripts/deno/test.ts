@@ -37,7 +37,10 @@ const customDict: Options = {
   },
 };
 
-const config: Configuration = { ...DEFAULT_CONFIGURATION };
+const config: Configuration = {
+  ...DEFAULT_CONFIGURATION,
+  process: { distType: "nightly" },
+};
 
 try {
   const binPath = Deno.env.get("SEONBI_API");

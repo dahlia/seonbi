@@ -203,7 +203,7 @@ jobs:
         --allow-env=SEONBI_API,SEONBI_API_PORT,TMPDIR,TEMP
         --allow-read
         --allow-write
-        --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }},github.com,github-releases.githubusercontent.com
+        --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }},github.com,github-releases.githubusercontent.com,dahlia.github.io
         --allow-run
         --unstable
         --jobs=1

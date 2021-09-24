@@ -102,14 +102,18 @@ export interface Configuration {
    * - `"started"`: Assumes the API server is already running.
    * - `{ binPath: string }`: Runs the executable binary of the API server
    *   placed in the `binPath`.
-   * - `{ downloadPath: string }`: Downloads a Seonbi binary just in time and
-   *    place it in the `downloadPath`.
+   * - `{ distType: DistType }`: Downloads a Seonbi binary of the specified
+   *   `DistType`, which is `"stable"` or `"nightly"`, just in time.
+   * - `{ downloadPath: string, distType?: DistType }`: Downloads a Seonbi
+   *    binary of the specified `DistType`, which is `"stable"` (default) or
+   *    `"nightly"` just in time, and place it in the `downloadPath`.
    */
   process:
     | "download"
     | "started"
     | { binPath: string }
-    | { downloadPath: string };
+    | { distType: DistType }
+    | { downloadPath: string; distType?: DistType };
 }
 
 /** The default configuration. */
@@ -118,7 +122,7 @@ export const DEFAULT_CONFIGURATION: Configuration = {
   process: "download",
 };
 
-const DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
+const STABLE_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
   "linux":
     "https://github.com/dahlia/seonbi/releases/download/0.2.2/seonbi-0.2.2.linux-x86_64.tar.bz2",
   "darwin":
@@ -126,6 +130,22 @@ const DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
   "windows":
     "https://github.com/dahlia/seonbi/releases/download/0.2.2/seonbi-0.2.2.win64.zip",
 } as const;
+
+const NIGHTLY_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
+  "linux":
+    "https://dahlia.github.io/seonbi/dists/latest/seonbi.linux-x86_64.tar.bz2",
+  "darwin":
+    "https://dahlia.github.io/seonbi/dists/latest/seonbi.macos-x86_64.tar.bz2",
+  "windows": "https://dahlia.github.io/seonbi/dists/latest/seonbi.win64.zip",
+} as const;
+
+/** The type of distribution to download. */
+type DistType = "stable" | "nightly";
+
+const DOWNLOAD_URLS: Record<DistType, Record<typeof Deno.build.os, string>> = {
+  "stable": STABLE_DOWNLOAD_URLS,
+  "nightly": NIGHTLY_DOWNLOAD_URLS,
+};
 
 /**
  * The object to run and manage a Seonbi API server and communicate with it.
@@ -137,7 +157,8 @@ export class Seonbi implements Configuration {
     | "download"
     | "started"
     | { binPath: string }
-    | { downloadPath: string };
+    | { distType: DistType }
+    | { downloadPath: string; distType?: DistType };
   #proc?: Deno.Process;
 
   constructor(configuration: Configuration = DEFAULT_CONFIGURATION) {
@@ -205,7 +226,8 @@ export class Seonbi implements Configuration {
     let binPath: string;
     if (
       this.process === "download" ||
-      typeof this.process == "object" && "downloadPath" in this.process
+      typeof this.process == "object" &&
+        ("distType" in this.process || "downloadPath" in this.process)
     ) {
       let exists = false;
       let cachedPath;
@@ -224,7 +246,12 @@ export class Seonbi implements Configuration {
       }
       if (cachedPath != null && exists) binPath = cachedPath;
       else {
-        binPath = await this.#install();
+        const distType: DistType =
+          typeof this.process == "object" && "distType" in this.process &&
+            this.process.distType != null
+            ? this.process.distType
+            : "stable";
+        binPath = await this.#install(distType);
         if (typeof this.process == "object" && "downloadPath" in this.process) {
           await Deno.copyFile(binPath, this.process.downloadPath);
           binPath = this.process.downloadPath;
@@ -268,8 +295,8 @@ export class Seonbi implements Configuration {
     }
   }
 
-  async #downloadDist(): Promise<string> {
-    const downloadUrl = DOWNLOAD_URLS[Deno.build.os];
+  async #downloadDist(distType: DistType): Promise<string> {
+    const downloadUrl = DOWNLOAD_URLS[distType][Deno.build.os];
     const url = new URL(downloadUrl);
     const suffix = url.pathname.substr(url.pathname.lastIndexOf("/") + 1);
     const tmpDirEnv = Deno.build.os === "windows" ? "TEMP" : "TMPDIR";
@@ -347,8 +374,8 @@ export class Seonbi implements Configuration {
     }
   }
 
-  async #install(): Promise<string> {
-    const zipPath = await this.#downloadDist();
+  async #install(distType: DistType): Promise<string> {
+    const zipPath = await this.#downloadDist(distType);
     try {
       let permDesc: Deno.PermissionDescriptor = { name: "write" };
       let { state: perm } = await Deno.permissions.query(permDesc);
