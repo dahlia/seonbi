@@ -36,6 +36,7 @@ module Text.Seonbi.Punctuation
 
 import Prelude hiding (takeWhile)
 
+import Control.Applicative ((<|>))
 import Control.Monad
 import Data.Char (isSpace)
 import Data.Either
@@ -340,7 +341,7 @@ normalizeStops stops input = (`fmap` normalizeText input) $ \ case
     comma' :: Parser ()
     comma' = void $ choice
         [ char '、' >> return ""
-        , string ", "
+        , string "," >> (takeWhile isSpace <|> (endOfInput >> return ""))
         , string "&comma; "
         , string "&#44; "
         , string "&#12289;"

@@ -4,6 +4,8 @@ module Text.Seonbi.FacadeSpec (spec) where
 
 import Control.Monad
 
+import Data.Algorithm.Diff
+import Data.Text.Lazy
 import Data.Text.Lazy.IO
 import System.Directory
 import System.FilePath
@@ -23,6 +25,27 @@ outputExtensions =
     , (".ko-KP.html", ko_KP)
     ]
 
+shouldHaveSameText :: (HasCallStack) => Text -> Text -> Expectation
+actual `shouldHaveSameText` expected =
+    unless (actual == expected) (expectationFailure msg)
+  where
+    expectedLines :: [Text]
+    expectedLines = Data.Text.Lazy.lines expected
+    actualLines :: [Text]
+    actualLines = Data.Text.Lazy.lines actual
+    diffLines :: [Diff Text]
+    diffLines = getDiff expectedLines actualLines
+    diff :: Text
+    diff = Data.Text.Lazy.unlines
+        [ case d of
+            First line -> "- " <> line
+            Second line -> "+ " <> line
+            Both line _ -> "  " <> line
+        | d <- diffLines
+        ]
+    msg :: String
+    msg = "Two values are not equal:\n\n--- expected\n+++ actual\n\n" ++
+        unpack diff
 
 spec :: Spec
 spec = do
@@ -39,10 +62,13 @@ spec = do
             inputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> input)
             outputData <- Data.Text.Lazy.IO.readFile (dataDirPath </> output)
             return (input, output, inputData, outputData, cfg)
-    forM_ testData $ \ (iname, oname, input, output, cfg) ->
-        specify ("transformHtmlLazyText: " ++ iname ++ " -> " ++ oname) $ do
-            transformHtmlLazyText noOp input `shouldBe` Just input
-            transformHtmlLazyText cfg input `shouldBe` Just output
+    describe "transformHtmlLazyText" $
+        forM_ testData $ \ (iname, oname, input, output, cfg) ->
+            specify (iname ++ " -> " ++ oname) $ do
+                let Just noOpResult = transformHtmlLazyText noOp input
+                noOpResult `shouldHaveSameText` input
+                let Just cfgResult = transformHtmlLazyText cfg input
+                cfgResult `shouldHaveSameText` output
   where
     noOp :: Monad m => Configuration m a
     noOp = Configuration

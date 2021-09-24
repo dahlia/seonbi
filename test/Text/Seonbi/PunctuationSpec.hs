@@ -512,3 +512,24 @@ spec = do
                     , HtmlText [P] "봄/여름/가을/겨울. 어제, 오늘."
                     , HtmlEndTag [] P
                     ]
+        it "normalizes stops followed by boundaries as well" $ do
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlStartTag [P] Span ""
+                    , HtmlText [P, Span] "쉼표,"
+                    , HtmlEndTag [P] Span
+                    , HtmlStartTag [P] Span ""
+                    , HtmlText [P, Span] "마침표."
+                    , HtmlEndTag [P] Span
+                    , HtmlEndTag [] P
+                    ] :: [HtmlEntity]
+            normalizeStops verticalStops input `shouldBe`
+                    [ HtmlStartTag [] P ""
+                    , HtmlStartTag [P] Span ""
+                    , HtmlText [P, Span] "쉼표&#x3001;"
+                    , HtmlEndTag [P] Span
+                    , HtmlStartTag [P] Span ""
+                    , HtmlText [P, Span] "마침표&#x3002;"
+                    , HtmlEndTag [P] Span
+                    , HtmlEndTag [] P
+                    ]

@@ -6,8 +6,10 @@ Version 0.2.2
 
 To be released.
 
- -  Fixed stops (periods/commas/interpuncts) normalizer's bug where unnecessary
-    trailing spaces following stops had been left even after normalized.
+ -  Fixed stops normalizer's bug where unnecessary trailing spaces following
+    stops had been left even after normalized.
+ -  Fixed stops normalizer's bug where commas followed by tag boundaries had
+    been not normalized.
 
 
 Version 0.2.1

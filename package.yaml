@@ -168,6 +168,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - Diff >= 0.3.4 && < 0.4
     - directory >= 1 && < 2
     - filepath >= 1 && < 2
     - hspec >= 2.4.8 && < 3
