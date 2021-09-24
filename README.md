@@ -128,7 +128,7 @@ The HTTP API server would respond like this:
 
     HTTP/1.1 200 OK
     Content-Type: application/json
-    Server: Seonbi/0.2.1
+    Server: Seonbi/0.2.2
 
     {
       "success": true,

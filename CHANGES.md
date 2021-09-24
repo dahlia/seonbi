@@ -1,6 +1,12 @@
 Seonbi changelog
 ================
 
+Version 0.2.2
+-------------
+
+To be released.
+
+
 Version 0.2.1
 -------------
 
