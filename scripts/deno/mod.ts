@@ -124,11 +124,11 @@ export const DEFAULT_CONFIGURATION: Configuration = {
 
 const STABLE_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
   "linux":
-    "https://github.com/dahlia/seonbi/releases/download/0.2.2/seonbi-0.2.2.linux-x86_64.tar.bz2",
+    "https://github.com/dahlia/seonbi/releases/download/0.2.3/seonbi-0.2.3.linux-x86_64.tar.bz2",
   "darwin":
-    "https://github.com/dahlia/seonbi/releases/download/0.2.2/seonbi-0.2.2.macos-x86_64.tar.bz2",
+    "https://github.com/dahlia/seonbi/releases/download/0.2.3/seonbi-0.2.3.macos-x86_64.tar.bz2",
   "windows":
-    "https://github.com/dahlia/seonbi/releases/download/0.2.2/seonbi-0.2.2.win64.zip",
+    "https://github.com/dahlia/seonbi/releases/download/0.2.3/seonbi-0.2.3.win64.zip",
 } as const;
 
 const NIGHTLY_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {

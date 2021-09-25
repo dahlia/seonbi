@@ -2,5 +2,7 @@
 *.prof
 *~
 .stack-work/
+dist-newstyle/
+seonbi.iml
 src/Text/Seonbi/kHangul.txt
 stack.yaml.lock
