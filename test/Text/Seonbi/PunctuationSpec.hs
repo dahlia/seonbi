@@ -464,7 +464,7 @@ spec = do
 
     describe "normalizeStops" $ do
         let periods =
-                [ ". ", "&period;", "&#46;", "&#x2e;"
+                [ ". ", "&period; ", "&#46; ", "&#x2e; "
                 , "。", "&#12290;", "&#x3002;"
                 ] :: [Text]
         let commas =
@@ -475,9 +475,10 @@ spec = do
                 [ "·", "&middot;", "&centerdot;", "&CenterDot;"
                 , "&#xB7;", "&#xb7;", "&#183;"
                 ] :: [Text]
+        let s = stripEnd
         let examples =
-                [ [qc|봄{i1}여름{i2}가을{i3}겨울{p1}어제{c}오늘{p2}|]
-                | p1 <- periods, p2 <- periods
+                [ [qc|봄{i1}여름{i2}가을{i3}겨울{p1}(括弧{s p3}) 어제{c}오늘{s p2}|]
+                | p1 <- periods, p2 <- periods, p3 <- periods
                 , c <- commas
                 , i1 <- interpuncts, i2 <- interpuncts, i3 <- interpuncts
                 ] :: [Text]
@@ -498,18 +499,19 @@ spec = do
                 normalizeStops horizontalStops input `shouldBe`
                     [ HtmlStartTag [] P ""
                     , HtmlText [P]
-                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. 어제, 오늘."
+                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. (括弧.) 어제, 오늘."
                     , HtmlEndTag [] P
                     ]
                 normalizeStops verticalStops input `shouldBe`
                     [ HtmlStartTag [] P ""
                     , HtmlText [P]
-                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울&#x3002;어제&#x3001;오늘&#x3002;"
+                        ("봄&#xb7;여름&#xb7;가을&#xb7;겨울&#x3002;(括弧&#x3002;) " <>
+                            "어제&#x3001;오늘&#x3002;")
                     , HtmlEndTag [] P
                     ]
                 normalizeStops horizontalStopsWithSlashes input `shouldBe`
                     [ HtmlStartTag [] P ""
-                    , HtmlText [P] "봄/여름/가을/겨울. 어제, 오늘."
+                    , HtmlText [P] "봄/여름/가을/겨울. (括弧.) 어제, 오늘."
                     , HtmlEndTag [] P
                     ]
         it "normalizes stops followed by boundaries as well" $ do

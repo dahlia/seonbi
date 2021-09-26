@@ -17,21 +17,21 @@ spec = do
         normalizeText
             [ HtmlText { tagStack = [], rawText = "foo " }
             , HtmlText { tagStack = [], rawText = "&amp; bar" }
-            , HtmlCdata { tagStack = [], text = " & baz" }
+            , HtmlCdata { tagStack = [], text = " & baz " }
             , HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
             , HtmlText { tagStack = [P], rawText = "qux " }
             , HtmlCdata { tagStack = [P], text = "& \"quux\"" }
             , HtmlEndTag { tagStack = [], tag = P }
-            , HtmlCdata { tagStack = [], text = "<end>" }
+            , HtmlCdata { tagStack = [], text = " <end>" }
             ] `shouldBe`
-            [ HtmlText { tagStack = [], rawText = "foo &amp; bar &amp; baz" }
+            [ HtmlText { tagStack = [], rawText = "foo &amp; bar &amp; baz " }
             , HtmlStartTag { tagStack = [], tag = P, rawAttributes = "" }
             , HtmlText
                 { tagStack = [P]
                 , rawText = "qux &amp; &quot;quux&quot;"
                 }
             , HtmlEndTag { tagStack = [], tag = P }
-            , HtmlText { tagStack = [], rawText = "&lt;end&gt;" }
+            , HtmlText { tagStack = [], rawText = " &lt;end&gt;" }
             ]
 
     describe "normalizeCdata" $ do
