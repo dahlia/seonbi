@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.2.3
 -------------
 
-To be released.
+Released on September 26, 2021.
 
   - Fixed stops normalizer's bug where trailing spaces following stops had been
     trimmed after normalized.
