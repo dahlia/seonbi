@@ -36,7 +36,6 @@ module Text.Seonbi.Punctuation
 
 import Prelude hiding (takeWhile)
 
-import Control.Applicative ((<|>))
 import Control.Monad
 import Data.Char (isSpace)
 import Data.Either
@@ -316,47 +315,106 @@ normalizeStops stops input = (`fmap` normalizeText input) $ \ case
             , Data.Text.singleton <$> anyChar
             ]
         endOfInput
-        return $ Data.Text.dropWhileEnd (' ' ==) $ Data.Text.concat chunks
+        return $ Data.Text.concat chunks
     stops' :: Parser Text
     stops' = choice
-        [ period' >> return (toEntity $ period stops)
-        , comma' >> return (toEntity $ comma stops)
-        , interpunct' >> return (toEntity $ interpunct stops)
+        [ do { ending <- period'
+             ; return (toEntity $ adjustEnding ending $ period stops)
+             }
+        , do { ending <- comma'
+             ; return (toEntity $ adjustEnding ending $ comma stops)
+             }
+        , do { ending <- interpunct'
+             ; return (toEntity $ adjustEnding ending $ interpunct stops)
+             }
         ]
+    adjustEnding :: Ending -> Text -> Text
+    adjustEnding ending text
+      | Data.Text.length text > 0 && isSpace (Data.Text.last text) =
+            stripEnd text <> case ending of { TrailingChars c -> c
+                                            ; TrailingSpaces s -> s
+                                            ; Ending -> Data.Text.empty
+                                            }
+      | otherwise = text <> case ending of { TrailingChars c -> c
+                                           ; _ -> Data.Text.empty
+                                           }
     toEntity :: Text -> Text
     toEntity = Data.Text.concatMap $ \ c ->
         if c < '\x80' -- ASCII compatible characters
         then Data.Text.singleton c
         else Data.Text.concat ["&#x", pack $ showHex (fromEnum c) "", ";"]
-    period' :: Parser ()
-    period' = void $ choice
-        [ char '.' >> takeWhile isSpace >> return ""
-        , char '。' >> return ""
-        , string "&period;"
-        , string "&#46;"
-        , string "&#12290;"
-        , asciiCI "&#x2e;"
-        , asciiCI "&#x3002;"
+    period' :: Parser Ending
+    period' = choice
+        [ char '.' >> boundary
+        , char '。' >> trailingSpaces
+        , string "&period;" >> boundary
+        , string "&#46;" >> boundary
+        , string "&#12290;" >> trailingSpaces
+        , asciiCI "&#x2e;" >> boundary
+        , asciiCI "&#x3002;" >> trailingSpaces
         ]
-    comma' :: Parser ()
-    comma' = void $ choice
-        [ char '、' >> return ""
-        , string "," >> (takeWhile isSpace <|> (endOfInput >> return ""))
-        , string "&comma; "
-        , string "&#44; "
-        , string "&#12289;"
-        , asciiCI "&#x2c; "
-        , asciiCI "&#x3001;"
+    comma' :: Parser Ending
+    comma' = choice
+        [ char '、' >> trailingSpaces
+        , string "," >> boundary
+        , string "&comma;" >> boundary
+        , string "&#44;" >> boundary
+        , string "&#12289;" >> trailingSpaces
+        , asciiCI "&#x2c;" >> boundary
+        , asciiCI "&#x3001;" >> trailingSpaces
         ]
-    interpunct' :: Parser ()
-    interpunct' = void $ choice
+    interpunct' :: Parser Ending
+    interpunct' = choice
         [ char '·' >> return ""
         , string "&middot;"
         , string "&centerdot;"
         , string "&CenterDot;"
         , string "&#183;"
         , asciiCI "&#xb7;"
+        ] >> return Ending
+    closingChars :: String
+    closingChars =
+        [ '"', '”', '\'', '’', ')', ']', '}', '」', '』', '〉', '》', '）', '〕'
+        , '］', '｝', '｠', '】', '〗', '〙', '〛', '›', '»'
         ]
+    closingEntities :: [Text]
+    closingEntities =
+        [ "&quot;", "&QUOT;"                               -- "
+        , "&apos;"                                         -- '
+        , "&rpar;"                                         -- )
+        , "&rsqb;", "&rbrack;"                             -- ]
+        , "&rcub;", "&rbrace;"                             -- }
+        , "&raquo;"                                        -- »
+        , "&rsquo;", "&rsquor;", "&CloseCurlyQuote;"       -- ’
+        , "&rdquo;", "&rdquor;", "&CloseCurlyDoubleQuote;" -- ”
+        , "&rsaquo;"                                       -- ›
+        ]
+    closing :: Parser Text
+    closing = choice $
+        [string [c] | c <- closingChars] ++
+        [string e | e <- closingEntities] ++
+        [asciiCI $ pack $ "&#x" ++ showHex (fromEnum c) "" ++ ";"
+        | c <- closingChars
+        ] ++
+        [string $ "&#" <> pack (show c) <> ";" | c <- closingChars]
+    ending' :: Parser Ending
+    ending' = choice
+        [ endOfInput >> return Ending
+        , TrailingChars <$> closing
+        ]
+    boundary :: Parser Ending
+    boundary = choice
+        [ ending'
+        , TrailingSpaces <$> takeWhile1 isSpace
+        ]
+    trailingSpaces :: Parser Ending
+    trailingSpaces = choice
+        [ boundary
+        , return $ TrailingSpaces " "
+        ]
+
+
+data Ending = TrailingChars Text | TrailingSpaces Text | Ending
 
 
 -- | Substitution options for 'transformArrow' function.  These options can

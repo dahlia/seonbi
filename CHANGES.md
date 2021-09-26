@@ -6,6 +6,12 @@ Version 0.2.3
 
 To be released.
 
+  - Fixed stops normalizer's bug where trailing spaces following stops had been
+    trimmed after normalized.
+  - Fixed stops normalizer's buf where unnecessary trailing spaces following
+    stops had been inserted after normalized.  In particular, unnecessary
+    spaces between stops and closing parentheses/brackets are no more inserted.
+
 
 Version 0.2.2
 -------------
