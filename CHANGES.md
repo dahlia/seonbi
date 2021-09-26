@@ -6,6 +6,8 @@ Version 0.3.0
 
 To be released.
 
+ -  Dropped GHC 8.4 support; now it requires GHC 8.6 at least.
+
 
 Version 0.2.3
 -------------
