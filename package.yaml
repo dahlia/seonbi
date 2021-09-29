@@ -67,11 +67,11 @@ library:
   source-dirs: src
   dependencies:
   - attoparsec >= 0.12 && < 1
+  - bytestring-trie >= 0.2.5 && < 0.3
   - cassava >= 0.5 && < 0.6
   - data-default >= 0.2 && < 1
   - filepath >= 1 && < 2
   - file-embed >= 0.0.10 && < 0.0.12
-  - text-trie >= 0.2.5 && < 0.3
   when:
   - condition: flag(static) || flag(embed-dictionary)
     then:

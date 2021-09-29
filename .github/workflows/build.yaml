@@ -16,6 +16,7 @@ jobs:
         resolver: [lts-13.30, lts-14.27]
     steps:
     - uses: actions/checkout@v2
+    - uses: dahlia/actions/setup-yq@main
     - name: Cache Stack files (non-Windows)
       if: "!startsWith(matrix.os, 'windows-')"
       uses: actions/cache@v2
@@ -34,18 +35,16 @@ jobs:
           %APPDATA%\cabal\store
           %APPDATA%\stack
         key: stack-${{ matrix.os }}-${{ matrix.resolver }}
+    - name: Adjust Stack configuration
+      run: "yq eval -i '.resolver = strenv(RESOLVER)' stack.yaml"
+      env:
+        RESOLVER: ${{ matrix.resolver }}
+    - name: Adjust Stack configuration (Windows)
+      if: "startsWith(matrix.os, 'windows-')"
+      run: "yq eval -i '.flags.seonbi.iconv = false' stack.yaml"
     - name: Set up resolver
       shell: bash
       run: |
-        sed \
-          -i \
-          -E 's/^resolver: .*$/resolver: "${{ matrix.resolver }}"/' \
-          stack.yaml
-        if [[ "${{ matrix.os }}" = windows-* ]]; then
-          curl -L -o /usr/bin/yq \
-            https://github.com/mikefarah/yq/releases/download/2.4.0/yq_windows_amd64.exe
-            yq delete -i stack.yaml flags.seonbi.iconv
-        fi
         cat stack.yaml
         # Try 3 times because this sometimes fails due to network error
         # on GitHub Actions.
@@ -70,11 +69,8 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" = windows-* && \
-              "${{ matrix.resolver }}" = lts-14.* ||
-              "${{ matrix.os }}" = macos-* && \
-              "${{ matrix.resolver }}" = lts-12.* ]]; then
+              "${{ matrix.resolver }}" = lts-14.* ]]; then
           # On GHC-8.6 & Windows alex (hence hlint) does not work.
-          # On GHC-8.4 & macOS doctest does not work.
           # See also:
           #   https://github.com/sol/doctest/issues/199
           #   https://ghc.haskell.org/trac/ghc/ticket/15105

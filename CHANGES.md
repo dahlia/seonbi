@@ -7,6 +7,24 @@ Version 0.3.0
 To be released.
 
  -  Dropped GHC 8.4 support; now it requires GHC 8.6 at least.
+ -  Removed several functions from `Text.Seonbi.Trie` module:
+     -  `toListBy`
+     -  `lookupBy`
+     -  `submap`
+     -  `match`
+     -  `matches`
+     -  `alterBy`
+     -  `adjust`
+     -  `delete`
+     -  `mapBy`
+     -  `filterMap`
+ -  `Text.Seonbi.Trie.Trie` type is not an instance of the following typeclasses
+    anymore:
+     -  `Generic a => Generic (Trie a)`
+     -  `Binary a => Binary (Trie a)`
+     -  `Generic1 Trie`
+     -  `type Rep (Trie a)`
+     -  `type Rep1 Trie`
 
 
 Version 0.2.3

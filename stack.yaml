@@ -2,8 +2,8 @@ resolver: lts-13.30
 packages:
 - .
 extra-deps:
+- bytestring-trie-0.2.5.0
 - html-charset-0.1.0
-- text-trie-0.2.5.0
 flags:
   seonbi:
     iconv: true
