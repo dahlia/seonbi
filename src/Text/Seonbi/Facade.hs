@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 #ifdef EMBED_DICTIONARY
 {-# LANGUAGE TemplateHaskell #-}
 #endif
@@ -31,6 +33,11 @@ module Text.Seonbi.Facade
     , StopOption (..)
     ) where
 
+#if MIN_VERSION_base(4,13,0)
+import Prelude hiding (MonadFail)
+#endif
+
+import Control.Monad.Fail (MonadFail)
 import Data.Char
 import Data.Maybe
 import Data.String (IsString)
@@ -229,12 +236,14 @@ instance Show HanjaReadingOption where
 
 -- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
 -- HTML text.
-transformHtmlText :: Monad m => Configuration m a -> Text -> m Text
+transformHtmlText :: forall (m :: * -> *) a. (Monad m, MonadFail m)
+                  => Configuration m a -> Text -> m Text
 transformHtmlText config =
     fmap LT.toStrict . transformHtmlLazyText config . LT.fromStrict
 
 -- | A lazy version of 'transformHtmlText' function.
-transformHtmlLazyText :: Monad m => Configuration m a -> LT.Text -> m LT.Text
+transformHtmlLazyText :: forall (m :: * -> *) a. (Monad m, MonadFail m)
+                      => Configuration m a -> LT.Text -> m LT.Text
 transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
     case scanHtml htmlText of
         Done "" input -> do

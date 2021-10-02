@@ -194,13 +194,14 @@ parser = CliOptions
         )
     <*> ( AppOptions
         <$> (
-                ( Just <$> strOption
-                    ( long "allow-origin"
-                    <> short 'o'
-                    <> metavar "ORIGIN"
-                    <> help "Allow cross-origin (i.e., CORS)"
+                optional
+                    ( strOption
+                        ( long "allow-origin"
+                        <> short 'o'
+                        <> metavar "ORIGIN"
+                        <> help "Allow cross-origin (i.e., CORS)"
+                        )
                     )
-                )
                 <|> pure Nothing
             )
         <*> option auto

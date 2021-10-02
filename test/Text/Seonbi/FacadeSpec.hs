@@ -25,7 +25,7 @@ outputExtensions =
     , (".ko-KP.html", ko_KP)
     ]
 
-shouldHaveSameText :: (HasCallStack) => Text -> Text -> Expectation
+shouldHaveSameText :: HasCallStack => Text -> Text -> Expectation
 actual `shouldHaveSameText` expected =
     unless (actual == expected) (expectationFailure msg)
   where

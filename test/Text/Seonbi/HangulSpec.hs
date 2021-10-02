@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Seonbi.HangulSpec (spec) where
 
