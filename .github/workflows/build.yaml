@@ -14,8 +14,6 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-10.15, windows-2019]
         resolver:
-        - lts-13.30
-        - lts-14.27
         - lts-16.31
         - lts-18.12
         - nightly-2021-10-02
@@ -78,20 +76,7 @@ jobs:
     - name: Build
       run: stack build
     - name: Test
-      shell: bash
-      run: |
-        if [[ "${{ matrix.os }}" = windows-* && \
-              "$(stack ghc -- --version \
-                | awk '{ gsub(/\.[0-9]+$/, "", $NF); print ($NF <= 8.9) }')" \
-              = "1" ]]; then
-          # On GHC-8.6 & Windows alex (hence hlint) does not work.
-          # See also:
-          #   https://github.com/sol/doctest/issues/199
-          #   https://ghc.haskell.org/trac/ghc/ticket/15105
-          stack test :spec
-        else
-          stack test
-        fi
+      run: stack test
     - name: Package source distribution
       if: startsWith(matrix.os, 'ubuntu-')
       run: |
@@ -110,7 +95,7 @@ jobs:
     - name: Build docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        startsWith(matrix.resolver, 'lts-14.')
+        startsWith(matrix.resolver, 'lts-18.')
       shell: bash
       run: |
         curl -L -o /tmp/pandoc.deb \
@@ -124,13 +109,13 @@ jobs:
     - name: Copy docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        startsWith(matrix.resolver, 'lts-14.')
+        startsWith(matrix.resolver, 'lts-18.')
       shell: bash
       run: cp -r "$(stack path --dist-dir)/doc/html/seonbi" .docs
     - name: Save docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        startsWith(matrix.resolver, 'lts-14.')
+        startsWith(matrix.resolver, 'lts-18.')
       uses: actions/upload-artifact@v2
       with:
         name: docs
@@ -168,7 +153,7 @@ jobs:
         deno-version: v1.x
     - uses: actions/download-artifact@v2
       with:
-        name: binaries-${{ matrix.os }}-lts-14.27
+        name: binaries-${{ matrix.os }}-lts-16.31
         path: ${{ runner.temp }}/bin
     - run: chmod +x ${{ runner.temp }}/bin/*
       if: "!startsWith(matrix.os, 'windows-')"
@@ -286,11 +271,11 @@ jobs:
     steps:
     - uses: actions/download-artifact@v2
       with:
-        name: binaries-macOS-10.15-lts-14.27
+        name: binaries-macos-10.15-lts-16.31
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v2
       with:
-        name: binaries-windows-2019-lts-14.27
+        name: binaries-windows-2019-lts-16.31
         path: /tmp/binaries-windows
     - uses: actions/download-artifact@v2
       with:
@@ -344,7 +329,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
       with:
-        name: sdist-ubuntu-20.04-lts-14.27
+        name: sdist-ubuntu-20.04-lts-16.31
         path: /tmp/sdist
     - uses: actions/download-artifact@v2
       with:
