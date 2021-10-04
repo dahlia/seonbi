@@ -39,6 +39,7 @@ import Prelude hiding (MonadFail)
 
 import Control.Monad.Fail (MonadFail)
 import Data.Char
+import Data.Kind (Type)
 import Data.Maybe
 import Data.String (IsString)
 import GHC.Exts (IsList (toList))
@@ -236,13 +237,13 @@ instance Show HanjaReadingOption where
 
 -- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
 -- HTML text.
-transformHtmlText :: forall (m :: * -> *) a. (Monad m, MonadFail m)
+transformHtmlText :: forall (m :: Type -> Type) a. (Monad m, MonadFail m)
                   => Configuration m a -> Text -> m Text
 transformHtmlText config =
     fmap LT.toStrict . transformHtmlLazyText config . LT.fromStrict
 
 -- | A lazy version of 'transformHtmlText' function.
-transformHtmlLazyText :: forall (m :: * -> *) a. (Monad m, MonadFail m)
+transformHtmlLazyText :: forall (m :: Type -> Type) a. (Monad m, MonadFail m)
                       => Configuration m a -> LT.Text -> m LT.Text
 transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
     case scanHtml htmlText of

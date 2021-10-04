@@ -13,7 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04, macos-10.15, windows-2019]
-        resolver: [lts-13.30, lts-14.27, lts-16.31]
+        resolver:
+        - lts-13.30
+        - lts-14.27
+        - lts-16.31
+        - lts-18.12
+        - nightly-2021-10-02
     steps:
     - uses: actions/checkout@v2
     - uses: dahlia/actions/setup-yq@main
@@ -36,12 +41,19 @@ jobs:
           %APPDATA%\stack
         key: stack-${{ matrix.os }}-${{ matrix.resolver }}
     - name: Adjust Stack configuration
-      run: "yq eval -i '.resolver = strenv(RESOLVER)' stack.yaml"
+      shell: bash
+      run: |
+        yq eval -i '
+          .resolver = strenv(RESOLVER)
+        | .allow-newer = (
+            .resolver | test("^lts-18.") or
+            .resolver | test("^nightly-")
+           )
+        | .flags.seonbi.iconv = (strenv(OS) | test("^windows-") | not)
+        ' stack.yaml
       env:
         RESOLVER: ${{ matrix.resolver }}
-    - name: Adjust Stack configuration (Windows)
-      if: "startsWith(matrix.os, 'windows-')"
-      run: "yq eval -i '.flags.seonbi.iconv = false' stack.yaml"
+        OS: ${{ matrix.os }}
     - name: Set up resolver
       shell: bash
       run: |

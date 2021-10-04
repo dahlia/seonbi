@@ -6,8 +6,8 @@ Version 0.3.0
 
 To be released.
 
- -  Dropped GHC 8.4 support; now it requires GHC 8.6 at least.
- -  Since this version, it supports GHC 8.8 at most.
+ -  Dropped GHC 8.4.* support; now it requires GHC 8.6 at least.
+ -  Since this version, it supports GHC 9.0.* at most.
  -  Removed several functions from `Text.Seonbi.Trie` module:
      -  `toListBy`
      -  `lookupBy`
