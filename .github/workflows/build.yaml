@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macos-10.15, windows-2019]
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
         resolver:
         - lts-13.30
         - lts-14.27
@@ -81,7 +81,9 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ matrix.os }}" = windows-* && \
-              "${{ matrix.resolver }}" = lts-14.* ]]; then
+              "$(stack ghc -- --version \
+                | awk '{ gsub(/\.[0-9]+$/, "", $NF); print ($NF <= 8.9) }')" \
+              = "1" ]]; then
           # On GHC-8.6 & Windows alex (hence hlint) does not work.
           # See also:
           #   https://github.com/sol/doctest/issues/199
@@ -101,7 +103,7 @@ jobs:
         ls -al /tmp/sdist
     - name: Save source distribution
       if: startsWith(matrix.os, 'ubuntu-')
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: sdist-${{ matrix.os }}-${{ matrix.resolver }}
         path: /tmp/sdist
@@ -129,7 +131,7 @@ jobs:
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
         startsWith(matrix.resolver, 'lts-14.')
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: docs
         path: .docs
@@ -140,12 +142,12 @@ jobs:
       run: cp -r "$(stack path --local-install-root)/bin" .bin
     - name: Compress executable binaries
       if: "startsWith(matrix.os, 'ubuntu-')"
-      uses: gacts/upx@master
+      uses: crazy-max/ghaction-upx@v1
       with:
-        dir: .bin
-        upx_args: "-9"
+        files: .bin/seonbi*
+        args: "-9"
     - name: Save executable binaries
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: binaries-${{ matrix.os }}-${{ matrix.resolver }}
         path: .bin
@@ -158,13 +160,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macos-10.15, windows-2019]
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
     steps:
     - uses: actions/checkout@v2
     - uses: denoland/setup-deno@v1
       with:
         deno-version: v1.x
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: binaries-${{ matrix.os }}-lts-14.27
         path: ${{ runner.temp }}/bin
@@ -218,7 +220,7 @@ jobs:
 
   image:
     name: Docker image
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - run: |
@@ -266,11 +268,11 @@ jobs:
         mkdir -p /tmp/image-metadata
         docker images "$image_name:$tag" | tail -n 1 | awk '{print $3}' \
           > /tmp/image-metadata/image_id.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: image
         path: /tmp/images
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: image-metadata
         path: /tmp/image-metadata
@@ -280,21 +282,21 @@ jobs:
     needs:
     - build
     - image
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: binaries-macOS-10.15-lts-14.27
         path: /tmp/binaries-macos
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: binaries-windows-2019-lts-14.27
         path: /tmp/binaries-windows
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: image
         path: /tmp/images
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: image-metadata
         path: /tmp/image-metadata
@@ -324,7 +326,7 @@ jobs:
         pushd /tmp/binaries-windows
         zip /tmp/dists/seonbi.win64.zip *
         popd
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: dists
         path: /tmp/dists
@@ -337,14 +339,14 @@ jobs:
     if: >-
       github.event_name != 'pull_request' &&
       startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
-        name: sdist-ubuntu-18.04-lts-14.27
+        name: sdist-ubuntu-20.04-lts-14.27
         path: /tmp/sdist
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: dists
         path: /tmp/dists
@@ -411,14 +413,14 @@ jobs:
     if: >-
       github.event_name != 'pull_request' &&
       github.ref == 'refs/heads/main'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: dists
         path: /tmp/dists
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: docs
         path: /tmp/docs
