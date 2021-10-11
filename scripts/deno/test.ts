@@ -74,9 +74,13 @@ Deno.test("Seonbi#start()", async () => {
         );
         break;
       } catch (e) {
-        if (!(e instanceof TypeError) || e.message.indexOf("os error 61") < 0) {
+        if (!(e instanceof TypeError) ||
+            e.message.indexOf("os error 61") < 0 &&
+            e.message.indexOf("os error 111") < 0) {
           throw e;
         }
+
+        return new Promise((r) => setTimeout(r, 1000));
       }
     }
   } finally {
