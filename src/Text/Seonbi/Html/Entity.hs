@@ -8,6 +8,7 @@ import Data.Text
 import Text.Seonbi.Html.Tag (HtmlTag)
 import Text.Seonbi.Html.TagStack (HtmlTagStack)
 
+-- | All element attributes in a string.
 type HtmlRawAttrs = Text
 
 -- | An event entity emitted by 'scanHtml'.
