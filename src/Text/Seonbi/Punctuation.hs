@@ -51,6 +51,7 @@ import qualified Data.Text
 
 import Text.Seonbi.Html
 import Text.Seonbi.Html.Clipper
+import Text.Seonbi.Html.Lang
 import Text.Seonbi.Html.Preservation
 import Text.Seonbi.Html.Wrapper
 import Text.Seonbi.PairedTransformer
@@ -295,14 +296,18 @@ horizontalStopsWithSlashes = Stops
 
 -- | Normalizes sentence stops (periods, commas, and interpuncts).
 normalizeStops :: Stops -> [HtmlEntity] -> [HtmlEntity]
-normalizeStops stops input = (`fmap` normalizeText input) $ \ case
-    e@HtmlText { tagStack = stack, rawText = txt } ->
-        if isPreservedTagStack stack
+normalizeStops stops input = (`fmap` annotatedEntities) $ \ case
+    LangHtmlEntity { lang = l
+                   , entity = e@HtmlText { tagStack = stack, rawText = txt }
+                   } ->
+        if isPreservedTagStack stack || isNeverKorean l
         then e
         else e { rawText = replaceText txt }
-    e ->
+    LangHtmlEntity { entity = e } ->
         e
   where
+    annotatedEntities :: [LangHtmlEntity]
+    annotatedEntities = (annotateWithLang . normalizeText) input
     replaceText :: Text -> Text
     replaceText txt =
         case parseOnly parser txt of

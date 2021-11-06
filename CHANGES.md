@@ -9,8 +9,11 @@ To be released.
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
  -  Added `Text.Seonbi.Html.Lang` module.
- -  `Text.Seonbi.Hanja.phoneticizeHanja` became to transform nothing
-    inside elements written in other languages than Korean.  [[#10]]
+ -  Some transformations inappropriate for non-Korean contents are no more
+    applied to elements written in other languages than Korean.  The below
+    functions respect elements `lang` attributes:  [[#10]]
+     -  `Text.Seonbi.Hanja.phoneticizeHanja`
+     -  `Text.Seonbi.Punctuation.normalizeStops`
  -  Removed several functions from `Text.Seonbi.Trie` module:
      -  `toListBy`
      -  `lookupBy`

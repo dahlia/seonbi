@@ -535,3 +535,20 @@ spec = do
                     , HtmlEndTag [P] Span
                     , HtmlEndTag [] P
                     ]
+        it "does not touch inside non-Korean contents" $ do
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "《大學》의 「三綱領」에 다음과 같은 말이 나온다。"
+                    , HtmlEndTag [] P
+                    , HtmlStartTag [] BlockQuote "lang=lzh"
+                    , HtmlText [BlockQuote] "大學之道，在明明德，在親民，在止於至善。"
+                    , HtmlEndTag [] BlockQuote
+                    ] :: [HtmlEntity]
+            normalizeStops horizontalStops input `shouldBe`
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "《大學》의 「三綱領」에 다음과 같은 말이 나온다."
+                    , HtmlEndTag [] P
+                    , HtmlStartTag [] BlockQuote "lang=lzh"
+                    , HtmlText [BlockQuote] "大學之道，在明明德，在親民，在止於至善。"
+                    , HtmlEndTag [] BlockQuote
+                    ]
