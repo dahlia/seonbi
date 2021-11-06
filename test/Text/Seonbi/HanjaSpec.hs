@@ -302,6 +302,33 @@ spec = do
             let phone = normalizeText . phoneticizeHanja def
             phone [HtmlText [Pre] "1996年 그들이 地球를 支配했을 때"] `shouldBe`
                 [HtmlText [Pre] "1996年 그들이 地球를 支配했을 때"]
+        it "transforms nothing in non-Korean elements" $ do
+            let phone = normalizeText . phoneticizeHanja def
+            let input =
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "2004年 開封한 日本 映畫 "
+                    , HtmlStartTag [P] Span "lang=\"ja\""
+                    , HtmlText [P, Span] "誰も知らない"
+                    , HtmlEndTag [P] Span
+                    , HtmlText [P] "는 이듬해 韓國에서도 "
+                    , HtmlStartTag [P] Span "lang=ko-Hang"
+                    , HtmlText [P, Span] "아무도 모른다"
+                    , HtmlEndTag [P] Span
+                    , HtmlText [P] "라는 題目으로 開封했다."
+                    ]
+            let output =
+                    [ HtmlStartTag [] P ""
+                    , HtmlText [P] "2004년 개봉한 일본 영화 "
+                    , HtmlStartTag [P] Span "lang=\"ja\""
+                    , HtmlText [P, Span] "誰も知らない"
+                    , HtmlEndTag [P] Span
+                    , HtmlText [P] "는 이듬해 한국에서도 "
+                    , HtmlStartTag [P] Span "lang=ko-Hang"
+                    , HtmlText [P, Span] "아무도 모른다"
+                    , HtmlEndTag [P] Span
+                    , HtmlText [P] "라는 제목으로 개봉했다."
+                    ]
+            phone input `shouldBe` output
     describe "convertInitialSoundLaw" $ do
         specify "녀, 뇨, 뉴, 니 should be 여, 요, 유, 이" $ do
             convertInitialSoundLaw '녀' `shouldBe` '여'

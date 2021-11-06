@@ -46,6 +46,7 @@ import Data.Text hiding (concatMap)
 
 import Text.Seonbi.Hangul
 import Text.Seonbi.Html
+import Text.Seonbi.Html.Lang
 import Text.Seonbi.Html.Preservation
 import Text.Seonbi.Html.TagStack (push)
 import qualified Text.Seonbi.Trie as Trie
@@ -184,13 +185,20 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
                           else Right (stack, hanj, hang)
                         | (hanj, hang) <- Prelude.zip hanjaWords hangulWords
                         ]
-        | e <- concatMap transform entities
+        | e <- concatMap transform (annotateWithLang entities)
         ]
     splitByDigits :: Text -> [Text]
     splitByDigits = Data.Text.groupBy (\ a b -> isDigit a == isDigit b)
-    transform :: HtmlEntity -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
-    transform entity@HtmlText { tagStack = tagStack', rawText = rawText' }
-      | isPreservedTagStack tagStack' =
+    transform :: LangHtmlEntity
+              -> [Either HtmlEntity (HtmlTagStack, Text, Text)]
+    transform LangHtmlEntity
+                { lang = lang
+                , entity = entity@HtmlText
+                    { tagStack = tagStack'
+                    , rawText = rawText'
+                    }
+                }
+      | isPreservedTagStack tagStack' || isNeverKorean lang =
             [Left entity]
       | otherwise =
             case analyzeHanjaText rawText' of
@@ -202,7 +210,7 @@ phoneticizeHanja HanjaPhoneticization { phoneticizer
                     -- Note that htmlText here can have HTML entities.
                     | (trueIfHanja, htmlText) <- pairs
                     ]
-    transform entity =
+    transform LangHtmlEntity { entity } =
         [Left entity]
     -- FIXME: This should be public:
     debugRenderer :: HanjaWordRenderer -> HanjaWordRenderer

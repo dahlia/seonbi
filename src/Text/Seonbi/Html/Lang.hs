@@ -4,6 +4,8 @@ module Text.Seonbi.Html.Lang
     , LanguageTag
     , annotateWithLang
     , extractLang
+    , isKorean
+    , isNeverKorean
     ) where
 
 import Control.Applicative
@@ -29,7 +31,7 @@ type LanguageTag = Text
 -- Just "en"
 -- >>> extractLang "lang=\"ko-KR\""
 -- Just "ko-kr"
--- >>> extractLang "lang='ko-Hang'"
+-- >>> extractLang " lang='ko-Hang'"
 -- Just "ko-hang"
 extractLang
     :: HtmlRawAttrs
@@ -47,6 +49,7 @@ extractLang attrs =
   where
     parser' :: Parser (Maybe Text)
     parser' = do
+        skipSpace
         attrs' <- langAttr `sepBy` space
         skipSpace
         return $ listToMaybe $ catMaybes attrs'
@@ -125,3 +128,39 @@ annotateWithLang =
         parentLang = case stack of
             (_, l):_ -> l
             _ -> Nothing
+
+-- | Determines whether the given language tag refers to any kind of Korean.
+--
+-- >>> isKorean "ko"
+-- True
+-- >>> isKorean "ko-KR"
+-- True
+-- >>> isKorean "kor-Hang"
+-- True
+-- >>> isKorean "en"
+-- False
+-- >>> isKorean "en-KR"
+-- False
+isKorean :: LanguageTag -> Bool
+isKorean lang' =
+    l == "ko" || l == "kor" ||
+    "ko-" `isPrefixOf` l ||
+    "kor-" `isPrefixOf` l
+  where
+    l :: Text
+    l = toLower lang'
+
+-- | Determines whether the given language tag undoubtedly does not refer
+-- to any kind of Korean.
+--
+-- >>> isNeverKorean $ Just "ko"
+-- False
+-- >>> isNeverKorean $ Just "ko-KR"
+-- False
+-- >>> isNeverKorean Nothing
+-- False
+-- >>> isNeverKorean $ Just "en"
+-- True
+isNeverKorean :: Maybe LanguageTag -> Bool
+isNeverKorean Nothing = False
+isNeverKorean (Just lang') = not (isKorean lang')

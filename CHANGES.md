@@ -9,6 +9,8 @@ To be released.
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
  -  Added `Text.Seonbi.Html.Lang` module.
+ -  `Text.Seonbi.Hanja.phoneticizeHanja` became to transform nothing
+    inside elements written in other languages than Korean.  [[#10]]
  -  Removed several functions from `Text.Seonbi.Trie` module:
      -  `toListBy`
      -  `lookupBy`
@@ -27,6 +29,8 @@ To be released.
      -  `Generic1 Trie`
      -  `type Rep (Trie a)`
      -  `type Rep1 Trie`
+
+[#10]: https://github.com/dahlia/seonbi/issues/10
 
 
 Version 0.2.3
