@@ -56,6 +56,33 @@ HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
 
 
+End-user apps
+-------------
+
+Technically, Seonbi is basically exposed as a software component,
+which is also known as API (application programming interface), to be used
+as a module of other softwares.
+
+However, as these official interfaces are not for humans but machines, it's
+not easy to use for end-users whom haven't experienced software
+programming.  For such end-users, here's the list of end-user apps:
+
+ -  [Demo web app]: The official web app.  Not that mobile-friendly
+    (usable though).
+ -  [Seonbi Translator] (선비 번역기): An iOS shortcut made by
+    [Heechan Bak] ([@channprj]).
+ -  [seonbi-webapp]: Probably aims to replace the official web app.
+    Made by Lee Dogeon ([@moreal]).
+ -  [seonbi-ext]: A browser extension made by Lee Dogeon ([@moreal]).
+
+[Seonbi Translator]: https://www.icloud.com/shortcuts/1e468a5dd0104fc5b69fe803952fc154
+[Heechan Bak]: https://chann.dev/
+[@channprj]: https://github.com/channprj
+[seonbi-webapp]: https://github.com/moreal/seonbi-webapp
+[@moreal]: https://github.com/moreal
+[seonbi-ext]: https://github.com/moreal/seonbi-ext
+
+
 Installation
 ------------
 
