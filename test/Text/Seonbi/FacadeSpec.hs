@@ -79,6 +79,6 @@ spec = do
         , emDash = False
         , stop = Nothing
         , hanja = Nothing
-        , xhtml = False
+        , contentType = "text/html"
         , debugLogger = Nothing
         }

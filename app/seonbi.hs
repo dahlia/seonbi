@@ -25,6 +25,7 @@ import Codec.Text.IConv
 #endif
 import Data.ByteString.Lazy
 import Data.Map.Strict
+import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Text.Lazy
 import Data.Text.Lazy.Encoding
@@ -92,7 +93,7 @@ data Seonbi = Seonbi
     , config :: Configuration IO ()
     , dictionaries :: [FilePath]
     , noKrStdict :: Bool
-    , xhtml :: Bool
+    , contentType' :: ContentType
     , debug :: Bool
     , version :: Bool
     , input :: FilePath
@@ -137,8 +138,10 @@ enumKeyword :: (Enum a, Show a) => a -> String
 enumKeyword = T.unpack . enumKeyword'
 
 enumKeywords :: forall a . (Enum a, Show a) => Proxy a -> String
-enumKeywords _ = T.unpack $ T.intercalate ", " $
-    fmap enumKeyword' [(toEnum 0 :: a) ..]
+enumKeywords _ = commas $ enumKeyword' <$> [(toEnum 0 :: a) ..]
+
+commas :: [T.Text] -> String
+commas = T.unpack . T.intercalate ", "
 
 parser :: Parser Seonbi
 parser = Seonbi
@@ -166,7 +169,7 @@ parser = Seonbi
                      "Available presets: " ++
                      Data.List.intercalate ", " (Data.Map.Strict.keys presets'))
             )
-        <|> ( Configuration Nothing False
+        <|> ( Configuration Nothing "text/html"
             <$> ( flag' Nothing
                     ( long "no-quote"
                     <> short 'Q'
@@ -297,10 +300,14 @@ parser = Seonbi
         <> help ("Do not use Standard Korean Language Dictionary " ++
                  "(標準國語大辭典) by South Korean NIKL (國立國語院)")
         )
-    <*> switch
-        ( long "xhtml"
-        <> short 'x'
-        <> help "XHTML mode"
+    <*> strOption
+        ( long "content-type"
+        <> short 't'
+        <> metavar "TYPE"
+        <> value "text/html"
+        <> help ("Content type.  Available types: " ++ commas
+                (contentTypeText <$> S.elems contentTypes) ++
+                "  [default: text/html]")
         )
     <*> switch
         ( long "debug"
@@ -347,6 +354,7 @@ main = do
         , config
         , dictionaries
         , noKrStdict
+        , contentType'
         , debug
         , version
         , input
@@ -371,6 +379,7 @@ main = do
                 { debugLogger = debugLogger'
                 , hanja = Just hanja' { reading = reading' }
                 }
+    let configWithContentType = config' { contentType = contentType' }
     when version $ do
         Prelude.putStrLn $ showVersion Meta.version
         exitSuccess
@@ -390,7 +399,8 @@ main = do
             enc -> enc
     debugPrint ("encoding: " ++ encodingName)
     result <- catchIOError
-        (transformHtmlLazyText config' $ toUnicode encodingName contents)
+        (transformHtmlLazyText configWithContentType $
+            toUnicode encodingName contents)
         (\ e -> hPutStrLn stderr (ioeGetErrorString e) >> exitFailure)
     let resultBytes = fromUnicode encodingName result
     if output == "-"

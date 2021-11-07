@@ -40,8 +40,8 @@ export type Dictionary = "kr-stdict";
  * See also <https://github.com/dahlia/seonbi#http-api>.
  */
 export interface Options {
-  /** Whether to format the result in XHTML. */
-  xhtml: boolean;
+  /** Content type. */
+  contentType: "text/html" | "application/xhtml+xml";
   /** Quoting options. */
   quote:
     | "CurvedQuotes"

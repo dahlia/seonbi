@@ -16,6 +16,7 @@ import Data.Aeson
 import qualified Data.Aeson.Types
 import qualified Data.ByteString as B
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import Data.Text
 import Data.Text.Encoding
 import Network.Wai
@@ -50,7 +51,7 @@ instance FromJSON Input where
                             , intercalate ", " (M.keys presets')
                             ]
             Nothing -> do
-                xhtml' <- v .:? "xhtml" .!= False
+                contentType' <- v .:? "contentType" .!= "text/html"
                 quote' <- v .:? "quote"
                 cite' <- v .:? "cite"
                 arrow' <- v .:? "arrow"
@@ -60,7 +61,7 @@ instance FromJSON Input where
                 hanja' <- v .:? "hanja" .!= Nothing
                 return Configuration
                     { debugLogger = Nothing
-                    , xhtml = xhtml'
+                    , contentType = contentType'
                     , quote = quote'
                     , cite = cite'
                     , arrow = arrow'
@@ -70,6 +71,17 @@ instance FromJSON Input where
                     , hanja = hanja'
                     }
         return $ Input sourceHtml' config
+
+instance FromJSON ContentType where
+    parseJSON = withText "ContentType" $ \ t ->
+        if contentTypeFromText t `S.member` contentTypes
+        then return (contentTypeFromText t)
+        else fail $ unpack $ Data.Text.concat
+            [ "Unknown content type: "
+            , t
+            , "; available content types: "
+            , intercalate ", " $ contentTypeText <$> S.elems contentTypes
+            ]
 
 instance FromJSON QuoteOption
 instance FromJSON CiteOption

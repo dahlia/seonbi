@@ -19,6 +19,11 @@ module Text.Seonbi.Facade
     , ko_KP
     , ko_KR
     , presets
+      -- * Content types
+    , ContentType
+    , contentTypeFromText
+    , contentTypes
+    , contentTypeText
       -- * Dictionaries
     , HanjaDictionary
     , readDictionaryFile
@@ -66,6 +71,7 @@ import System.FilePath
 #ifndef EMBED_DICTIONARY
 import Paths_seonbi (getDataDir)
 #endif
+import Text.Seonbi.ContentTypes
 import Text.Seonbi.Hanja
 import Text.Seonbi.Html
 import Text.Seonbi.Punctuation
@@ -79,8 +85,9 @@ import Text.Seonbi.Trie as Trie
 data Monad m => Configuration m a = Configuration
     { -- | An optional debugging logger to print its internal AST.
       debugLogger :: Maybe (HtmlEntity -> m a)
-      -- | Whether to take and result in XHTML instead of HTML.
-    , xhtml :: Bool
+      -- | A content type of the input and output.  It has to be a member of
+      -- 'contentTypes'.
+    , contentType :: ContentType
       -- | An option to decide how quotation marks are rendered.
       -- If 'Nothing' no quotes are transformed.
     , quote :: Maybe QuoteOption
@@ -105,7 +112,7 @@ instance Monad m => Show (Configuration m a) where
     show c = "Configuration {\n" <>
         "  debugLogger = " <>
             maybe "Nothing" (const "Just ...") (debugLogger c) <> "," <>
-        "  xhtml = " <> show (xhtml c) <> "," <>
+        "  contentType = " <> show (contentType c) <> "," <>
         "  quote = " <> show (quote c) <> "," <>
         "  arrow = " <> show (cite c) <> "," <>
         "  cite = " <> show (arrow c) <> "," <>
@@ -235,8 +242,8 @@ instance Show HanjaReadingOption where
         show initialSoundLaw <>
         " }"
 
--- | Transforms a given HTML text.  'Nothing' if it fails to parse the given
--- HTML text.
+-- | Transforms a given text.  'Nothing' if it fails to parse the given
+-- text.
 transformHtmlText :: forall (m :: Type -> Type) a. (Monad m, MonadFail m)
                   => Configuration m a -> Text -> m Text
 transformHtmlText config =
@@ -245,20 +252,16 @@ transformHtmlText config =
 -- | A lazy version of 'transformHtmlText' function.
 transformHtmlLazyText :: forall (m :: Type -> Type) a. (Monad m, MonadFail m)
                       => Configuration m a -> LT.Text -> m LT.Text
-transformHtmlLazyText config@Configuration { xhtml, debugLogger } htmlText =
-    case scanHtml htmlText of
-        Done "" input -> do
-            case debugLogger of
-                Just logger -> mapM_ logger input
-                Nothing -> return ()
-            return $ printHtml' $ toTransformer config input
-        _ ->
-            fail "failed to parse input"
+transformHtmlLazyText config@Configuration { contentType, debugLogger } =
+    transformWithContentType contentType transformerM
   where
-    printHtml' :: [HtmlEntity] -> LT.Text
-    printHtml'
-      | xhtml = printXhtml
-      | otherwise = printHtml
+    transformer :: [HtmlEntity] -> [HtmlEntity]
+    transformer = toTransformer config
+    transformerM = case debugLogger of
+        Nothing -> return <$> transformer
+        Just logger -> \ input -> do
+            mapM_ logger input
+            return $ transformer input
 
 toTransformers :: Monad m => Configuration m a -> [[HtmlEntity] -> [HtmlEntity]]
 toTransformers Configuration { quote
@@ -355,7 +358,7 @@ ko_KR = Configuration
             , initialSoundLaw = True
             }
         }
-    , xhtml = False
+    , contentType = "text/html"
     }
 
 -- | Preset 'Configuration' for North Korean orthography.

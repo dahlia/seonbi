@@ -8,13 +8,42 @@ To be released.
 
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
+
+ -  Now supports several content types besides HTML/XHTML.  [[#18]]
+
+    The below Haskell APIs changed:
+
+     -  Added `Text.Seonbi.ContentTypes` module.
+     -  Added `contentType` field for `Configuration m a`.
+     -  Removed `xhtml` field for `Configuration m a` in favour of
+        new `contentType` field for the same type.
+
+    The below CLI options changed:
+
+     -  Added `-t`/`--content-type` option with the default value `text/html`.
+     -  Removed Removed `-x`/`--xhtml` option in favour of new
+        `-t`/`--content-type` option.  In order to use XHTML mode, give it
+        `-t application/xhtml+xml` option.
+
+    The below HTTP APIs changed:
+
+     -  Added an optional field `"contentType"` with the default value
+        `"text/html"`.
+     -  Removed `"xhtml"` field in favour of new `"contentType"` field.
+        In order to use XHTML mode, configure `"contentType"` field with
+        `"application/xhtml+xml"`.
+
  -  Added `Text.Seonbi.Html.Lang` module.
+
  -  Some transformations inappropriate for non-Korean contents are no more
     applied to elements written in other languages than Korean.  The below
     functions respect elements `lang` attributes:  [[#10]]
+
      -  `Text.Seonbi.Hanja.phoneticizeHanja`
      -  `Text.Seonbi.Punctuation.normalizeStops`
+
  -  Removed several functions from `Text.Seonbi.Trie` module:
+
      -  `toListBy`
      -  `lookupBy`
      -  `submap`
@@ -25,8 +54,10 @@ To be released.
      -  `delete`
      -  `mapBy`
      -  `filterMap`
+
  -  `Text.Seonbi.Trie.Trie` type is not an instance of the following typeclasses
     anymore:
+
      -  `Generic a => Generic (Trie a)`
      -  `Binary a => Binary (Trie a)`
      -  `Generic1 Trie`
@@ -34,6 +65,7 @@ To be released.
      -  `type Rep1 Trie`
 
 [#10]: https://github.com/dahlia/seonbi/issues/10
+[#18]: https://github.com/dahlia/seonbi/issues/18
 
 
 Version 0.2.3

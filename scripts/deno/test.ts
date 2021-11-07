@@ -8,7 +8,7 @@ import {
 import { assertEquals } from "https://deno.land/std@0.106.0/testing/asserts.ts";
 
 const hanjaInParens: Options = {
-  xhtml: false,
+  contentType: "text/html",
   quote: "CurvedQuotes",
   cite: null,
   arrow: null,

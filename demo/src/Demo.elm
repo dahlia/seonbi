@@ -243,7 +243,14 @@ makeInput source =
                     [ ( "preset", Json.Encode.string "ko-kp" ) ]
 
                 Custom options ->
-                    [ ( "xhtml", Json.Encode.bool options.xhtml )
+                    [ ( "contentType"
+                      , Json.Encode.string <|
+                            if options.xhtml then
+                                "application/xhtml+xml"
+
+                            else
+                                "text/html"
+                      )
                     , ( "quote"
                       , Json.Encode.string <|
                             case options.quote of

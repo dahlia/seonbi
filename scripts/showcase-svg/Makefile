@@ -17,21 +17,21 @@ build/showcase.svg: template.svg build/ko-kr.html build/ko-kp.html build/ko-kore
 build/ko-kr.html: build/input.html
 	$(SEONBI) \
 		--preset ko-kr \
-		--xhtml \
+		--content-type application/xhtml+xml\
 		--output build/ko-kr.html \
 		build/input.html
 
 build/ko-kp.html: build/input.html
 	$(SEONBI) \
 		--preset ko-kp \
-		--xhtml \
+		--content-type application/xhtml+xml\
 		--output build/ko-kp.html \
 		build/input.html
 
 build/ko-kore.html: build/input.html
 	$(SEONBI) \
 		--render-hanja hanja-in-ruby \
-		--xhtml \
+		--content-type application/xhtml+xml\
 		--output build/ko-kore.html \
 		build/input.html
 
