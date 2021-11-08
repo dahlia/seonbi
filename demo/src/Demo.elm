@@ -111,7 +111,13 @@ type alias Source =
     { text : Maybe String
     , html : String
     , options : Options
+    , contentType : ContentType
     }
+
+
+type ContentType
+    = Html
+    | Xhtml
 
 
 type Options
@@ -121,8 +127,7 @@ type Options
 
 
 type alias CustomOptions =
-    { xhtml : Bool
-    , quote : QuoteOption
+    { quote : QuoteOption
     , cite : Maybe CiteOption
     , arrow : Maybe ArrowOption
     , ellipsis : Bool
@@ -185,10 +190,10 @@ init _ =
                 { text = Just initialContent
                 , html = renderMarkdown initialContent
                 , options = KoKr
+                , contentType = Html
                 }
             , lastCustomOptions =
-                { xhtml = False
-                , quote = CurvedQuotes
+                { quote = CurvedQuotes
                 , cite = Just AngleQuotes
                 , arrow = Just { bidirArrow = True, doubleArrow = True }
                 , ellipsis = True
@@ -224,6 +229,7 @@ type Msg
     | EndTransform Source (Result Http.Error String)
     | ChangeSourceTab Tab.State
     | ChangeResultTab Tab.State
+    | UpdateContentType ContentType
     | UpdateOptions Options
     | ShowCustomDictionary
     | CloseCustomDictionary
@@ -234,7 +240,19 @@ makeInput : Source -> ( String, Json.Encode.Value )
 makeInput source =
     ( apiServerUrl
     , Json.Encode.object <|
-        (::) ( "sourceHtml", Json.Encode.string source.html ) <|
+        List.append
+            [ ( "sourceHtml", Json.Encode.string source.html )
+            , ( "contentType"
+              , Json.Encode.string <|
+                    case source.contentType of
+                        Html ->
+                            "text/html"
+
+                        Xhtml ->
+                            "appplication/xhtml+xml"
+              )
+            ]
+        <|
             case source.options of
                 KoKr ->
                     [ ( "preset", Json.Encode.string "ko-kr" ) ]
@@ -243,15 +261,7 @@ makeInput source =
                     [ ( "preset", Json.Encode.string "ko-kp" ) ]
 
                 Custom options ->
-                    [ ( "contentType"
-                      , Json.Encode.string <|
-                            if options.xhtml then
-                                "application/xhtml+xml"
-
-                            else
-                                "text/html"
-                      )
-                    , ( "quote"
+                    [ ( "quote"
                       , Json.Encode.string <|
                             case options.quote of
                                 CurvedQuotes ->
@@ -387,6 +397,7 @@ update msg model =
                     { text = Just markdown
                     , html = renderMarkdown markdown
                     , options = model.source.options
+                    , contentType = model.source.contentType
                     }
                 , resultHtml =
                     case model.resultHtml of
@@ -405,6 +416,7 @@ update msg model =
                     { text = Nothing
                     , html = sourceHtml_
                     , options = model.source.options
+                    , contentType = model.source.contentType
                     }
               }
             , Cmd.none
@@ -432,6 +444,15 @@ update msg model =
 
         ChangeResultTab resultTabState ->
             ( { model | resultTabState = resultTabState }, Cmd.none )
+
+        UpdateContentType contentType ->
+            let
+                source =
+                    model.source
+            in
+            ( { model | source = { source | contentType = contentType } }
+            , Cmd.none
+            )
 
         UpdateOptions options ->
             let
@@ -784,6 +805,9 @@ renderMarkdown =
 viewOptions : Model -> Html Msg
 viewOptions model =
     let
+        contentType =
+            model.source.contentType
+
         options =
             model.source.options
 
@@ -1287,12 +1311,30 @@ viewOptions model =
                         ]
                         "As is"
                     ]
-            , Form.colLabel [ GCol.sm1 ] [ text "Format" ]
-            , Form.col [ GCol.sm4, GCol.attrs [ Spacing.mt2 ] ] <|
-                [ checkbox
-                    (\o -> o.xhtml)
-                    (\checked -> { lastOptions | xhtml = checked })
-                    "XHTML"
+            , Form.colLabel [ GCol.sm1 ] [ text "Type" ]
+            , Form.col [ GCol.sm4 ] <|
+                [ Select.select
+                    [ Select.onChange <|
+                        \v ->
+                            UpdateContentType <|
+                                case v of
+                                    "text/html" ->
+                                        Html
+
+                                    "application/xhtml+xml" ->
+                                        Xhtml
+
+                                    _ ->
+                                        Html
+                    ]
+                  <|
+                    [ Select.item
+                        [ value "text/html", selected <| contentType == Html ]
+                        [ text "HTML" ]
+                    , Select.item
+                        [ value "application/xhtml+xml", selected <| contentType == Xhtml ]
+                        [ text "XHTML" ]
+                    ]
                 ]
             ]
         ]
