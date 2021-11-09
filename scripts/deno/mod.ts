@@ -35,13 +35,18 @@ export interface Preset {
  */
 export type Dictionary = "kr-stdict";
 
+export type ContentType =
+  | "text/html"
+  | "application/xhtml+xml"
+  | "plain/text";
+
 /**
  * Options for transformation.
  * See also <https://github.com/dahlia/seonbi#http-api>.
  */
 export interface Options {
   /** Content type. */
-  contentType: "text/html" | "application/xhtml+xml";
+  contentType: ContentType;
   /** Quoting options. */
   quote:
     | "CurvedQuotes"

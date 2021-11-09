@@ -7,6 +7,7 @@ module Text.Seonbi.ContentTypes
     , TextTransformer
     , asHtmlTransformer
     , asHtmlTransformer'
+    , asPlainTextTransformer
     , asXhtmlTransformer
     , contentTypeFromText
     , contentTypes
@@ -25,8 +26,11 @@ import Data.CaseInsensitive
 import Data.Set
 import Data.Text as ST
 import Data.Text.Lazy as LT
+import Data.Text.Lazy.Builder
+import HTMLEntities.Decoder
 
 import Text.Seonbi.Html
+import qualified Text.Seonbi.Html.TagStack as TagStack
 
 -- | Represents a function that transforms an 'HtmlEntity' list.
 type HtmlTransformer m
@@ -73,6 +77,18 @@ asHtmlTransformer = asHtmlTransformer' False
 asXhtmlTransformer :: (Monad m, MonadFail m) => TransformerTransformer m
 asXhtmlTransformer = asHtmlTransformer' True
 
+asPlainTextTransformer :: (Monad m, MonadFail m) => TransformerTransformer m
+asPlainTextTransformer transformer text' = do
+    let entities = [HtmlCdata TagStack.empty $ LT.toStrict text']
+    output <- transformer entities
+    return . LT.concat $
+        [ case e of
+            HtmlCdata _ cdata -> LT.fromStrict cdata
+            HtmlText _ rawText' -> toLazyText $ htmlEncodedText rawText'
+            _ -> LT.empty
+        | e <- output
+        ]
+
 -- | Represents a case-insensitive content type.
 type ContentType = CI ST.Text
 
@@ -91,6 +107,7 @@ transformers :: (Monad m, MonadFail m)
 transformers =
     [ ("text/html", TransformerTransformer' asHtmlTransformer)
     , ("application/xhtml+xml", TransformerTransformer' asXhtmlTransformer)
+    , ("text/plain", TransformerTransformer' asPlainTextTransformer)
     ]
 
 -- | Supported content types.

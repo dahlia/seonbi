@@ -73,6 +73,7 @@ library:
   - data-default >= 0.2 && < 1
   - filepath >= 1 && < 2
   - file-embed >= 0.0.10 && < 0.0.16
+  - html-entities >= 1 && < 2
   when:
   - condition: flag(static) || flag(embed-dictionary)
     then:

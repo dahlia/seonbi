@@ -25,10 +25,15 @@ spec = do
     specify "asXhtmlTransformer" $ do
         r <- asXhtmlTransformer textReverser "<p>foo <em>bar</em><br> baz</p>"
         r `shouldBe` "<p> oof<em>rab</em><br/>zab </p>"
+    specify "asPlainTextTransformer" $ do
+        r <- asPlainTextTransformer textReverser
+                "<p>foo <em>bar</em><br> baz</p>"
+        r `shouldBe` ">p/<zab >rb<>me/<rab>me< oof>p<"
     specify "transformWithContentType" $ do
         let input = "<p>foo <em>bar</em><br></p>"
         h <- transformWithContentType "text/html" textReverser input
         h `shouldBe` "<p> oof<em>rab</em><br></p>"
         x <- transformWithContentType "application/xhtml+xml" textReverser input
         x `shouldBe` "<p> oof<em>rab</em><br/></p>"
-
+        p <- transformWithContentType "text/plain" textReverser input
+        p `shouldBe` ">p/<>rb<>me/<rab>me< oof>p<"

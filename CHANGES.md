@@ -9,7 +9,12 @@ To be released.
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
 
- -  Now supports several content types besides HTML/XHTML.  [[#18]]
+ -  Now supports several content types besides HTML/XHTML.  The below list
+    shows all supported content types:  [[#18]]
+
+     -  `text/html` (previously non-XHTML mode)
+     -  `application/xhtml+xml` (previously XHTML mode)
+     -  `text/plain` (added)
 
     The below Haskell APIs changed:
 

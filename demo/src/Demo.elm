@@ -118,6 +118,7 @@ type alias Source =
 type ContentType
     = Html
     | Xhtml
+    | PlainText
 
 
 type Options
@@ -250,6 +251,9 @@ makeInput source =
 
                         Xhtml ->
                             "appplication/xhtml+xml"
+
+                        PlainText ->
+                            "text/plain"
               )
             ]
         <|
@@ -1325,15 +1329,22 @@ viewOptions model =
                                         Xhtml
 
                                     _ ->
-                                        Html
+                                        PlainText
                     ]
                   <|
                     [ Select.item
                         [ value "text/html", selected <| contentType == Html ]
                         [ text "HTML" ]
                     , Select.item
-                        [ value "application/xhtml+xml", selected <| contentType == Xhtml ]
+                        [ value "application/xhtml+xml"
+                        , selected <| contentType == Xhtml
+                        ]
                         [ text "XHTML" ]
+                    , Select.item
+                        [ value "text/plain"
+                        , selected <| contentType == PlainText
+                        ]
+                        [ text "Plain text" ]
                     ]
                 ]
             ]
