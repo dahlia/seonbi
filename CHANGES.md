@@ -32,13 +32,22 @@ To be released.
 
     The below HTTP APIs changed:
 
+     -  Added a mandatory field `"content"` to requests.
+     -  Deprecated the `"sourceHtml"` field of requests in favour of the new
+        `"content"` field.
      -  Added an optional field `"contentType"` with the default value
         `"text/html"` to requests.
-     -  Removed `"xhtml"` field in favour of new `"contentType"` field
-        from requests.
+     -  Deprecated the `"xhtml"` field of requests in favour of the new
+        `"contentType"` field.  The legacy field will be gone in the next
+        minor release.
         In order to use XHTML mode, configure `"contentType"` field with
         `"application/xhtml+xml"`.
+     -  Added `"content"` field to responses.
+     -  Deprecated the `"resultHtml"` field of responses in favour of the new
+        `"content"` field.  The legacy field is not provided for non-HTML
+        types, and will be gone in the next minor release.
      -  Added `"contentType"` field to responses.
+     -  Added `"warnings"` field to responses.
 
  -  Added `Text.Seonbi.Html.Lang` module.
 

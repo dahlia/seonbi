@@ -7,6 +7,7 @@ module Main (main) where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad
+import Data.Maybe (catMaybes)
 import Data.String
 import Data.Version
 import GHC.Exts (IsList (..))
@@ -29,15 +30,38 @@ import Text.Seonbi.Facade
 import Text.Seonbi.Trie as Trie
 
 data Input = Input
-    { sourceHtml :: Text
+    { source :: Text
     , configuration :: Configuration IO ()
+    , warnings :: [Text]
     } deriving (Show)
 
 instance FromJSON Input where
     parseJSON = withObject "Input" $ \ v -> do
-        sourceHtml' <- v .: "sourceHtml"
+        sourceMaybe <- v .:? "content"
+        (source', w1) <- case sourceMaybe of
+            Just s -> return (s, Nothing)
+            Nothing -> do
+                sourceHtml' <- v .:? "sourceHtml"
+                case sourceHtml' of
+                    Just h -> return
+                        ( h
+                        , Just $ "key \"sourceHtml\" is deprecated in " <>
+                                 "favour of \"content\""
+                        )
+                    Nothing -> fail "key \"content\" not present"
         preset <- v .:? "preset"
-        contentType' <- v .:? "contentType" .!= "text/html"
+        contentTypeMaybe <- v .:? "contentType"
+        (contentType', w2) <- case contentTypeMaybe of
+            Just t -> return (t, Nothing)
+            Nothing -> do
+                xhtml <- v .:? "xhtml"
+                case xhtml of
+                    Just x -> return
+                        ( if x then "application/xhtml+xml" else "text/html"
+                        , Just $ "key \"xhtml\" is deprecated in favour of " <>
+                                 "\"contentType\""
+                        )
+                    Nothing -> return ("text/html", Nothing)
         config <- case preset of
             Just locale ->
                 let presets' = presets :: M.Map Text (Configuration IO ())
@@ -70,7 +94,11 @@ instance FromJSON Input where
                     , stop = stop'
                     , hanja = hanja'
                     }
-        return $ Input sourceHtml' $ config { contentType = contentType' }
+        return $ Input
+            { source = source'
+            , configuration = config { contentType = contentType' }
+            , warnings = catMaybes [w1, w2]
+            }
 
 instance FromJSON ContentType where
     parseJSON = withText "ContentType" $ \ t ->
@@ -129,13 +157,28 @@ app AppOptions { allowOrigin, debugDelayMs } request respond =
             inputJson <- lazyRequestBody request
             threadDelay (debugDelayMs * 1000)
             case eitherDecode' inputJson of
-                Right (Input source config) -> do
+                Right (Input source config warnings) -> do
                     result <- transformHtmlText config source
-                    respond' status200 $ object
+                    let type' = contentType config
+                    let warningComments =
+                            if Prelude.null warnings
+                            then Data.Text.empty
+                            else Data.Text.concat
+                                [ "<!--\n"
+                                , Data.Text.intercalate "\n" warnings
+                                , "\n-->"
+                                ]
+                    respond' status200 $ object $
                         [ "success" .= Bool True
-                        , "resultHtml" .= String result
-                        , "contentType" .= String
-                            (contentTypeText $ contentType config)
+                        , "content" .= String result
+                        , "warnings" .= Array
+                            (GHC.Exts.fromList $ String <$> warnings)
+                        , "contentType" .= String (contentTypeText type')
+                        ]
+                        ++
+                        [ "resultHtml" .= String (warningComments <> result)
+                        | type' == "text/html" ||
+                          type' == "application/xhtml+xml"
                         ]
                 Left msg -> respond' status400 $ object
                     [ "success" .= Bool False

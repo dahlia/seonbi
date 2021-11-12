@@ -1,6 +1,7 @@
 module Demo exposing (Model, Msg(..), init, main, update, view)
 
 import Bootstrap.Alert as Alert
+import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
 import Bootstrap.CDN as Cdn
 import Bootstrap.Form as Form
@@ -39,6 +40,7 @@ import Url
 
 apiServerUrl : String
 apiServerUrl =
+    --"http://localhost:3800/"
     "https://seonbi.herokuapp.com/"
 
 
@@ -118,6 +120,7 @@ type alias Source =
 type alias Result_ =
     { content : String
     , contentType : ContentType
+    , warnings : List String
     }
 
 
@@ -271,7 +274,12 @@ init _ =
                 }
             , loading = True
             , lastTransformation = Nothing
-            , result = Just { content = "", contentType = Html }
+            , result =
+                Just
+                    { content = ""
+                    , contentType = Html
+                    , warnings = []
+                    }
             , sourceTabState = Tab.initialState
             , resultTabState = Tab.initialState
             , customDictionaryVisibility = Modal.hidden
@@ -441,12 +449,13 @@ transform source =
         ( url_, input ) =
             makeInput source
 
-        mkResult contentType content =
+        mkResult contentType content warnings =
             case parseContentType contentType of
                 Just t ->
                     Just
                         { contentType = t
                         , content = content
+                        , warnings = warnings
                         }
 
                 Nothing ->
@@ -457,10 +466,13 @@ transform source =
         , body = Http.jsonBody input
         , expect =
             Http.expectJson (EndTransform source) <|
-                Json.Decode.map2
+                Json.Decode.map3
                     mkResult
                     (Json.Decode.field "contentType" Json.Decode.string)
-                    (Json.Decode.field "resultHtml" Json.Decode.string)
+                    (Json.Decode.field "content" Json.Decode.string)
+                    (Json.Decode.field "warnings" <|
+                        Json.Decode.list Json.Decode.string
+                    )
         }
 
 
@@ -480,8 +492,8 @@ update msg model =
                         Nothing ->
                             Just
                                 { content = ""
-                                , contentType =
-                                    model.source.contentType
+                                , contentType = model.source.contentType
+                                , warnings = []
                                 }
 
                         r ->
@@ -697,9 +709,21 @@ view model =
             , Grid.col []
                 [ Tab.config ChangeResultTab
                     |> Tab.items
-                        [ viewRenderTab model
-                        , viewCodeTab model
-                        ]
+                        ([ viewRenderTab model
+                         , viewCodeTab model
+                         ]
+                            ++ (case model.result of
+                                    Nothing ->
+                                        []
+
+                                    Just r ->
+                                        if List.isEmpty r.warnings then
+                                            []
+
+                                        else
+                                            [ viewWarningsTab r.warnings ]
+                               )
+                        )
                     |> Tab.view model.resultTabState
                 ]
             ]
@@ -914,6 +938,22 @@ viewCodeTab model =
                         Nothing ->
                             []
                 ]
+        }
+
+
+viewWarningsTab : List String -> Tab.Item Msg
+viewWarningsTab warnings =
+    Tab.item
+        { id = "warnings"
+        , link =
+            Tab.link []
+                [ text "Warnings "
+                , Badge.pillDanger []
+                    [ warnings |> List.length |> String.fromInt |> text ]
+                ]
+        , pane =
+            Tab.pane tabPaneAttrs
+                [ ul [] <| List.map (\s -> li [] [ text s ]) warnings ]
         }
 
 

@@ -178,10 +178,10 @@ export class Seonbi implements Configuration {
   }
 
   /**
-   * Transforms the `sourceHtml`.
+   * Transforms the `content`.
    */
   async transform(
-    sourceHtml: string,
+    content: string,
     options: Preset | Options = { preset: "ko-kr" },
   ): Promise<string> {
     await this.start();
@@ -191,14 +191,19 @@ export class Seonbi implements Configuration {
     };
     const { state: perm } = await Deno.permissions.query(permDesc);
     if (perm !== "granted") await Deno.permissions.request(permDesc);
-    const payload = { sourceHtml, ...options };
+    const payload = { content, ...options };
     const response = await fetch(`http://${this.host}:${this.port}/`, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
       body: new Blob([JSON.stringify(payload)], { type: "application/json" }),
     });
     const result = await response.json();
-    if (result.success && result?.resultHtml != null) return result.resultHtml;
+    if (result.success && result?.content != null) {
+      for (const w of result.warnings) {
+        console.warn(w);
+      }
+      return result.content;
+    }
     throw new Error(result?.message ?? "Unexpected error.");
   }
 
@@ -472,13 +477,13 @@ export class Seonbi implements Configuration {
  * after finished.
  */
 export async function transform(
-  sourceHtml: string,
+  content: string,
   configuration: Configuration = DEFAULT_CONFIGURATION,
   options: Preset | Options = { preset: "ko-kr" },
 ): Promise<string> {
   const i = new Seonbi(configuration);
   try {
-    return await i.transform(sourceHtml, options);
+    return await i.transform(content, options);
   } finally {
     await i.stop();
   }
