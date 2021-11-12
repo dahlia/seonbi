@@ -38,10 +38,19 @@ perform the following transformations:
  -  A hyphen or an equality symbol wrapped by inequality symbols (`<->`, `<=>`)
     into bi-directional arrows (`↔`, `⇔`)
 
-Since its transformations work in HTML-level, it also plays well with web
-markup languages like CommonMark, Markdown, and Textile.  In a similar way to
-SmartyPants, it does not modify characters within several sensitive
-HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
+Each transformations can be partially turned on and off, and some
+transformations have many options.
+
+All transformations work with both plain texts and rich text tree.
+In a similar way to SmartyPants, it does not modify characters within
+several sensitive HTML elements like `<pre>`/`<code>`/`<script>`/`<kbd>`.
+Chinese/Japanese stops or hanzi/kanji characters inside elements with
+`lang="zh"`/`lang="ja"`[^1] are never transformed.
+
+[^1]: Technically, only Korean contents and language-unspecified elements
+      are transformed.  Elements having `lang` attribute with language tags
+      referring to any Korean language are treated as Korean contents,
+      e.g., `ko`, `ko-Hang`, `kor-KP`, `kor-Kore`.
 
 [releases]: https://github.com/dahlia/seonbi/releases
 [releases-badge]: https://img.shields.io/github/v/release/dahlia/seonbi
@@ -148,6 +157,7 @@ The following is an example request:
 
     {
       "preset": "ko-kr",
+      "contentType": "text/html",
       "sourceHtml": "<p>하늘과 바람과 별과 詩</p>"
     }
 
@@ -159,6 +169,7 @@ The HTTP API server would respond like this:
 
     {
       "success": true,
+      "contentType": "text/html",
       "resultHtml": "<p>하늘과 바람과 별과 시</p>"
     }
 

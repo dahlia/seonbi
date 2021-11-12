@@ -37,6 +37,7 @@ instance FromJSON Input where
     parseJSON = withObject "Input" $ \ v -> do
         sourceHtml' <- v .: "sourceHtml"
         preset <- v .:? "preset"
+        contentType' <- v .:? "contentType" .!= "text/html"
         config <- case preset of
             Just locale ->
                 let presets' = presets :: M.Map Text (Configuration IO ())
@@ -51,7 +52,6 @@ instance FromJSON Input where
                             , intercalate ", " (M.keys presets')
                             ]
             Nothing -> do
-                contentType' <- v .:? "contentType" .!= "text/html"
                 quote' <- v .:? "quote"
                 cite' <- v .:? "cite"
                 arrow' <- v .:? "arrow"
@@ -70,7 +70,7 @@ instance FromJSON Input where
                     , stop = stop'
                     , hanja = hanja'
                     }
-        return $ Input sourceHtml' config
+        return $ Input sourceHtml' $ config { contentType = contentType' }
 
 instance FromJSON ContentType where
     parseJSON = withText "ContentType" $ \ t ->
@@ -134,6 +134,8 @@ app AppOptions { allowOrigin, debugDelayMs } request respond =
                     respond' status200 $ object
                         [ "success" .= Bool True
                         , "resultHtml" .= String result
+                        , "contentType" .= String
+                            (contentTypeText $ contentType config)
                         ]
                 Left msg -> respond' status400 $ object
                     [ "success" .= Bool False

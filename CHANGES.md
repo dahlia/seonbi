@@ -33,10 +33,12 @@ To be released.
     The below HTTP APIs changed:
 
      -  Added an optional field `"contentType"` with the default value
-        `"text/html"`.
-     -  Removed `"xhtml"` field in favour of new `"contentType"` field.
+        `"text/html"` to requests.
+     -  Removed `"xhtml"` field in favour of new `"contentType"` field
+        from requests.
         In order to use XHTML mode, configure `"contentType"` field with
         `"application/xhtml+xml"`.
+     -  Added `"contentType"` field to responses.
 
  -  Added `Text.Seonbi.Html.Lang` module.
 

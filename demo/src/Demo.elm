@@ -32,7 +32,7 @@ import Maybe
 import Regex
 import Set
 import String
-import SyntaxHighlight exposing (gitHub, toBlockHtml, useTheme, xml)
+import SyntaxHighlight exposing (gitHub, noLang, toBlockHtml, useTheme, xml)
 import Tuple
 import Url
 
@@ -98,7 +98,7 @@ type alias Model =
     , lastCustomOptions : CustomOptions
     , loading : Bool
     , lastTransformation : Maybe Source
-    , resultHtml : Maybe String
+    , result : Maybe Result_
     , sourceTabState : Tab.State
     , resultTabState : Tab.State
     , customDictionaryVisibility : Modal.Visibility
@@ -115,10 +115,69 @@ type alias Source =
     }
 
 
+type alias Result_ =
+    { content : String
+    , contentType : ContentType
+    }
+
+
 type ContentType
     = Html
     | Xhtml
     | PlainText
+
+
+parseContentType : String -> Maybe ContentType
+parseContentType contentType =
+    [ Html, Xhtml, PlainText ]
+        |> List.filterMap
+            (\t ->
+                if stringifyContentType t == contentType then
+                    Just t
+
+                else
+                    Nothing
+            )
+        |> List.head
+
+
+stringifyContentType : ContentType -> String
+stringifyContentType contentType =
+    case contentType of
+        Html ->
+            "text/html"
+
+        Xhtml ->
+            "application/xhtml+xml"
+
+        PlainText ->
+            "text/plain"
+
+
+contentTypeLabel : ContentType -> String
+contentTypeLabel contentType =
+    case contentType of
+        Html ->
+            "HTML"
+
+        Xhtml ->
+            "XHTML"
+
+        PlainText ->
+            "Plain text"
+
+
+isHtml : ContentType -> Bool
+isHtml t =
+    case t of
+        Html ->
+            True
+
+        Xhtml ->
+            True
+
+        _ ->
+            False
 
 
 type Options
@@ -212,7 +271,7 @@ init _ =
                 }
             , loading = True
             , lastTransformation = Nothing
-            , resultHtml = Just ""
+            , result = Just { content = "", contentType = Html }
             , sourceTabState = Tab.initialState
             , resultTabState = Tab.initialState
             , customDictionaryVisibility = Modal.hidden
@@ -227,7 +286,7 @@ type Msg
     = UpdateSourceText String
     | UpdateSourceHtml String
     | BeginTransform
-    | EndTransform Source (Result Http.Error String)
+    | EndTransform Source (Result Http.Error (Maybe Result_))
     | ChangeSourceTab Tab.State
     | ChangeResultTab Tab.State
     | UpdateContentType ContentType
@@ -242,18 +301,17 @@ makeInput source =
     ( apiServerUrl
     , Json.Encode.object <|
         List.append
-            [ ( "sourceHtml", Json.Encode.string source.html )
-            , ( "contentType"
+            [ ( "sourceHtml"
               , Json.Encode.string <|
-                    case source.contentType of
-                        Html ->
-                            "text/html"
+                    if source.contentType == PlainText then
+                        Maybe.withDefault "" source.text
 
-                        Xhtml ->
-                            "appplication/xhtml+xml"
-
-                        PlainText ->
-                            "text/plain"
+                    else
+                        source.html
+              )
+            , ( "contentType"
+              , stringifyContentType source.contentType
+                    |> Json.Encode.string
               )
             ]
         <|
@@ -382,13 +440,27 @@ transform source =
     let
         ( url_, input ) =
             makeInput source
+
+        mkResult contentType content =
+            case parseContentType contentType of
+                Just t ->
+                    Just
+                        { contentType = t
+                        , content = content
+                        }
+
+                Nothing ->
+                    Nothing
     in
     Http.post
         { url = url_
         , body = Http.jsonBody input
         , expect =
             Http.expectJson (EndTransform source) <|
-                Json.Decode.field "resultHtml" Json.Decode.string
+                Json.Decode.map2
+                    mkResult
+                    (Json.Decode.field "contentType" Json.Decode.string)
+                    (Json.Decode.field "resultHtml" Json.Decode.string)
         }
 
 
@@ -403,10 +475,14 @@ update msg model =
                     , options = model.source.options
                     , contentType = model.source.contentType
                     }
-                , resultHtml =
-                    case model.resultHtml of
+                , result =
+                    case model.result of
                         Nothing ->
-                            Just ""
+                            Just
+                                { content = ""
+                                , contentType =
+                                    model.source.contentType
+                                }
 
                         r ->
                             r
@@ -431,15 +507,15 @@ update msg model =
 
         EndTransform source result ->
             ( case result of
-                Ok resultHtml_ ->
+                Ok (Just result_) ->
                     { model
-                        | resultHtml = Just resultHtml_
+                        | result = Just result_
                         , loading = False
                         , lastTransformation = Just source
                     }
 
                 _ ->
-                    { model | resultHtml = Nothing, loading = False }
+                    { model | result = Nothing, loading = False }
             , Cmd.none
             )
 
@@ -454,7 +530,18 @@ update msg model =
                 source =
                     model.source
             in
-            ( { model | source = { source | contentType = contentType } }
+            ( { model
+                | source = { source | contentType = contentType }
+                , sourceTabState =
+                    if
+                        isHtml source.contentType
+                            && not (isHtml contentType)
+                    then
+                        Tab.initialState
+
+                    else
+                        model.sourceTabState
+              }
             , Cmd.none
             )
 
@@ -594,10 +681,17 @@ view model =
             [ Grid.col []
                 [ Tab.config ChangeSourceTab
                     |> Tab.items
-                        [ viewMarkdownTab model
-                        , viewHtmlTab model
-                        , viewHttpTab model
-                        ]
+                        (if isHtml model.source.contentType then
+                            [ viewMarkdownTab model
+                            , viewHtmlTab model
+                            , viewHttpTab model
+                            ]
+
+                         else
+                            [ viewMarkdownTab model
+                            , viewHttpTab model
+                            ]
+                        )
                     |> Tab.view model.sourceTabState
                 ]
             , Grid.col []
@@ -615,7 +709,7 @@ view model =
             [ Grid.col []
                 [ Button.button
                     [ Button.onClick BeginTransform
-                    , case model.resultHtml of
+                    , case model.result of
                         Just _ ->
                             Button.primary
 
@@ -633,7 +727,7 @@ view model =
                             "(Being transformed…)"
 
                         else
-                            case model.resultHtml of
+                            case model.result of
                                 Just _ ->
                                     "Transform"
 
@@ -659,7 +753,14 @@ viewMarkdownTab model =
     Tab.item
         { id = "commonmark"
         , link =
-            Tab.link [] [ text "Markdown" ]
+            Tab.link []
+                [ text <|
+                    if model.source.contentType == PlainText then
+                        "Text"
+
+                    else
+                        "Markdown"
+                ]
         , pane =
             Tab.pane
                 tabPaneAttrs
@@ -764,18 +865,27 @@ viewRenderTab model =
         , link = Tab.link [] [ text "Render" ]
         , pane =
             Tab.pane tabPaneAttrs <|
-                case model.resultHtml of
-                    Just html ->
-                        case Html.Parser.run html of
-                            Ok nodes ->
-                                Html.Parser.Util.toVirtualDom nodes
+                case model.result of
+                    Just result ->
+                        if result.contentType == PlainText then
+                            nl2br result.content
 
-                            Err _ ->
-                                []
+                        else
+                            case Html.Parser.run result.content of
+                                Ok nodes ->
+                                    Html.Parser.Util.toVirtualDom nodes
+
+                                Err _ ->
+                                    []
 
                     _ ->
                         []
         }
+
+
+nl2br : String -> List (Html Msg)
+nl2br content =
+    List.intersperse (br [] []) <| List.map text <| String.lines content
 
 
 viewCodeTab : Model -> Tab.Item Msg
@@ -786,12 +896,19 @@ viewCodeTab model =
         , pane =
             Tab.pane tabPaneAttrs
                 [ div [] <|
-                    case model.resultHtml of
-                        Just resultHtml ->
+                    case model.result of
+                        Just result ->
                             [ useTheme gitHub
-                            , xml resultHtml
+                            , result.content
+                                |> (case result.contentType of
+                                        PlainText ->
+                                            noLang
+
+                                        _ ->
+                                            xml
+                                   )
                                 |> Result.map (toBlockHtml (Just 1))
-                                |> Result.withDefault (text resultHtml)
+                                |> Result.withDefault (text result.content)
                             ]
 
                         Nothing ->
@@ -1320,32 +1437,20 @@ viewOptions model =
                 [ Select.select
                     [ Select.onChange <|
                         \v ->
-                            UpdateContentType <|
-                                case v of
-                                    "text/html" ->
-                                        Html
-
-                                    "application/xhtml+xml" ->
-                                        Xhtml
-
-                                    _ ->
-                                        PlainText
+                            parseContentType v
+                                |> Maybe.withDefault PlainText
+                                |> UpdateContentType
                     ]
                   <|
-                    [ Select.item
-                        [ value "text/html", selected <| contentType == Html ]
-                        [ text "HTML" ]
-                    , Select.item
-                        [ value "application/xhtml+xml"
-                        , selected <| contentType == Xhtml
-                        ]
-                        [ text "XHTML" ]
-                    , Select.item
-                        [ value "text/plain"
-                        , selected <| contentType == PlainText
-                        ]
-                        [ text "Plain text" ]
-                    ]
+                    List.map
+                        (\t ->
+                            Select.item
+                                [ value <| stringifyContentType t
+                                , selected <| contentType == t
+                                ]
+                                [ text <| contentTypeLabel t ]
+                        )
+                        [ Html, Xhtml, PlainText ]
                 ]
             ]
         ]
