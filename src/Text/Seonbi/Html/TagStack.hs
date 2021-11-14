@@ -7,13 +7,16 @@ module Text.Seonbi.Html.TagStack
     , depth
     , empty
     , fromList
+    , last
     , pop
     , push
     , rebase
     , toList
     ) where
 
-import Data.List
+import Prelude hiding (last)
+
+import Data.List hiding (last)
 import GHC.Exts (IsList (..))
 
 import Text.Seonbi.Html.Tag
@@ -49,6 +52,18 @@ empty = HtmlTagStack []
 -- 4
 depth :: HtmlTagStack -> Int
 depth (HtmlTagStack stack) = Data.List.length stack
+
+-- | Get the deepest tag from a 'HtmlTagStack'.
+--
+-- >>> :set -XOverloadedLists
+-- >>> let stack = [Div, Article, P, Em] :: HtmlTagStack
+-- >>> last stack
+-- Just Em
+-- >>> last []
+-- Nothing
+last :: HtmlTagStack -> Maybe HtmlTag
+last (HtmlTagStack []) = Nothing
+last (HtmlTagStack (tag:_)) = Just tag
 
 -- | Build a new stack from a stack by replacing its bottom with a new base.
 --
@@ -107,7 +122,7 @@ pop tag (HtmlTagStack tags'@(t : ags)) =
                 HtmlTagStack (head' ++ tail')
 pop _ (HtmlTagStack []) = empty
 
--- | Check if a node ('HtmlEntity') that a 'HtmlTagStack' (the first argument) 
+-- | Check if a node ('HtmlEntity') that a 'HtmlTagStack' (the first argument)
 -- refers is contained by a node that another 'HtmlTagStack' (the second
 -- argument), or they are sibling at least.
 --

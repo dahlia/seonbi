@@ -80,6 +80,8 @@ To be released.
      -  `type Rep (Trie a)`
      -  `type Rep1 Trie`
 
+ -  Added `Text.Seonbi.Html.TagStack.last` function.
+
 [#10]: https://github.com/dahlia/seonbi/issues/10
 [#18]: https://github.com/dahlia/seonbi/issues/18
 
