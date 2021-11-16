@@ -27,6 +27,7 @@ import Data.Set
 import Data.Text as ST
 import Data.Text.Lazy as LT
 import Data.Text.Lazy.Builder
+import HTMLEntities.Builder
 import HTMLEntities.Decoder
 
 import Text.Seonbi.Html
@@ -77,17 +78,14 @@ asHtmlTransformer = asHtmlTransformer' False
 asXhtmlTransformer :: (Monad m, MonadFail m) => TransformerTransformer m
 asXhtmlTransformer = asHtmlTransformer' True
 
+-- | Transforms an 'HtmlTransformer' into a 'TextTransformer' which transforms
+-- a plain text.
 asPlainTextTransformer :: (Monad m, MonadFail m) => TransformerTransformer m
 asPlainTextTransformer transformer text' = do
-    let entities = [HtmlCdata TagStack.empty $ LT.toStrict text']
+    let escaped = toLazyText $ HTMLEntities.Builder.text $ LT.toStrict text'
+    let entities = [HtmlText TagStack.empty $ LT.toStrict escaped]
     output <- transformer entities
-    return . LT.concat $
-        [ case e of
-            HtmlCdata _ cdata -> LT.fromStrict cdata
-            HtmlText _ rawText' -> toLazyText $ htmlEncodedText rawText'
-            _ -> LT.empty
-        | e <- output
-        ]
+    return $ printText output
 
 -- | Represents a case-insensitive content type.
 type ContentType = CI ST.Text

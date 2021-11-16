@@ -10,6 +10,7 @@ module Text.Seonbi.Html
       --
       -- | See more on "Text.Seonbi.Html.Printer" module.
     , printHtml
+    , printText
     , printXhtml
     , -- * HTML entities
       --
