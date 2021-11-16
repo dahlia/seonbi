@@ -2,12 +2,16 @@
 module Text.Seonbi.Html.Tag
     ( HtmlTag (..)
     , HtmlTagKind (..)
+    , headingLevel
+    , headingTag
+    , headingTag'
     , htmlTagKind
     , htmlTagName
     , htmlTagNames
     , htmlTags
     ) where
 
+import Data.Maybe
 import Data.Map.Strict
 import Data.Set
 import Data.Text
@@ -206,7 +210,7 @@ htmlTagNames =
         [(htmlTagName t, t) | t <- Data.Set.toList htmlTags]
 
 -- | The kind of an 'HtmlTag'.
--- 
+--
 -- >>> Data.Set.filter ((== EscapableRawText) . htmlTagKind) htmlTags
 -- fromList [TextArea,Title]
 htmlTagKind :: HtmlTag -> HtmlTagKind
@@ -325,3 +329,57 @@ htmlTagKind = \ case
     Var -> Normal
     Video -> Normal
     WBR -> Void
+
+-- | Get the heading level of an 'HtmlTag', if it is a heading tag
+-- ('H1' to 'H6').
+--
+-- >>> headingLevel H1
+-- Just 1
+-- >>> headingLevel H6
+-- Just 6
+-- >>> headingLevel P
+-- Nothing
+headingLevel :: HtmlTag -> Maybe Int
+headingLevel = \ case
+    H1 -> Just 1
+    H2 -> Just 2
+    H3 -> Just 3
+    H4 -> Just 4
+    H5 -> Just 5
+    H6 -> Just 6
+    _ -> Nothing
+
+-- | Get the heading tag with the given heading level.  If the level is
+-- invalid, then 'Nothing' is returned.
+--
+-- >>> headingTag 1
+-- Just H1
+-- >>> headingTag 6
+-- Just H6
+-- >>> headingTag 7
+-- Nothing
+headingTag :: Int -> Maybe HtmlTag
+headingTag = \ case
+    1 -> Just H1
+    2 -> Just H2
+    3 -> Just H3
+    4 -> Just H4
+    5 -> Just H5
+    6 -> Just H6
+    _ -> Nothing
+
+-- | Get the heading tag with the given heading level.  If the level is
+-- greater than 6, then 'H6' is returned.  If the level is less than 1,
+-- then 'H1' is returned.
+--
+-- >>> headingTag' 1
+-- H1
+-- >>> headingTag' 6
+-- H6
+-- >>> headingTag' 0
+-- H1
+-- >>> headingTag' 7
+-- H6
+headingTag' :: Int -> HtmlTag
+headingTag' level =
+    fromMaybe (if level > 6 then H6 else H1) $ headingTag level

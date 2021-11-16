@@ -81,6 +81,9 @@ To be released.
      -  `type Rep1 Trie`
 
  -  Added `Text.Seonbi.Html.Printer.printText` function.
+ -  Added `Text.Seonbi.Html.Tag.headingLevel` function.
+ -  Added `Text.Seonbi.Html.Tag.headingTag` function.
+ -  Added `Text.Seonbi.Html.Tag.headingTag'` function.
  -  Added `Text.Seonbi.Html.TagStack.last` function.
 
 [#10]: https://github.com/dahlia/seonbi/issues/10
