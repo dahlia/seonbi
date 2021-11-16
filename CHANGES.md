@@ -15,6 +15,7 @@ To be released.
      -  `text/html` (previously non-XHTML mode)
      -  `application/xhtml+xml` (previously XHTML mode)
      -  `text/plain` (added)
+     -  `text/markdown` (added)
 
     The below Haskell APIs changed:
 

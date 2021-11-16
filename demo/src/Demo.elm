@@ -27,7 +27,9 @@ import Http
 import Json.Decode
 import Json.Encode
 import List
+import Markdown
 import Markdown.Block
+import Markdown.Config
 import Markdown.HtmlString
 import Maybe
 import Regex
@@ -128,11 +130,12 @@ type ContentType
     = Html
     | Xhtml
     | PlainText
+    | CommonMark
 
 
 parseContentType : String -> Maybe ContentType
 parseContentType contentType =
-    [ Html, Xhtml, PlainText ]
+    [ Html, Xhtml, PlainText, CommonMark ]
         |> List.filterMap
             (\t ->
                 if stringifyContentType t == contentType then
@@ -156,6 +159,9 @@ stringifyContentType contentType =
         PlainText ->
             "text/plain"
 
+        CommonMark ->
+            "text/markdown"
+
 
 contentTypeLabel : ContentType -> String
 contentTypeLabel contentType =
@@ -168,6 +174,9 @@ contentTypeLabel contentType =
 
         PlainText ->
             "Plain text"
+
+        CommonMark ->
+            "Markdown"
 
 
 isHtml : ContentType -> Bool
@@ -309,13 +318,13 @@ makeInput source =
     ( apiServerUrl
     , Json.Encode.object <|
         List.append
-            [ ( "sourceHtml"
+            [ ( "content"
               , Json.Encode.string <|
-                    if source.contentType == PlainText then
-                        Maybe.withDefault "" source.text
+                    if isHtml source.contentType then
+                        source.html
 
                     else
-                        source.html
+                        Maybe.withDefault "" source.text
               )
             , ( "contentType"
               , stringifyContentType source.contentType
@@ -891,16 +900,20 @@ viewRenderTab model =
             Tab.pane tabPaneAttrs <|
                 case model.result of
                     Just result ->
-                        if result.contentType == PlainText then
-                            nl2br result.content
+                        case result.contentType of
+                            PlainText ->
+                                nl2br result.content
 
-                        else
-                            case Html.Parser.run result.content of
-                                Ok nodes ->
-                                    Html.Parser.Util.toVirtualDom nodes
+                            CommonMark ->
+                                Markdown.toHtml markdownOptions result.content
 
-                                Err _ ->
-                                    []
+                            _ ->
+                                case Html.Parser.run result.content of
+                                    Ok nodes ->
+                                        Html.Parser.Util.toVirtualDom nodes
+
+                                    Err _ ->
+                                        []
 
                     _ ->
                         []
@@ -926,6 +939,9 @@ viewCodeTab model =
                             , result.content
                                 |> (case result.contentType of
                                         PlainText ->
+                                            noLang
+
+                                        CommonMark ->
                                             noLang
 
                                         _ ->
@@ -957,9 +973,18 @@ viewWarningsTab warnings =
         }
 
 
+markdownOptions : Maybe Markdown.Config.Options
+markdownOptions =
+    let
+        defaultOptions =
+            Markdown.Config.defaultOptions
+    in
+    Just { defaultOptions | rawHtml = Markdown.Config.ParseUnsafe }
+
+
 renderMarkdown : String -> String
 renderMarkdown =
-    Markdown.Block.parse Nothing
+    Markdown.Block.parse markdownOptions
         >> Markdown.HtmlString.render
 
 
@@ -1490,7 +1515,7 @@ viewOptions model =
                                 ]
                                 [ text <| contentTypeLabel t ]
                         )
-                        [ Html, Xhtml, PlainText ]
+                        [ Html, Xhtml, PlainText, CommonMark ]
                 ]
             ]
         ]

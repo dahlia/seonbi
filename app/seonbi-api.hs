@@ -291,5 +291,6 @@ main = do
     let netloc = showHostPreference (getHost serverSettings') ++ ":" ++
             show (getPort serverSettings')
     let url = "http://" ++ netloc ++ "/"
+    hPutStrLn stderr $ "seonbi-api v" ++ showVersion Meta.version
     hPutStrLn stderr url
     runSettings serverSettings' $ app appOptions

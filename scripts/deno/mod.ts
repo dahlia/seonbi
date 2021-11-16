@@ -38,7 +38,8 @@ export type Dictionary = "kr-stdict";
 export type ContentType =
   | "text/html"
   | "application/xhtml+xml"
-  | "plain/text";
+  | "text/plain"
+  | "text/markdown";
 
 /**
  * Options for transformation.
