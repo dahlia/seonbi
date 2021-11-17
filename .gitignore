@@ -6,4 +6,4 @@ dist-newstyle/
 out/
 seonbi.iml
 src/Text/Seonbi/kHangul.txt
-stack.yaml.lock
+stack*.yaml.lock

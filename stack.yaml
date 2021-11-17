@@ -1,15 +1,1 @@
-# The resolve and some configurations are adjusted during the workflow in
-# GitHub Actions.  See also .github/workflows/build.yaml script.
-resolver: lts-16.31
-packages:
-- .
-extra-deps:
-- bytestring-trie-0.2.5.0
-- html-charset-0.1.0
-flags:
-  seonbi:
-    iconv: true
-allow-newer: false  # should be turned on where resolver is lts-18.* or later
-ghc-options:
-  "$locals": -fhide-source-paths
-require-stack-version: ">=2.7.0"
+stack-ghc-8.8.yaml

@@ -268,8 +268,7 @@ asCommonMarkTransformer transformer input = do
     attr' :: Show a => ST.Text -> a -> ST.Text
     attr' name = ST.cons ' ' . attr name
     posAttr :: Maybe PosInfo -> ST.Text
-    posAttr info =
-        attr "posinfo" info
+    posAttr = attr "posinfo"
     getRawAttr :: HtmlRawAttrs -> ST.Text -> Maybe ST.Text
     getRawAttr attrs name =
         case ST.breakOn prefix attrs of

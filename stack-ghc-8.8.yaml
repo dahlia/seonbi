@@ -1,0 +1,13 @@
+resolver: lts-16.31
+packages:
+- .
+extra-deps:
+- bytestring-trie-0.2.5.0
+- html-charset-0.1.0
+flags:
+  seonbi:
+    iconv: true
+allow-newer: false
+ghc-options:
+  "$locals": -fhide-source-paths
+require-stack-version: ">=2.7.0"
