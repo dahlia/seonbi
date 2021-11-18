@@ -337,10 +337,10 @@ jobs:
         curl -L -o "$HOME/bin/submark" \
           https://github.com/dahlia/submark/releases/download/0.2.0/submark-linux-x86_64
         chmod +x "$HOME/bin/submark"
-        curl -L -o /tmp/github-release.tar.bz2 \
-          https://github.com/aktau/github-release/releases/download/v0.7.2/linux-amd64-github-release.tar.bz2
-        tar xvfj /tmp/github-release.tar.bz2 -C /tmp
-        mv /tmp/bin/linux/amd64/github-release $HOME/bin
+        curl -L -o $HOME/bin/github-release.bz2 \
+          https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2
+        bzip2 -d $HOME/bin/github-release.bz2
+        chmod +x $HOME/bin/github-release
 
         version="${GITHUB_REF:10}"
         github_user="${GITHUB_REPOSITORY%/*}"
