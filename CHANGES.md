@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.0
 -------------
 
-To be released.
+Released November 18, 2021.
 
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
@@ -21,30 +21,30 @@ To be released.
 
      -  Added `Text.Seonbi.ContentTypes` module.
      -  Added `contentType` field for `Configuration m a`.
-     -  Removed `xhtml` field for `Configuration m a` in favour of
+     -  Removed `xhtml` field for `Configuration m a` in favor of
         new `contentType` field for the same type.
 
     The below CLI options changed:
 
      -  Added `-t`/`--content-type` option with the default value `text/html`.
-     -  Removed Removed `-x`/`--xhtml` option in favour of new
+     -  Removed Removed `-x`/`--xhtml` option in favor of new
         `-t`/`--content-type` option.  In order to use XHTML mode, give it
         `-t application/xhtml+xml` option.
 
     The below HTTP APIs changed:
 
      -  Added a mandatory field `"content"` to requests.
-     -  Deprecated the `"sourceHtml"` field of requests in favour of the new
+     -  Deprecated the `"sourceHtml"` field of requests in favor of the new
         `"content"` field.
      -  Added an optional field `"contentType"` with the default value
         `"text/html"` to requests.
-     -  Deprecated the `"xhtml"` field of requests in favour of the new
+     -  Deprecated the `"xhtml"` field of requests in favor of the new
         `"contentType"` field.  The legacy field will be gone in the next
         minor release.
         In order to use XHTML mode, configure `"contentType"` field with
         `"application/xhtml+xml"`.
      -  Added `"content"` field to responses.
-     -  Deprecated the `"resultHtml"` field of responses in favour of the new
+     -  Deprecated the `"resultHtml"` field of responses in favor of the new
         `"content"` field.  The legacy field is not provided for non-HTML
         types, and will be gone in the next minor release.
      -  Added `"contentType"` field to responses.
