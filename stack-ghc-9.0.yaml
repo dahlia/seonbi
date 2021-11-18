@@ -8,6 +8,8 @@ extra-deps:
 flags:
   seonbi:
     iconv: true
+  mintty:
+    Win32-2-13-1: false  # https://github.com/RyanGlScott/mintty/issues/4
 allow-newer: true
 ghc-options:
   "$locals": -fhide-source-paths
