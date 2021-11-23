@@ -263,6 +263,7 @@ jobs:
     - image
     runs-on: ubuntu-20.04
     steps:
+    - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
       with:
         name: binaries-macos-10.15-ghc-8.8
@@ -280,6 +281,7 @@ jobs:
         name: image-metadata
         path: /tmp/image-metadata
     - run: |
+        workspace="${{ github.workspace }}"
         mkdir -p /tmp/dists
         # Linux
         pushd /tmp/images
@@ -294,15 +296,18 @@ jobs:
           > /tmp/binaries-linux/seonbi-api
         pushd /tmp/binaries-linux
         chmod +x *
+        cp "$workspace/"{LICENSE,README.md,CHANGES.md} ./
         tar cvfj /tmp/dists/seonbi.linux-x86_64.tar.bz2 *
         popd
         # macOS
         pushd /tmp/binaries-macos
         chmod +x *
+        cp "$workspace/"{LICENSE,README.md,CHANGES.md} ./
         tar cvfj /tmp/dists/seonbi.macos-x86_64.tar.bz2 *
         popd
         # Windows
         pushd /tmp/binaries-windows
+        cp "$workspace/"{LICENSE,README.md,CHANGES.md} ./
         zip /tmp/dists/seonbi.win64.zip *
         popd
     - uses: actions/upload-artifact@v2
