@@ -6,6 +6,8 @@ Version 0.3.1
 
 To be released.
 
+ -  Added prebuilt executable binaries for Apple Silicon (macos-arm64).
+
 
 Version 0.3.0
 -------------

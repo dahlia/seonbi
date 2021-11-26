@@ -128,27 +128,52 @@ export const DEFAULT_CONFIGURATION: Configuration = {
   process: "download",
 };
 
-const STABLE_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
-  "linux":
-    "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.linux-x86_64.tar.bz2",
-  "darwin":
-    "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.macos-x86_64.tar.bz2",
-  "windows":
-    "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.win64.zip",
+/** Table of download URLs for platforms. */
+export type DownloadUrls = Record<
+  typeof Deno.build.os,
+  Record<typeof Deno.build.arch, string | undefined> | undefined
+>;
+
+const STABLE_DOWNLOAD_URLS: DownloadUrls = {
+  linux: {
+    x86_64:
+      "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.linux-x86_64.tar.bz2",
+    aarch64: undefined,
+  },
+  darwin: {
+    x86_64:
+      "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.macos-x86_64.tar.bz2",
+    aarch64:
+      "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.macos-arm64.tar.bz2",
+  },
+  windows: {
+    x86_64:
+      "https://github.com/dahlia/seonbi/releases/download/0.3.1/seonbi-0.3.1.win64.zip",
+    aarch64: undefined,
+  },
 } as const;
 
-const NIGHTLY_DOWNLOAD_URLS: Record<typeof Deno.build.os, string> = {
-  "linux":
-    "https://dahlia.github.io/seonbi/dists/latest/seonbi.linux-x86_64.tar.bz2",
-  "darwin":
-    "https://dahlia.github.io/seonbi/dists/latest/seonbi.macos-x86_64.tar.bz2",
-  "windows": "https://dahlia.github.io/seonbi/dists/latest/seonbi.win64.zip",
+const NIGHTLY_DOWNLOAD_URLS: DownloadUrls = {
+  linux: {
+    x86_64:
+      "https://dahlia.github.io/seonbi/dists/latest/seonbi.linux-x86_64.tar.bz2",
+    aarch64: undefined,
+  },
+  darwin: {
+    x86_64:
+      "https://dahlia.github.io/seonbi/dists/latest/seonbi.macos-x86_64.tar.bz2",
+    aarch64: undefined,
+  },
+  windows: {
+    x86_64: "https://dahlia.github.io/seonbi/dists/latest/seonbi.win64.zip",
+    aarch64: undefined,
+  },
 } as const;
 
 /** The type of distribution to download. */
 type DistType = "stable" | "nightly";
 
-const DOWNLOAD_URLS: Record<DistType, Record<typeof Deno.build.os, string>> = {
+const DOWNLOAD_URLS: Record<DistType, DownloadUrls> = {
   "stable": STABLE_DOWNLOAD_URLS,
   "nightly": NIGHTLY_DOWNLOAD_URLS,
 };
@@ -307,7 +332,31 @@ export class Seonbi implements Configuration {
   }
 
   async #downloadDist(distType: DistType): Promise<string> {
-    const downloadUrl = DOWNLOAD_URLS[distType][Deno.build.os];
+    const downloadUrls = DOWNLOAD_URLS[distType];
+    const archs = downloadUrls[Deno.build.os];
+    if (archs == null) {
+      throw new Error(
+        `Unsupported OS: ${Deno.build.os}; available OSes: ${
+          Object.keys(downloadUrls).filter((k) =>
+            downloadUrls[k as typeof Deno.build.os] != null
+          ).join(
+            ", ",
+          )
+        }.`,
+      );
+    }
+    const downloadUrl = archs[Deno.build.arch];
+    if (downloadUrl == null) {
+      throw new Error(
+        `Unsupported architecture: ${Deno.build.arch}; ` +
+          `available architectures: ${
+            Object.keys(archs).filter((k) =>
+              archs[k as typeof Deno.build.arch] != null
+            )
+              .join(", ")
+          }.`,
+      );
+    }
     const url = new URL(downloadUrl);
     const suffix = url.pathname.substr(url.pathname.lastIndexOf("/") + 1);
     const tmpDirEnv = Deno.build.os === "windows" ? "TEMP" : "TMPDIR";
