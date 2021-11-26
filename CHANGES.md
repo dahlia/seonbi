@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.1
 -------------
 
-To be released.
+Released on November 27, 2021.
 
  -  Added prebuilt executable binaries for Apple Silicon (macos-arm64).
 
@@ -12,7 +12,7 @@ To be released.
 Version 0.3.0
 -------------
 
-Released November 18, 2021.
+Released on November 18, 2021.
 
  -  Since this version, it requires GHC 8.8.* at least, and supports GHC 9.0.*
     at most.
