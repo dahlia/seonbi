@@ -97,6 +97,9 @@ Installation
 
 Seonbi provides official executable binaries for Linux (x86_64), macOS,
 and Windows (64-bit).  You can download them from the [releases] page.
+[Bina] is the most convenient way to install it if you don't mind:
+
+    curl -fsSL https://bina.egoist.sh/dahlia/seonbi | sh
 
 It is also distributed as a [Docker image][dockerhub]:
 
@@ -105,6 +108,8 @@ It is also distributed as a [Docker image][dockerhub]:
 
 If you want to use it as a Haskell library install the [seonbi][hackage] package
 using Stack or Cabal.
+
+[Bina]: https://bina.egoist.sh/
 
 
 CLI
