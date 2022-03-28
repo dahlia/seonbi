@@ -459,13 +459,15 @@ transformArrow options input = (`fmap` normalizeText input) $ \ case
     e ->
         e
   where
+    elem' :: (Eq a, Foldable t) => a -> t a -> Bool
+    elem' = Prelude.elem
     replaceText :: Text -> Text
     replaceText txt =
         case parseOnly parser txt of
             Left _ -> error "unexpected error: failed to parse text node"
             Right t -> t
     specialChars :: Set Char
-    specialChars = if DoubleArrow `elem` options
+    specialChars = if DoubleArrow `elem'` options
        then ['<', '>', '&', '-', '=']
        else ['<', '>', '&', '-']
     parser :: Parser Text
@@ -479,12 +481,12 @@ transformArrow options input = (`fmap` normalizeText input) $ \ case
         return $ Data.Text.concat chunks
     arrows :: [Parser Text]
     arrows = catMaybes
-        [ if DoubleArrow `elem` options && LeftRight `elem` options
+        [ if DoubleArrow `elem'` options && LeftRight `elem'` options
              then Just doubleLeftRight
              else Nothing
-        , if DoubleArrow `elem` options then Just doubleLeft else Nothing
-        , if DoubleArrow `elem` options then Just doubleRight else Nothing
-        , if LeftRight `elem` options then Just leftRight else Nothing
+        , if DoubleArrow `elem'` options then Just doubleLeft else Nothing
+        , if DoubleArrow `elem'` options then Just doubleRight else Nothing
+        , if LeftRight `elem'` options then Just leftRight else Nothing
         , Just left
         , Just right
         ]
@@ -832,7 +834,8 @@ transformEmDash = transformText $ \ txt ->
     parser = do
         chunks <- many' $ choice
             [ takeWhile1 $ \ c ->
-                not (isSpace c || c `elem` (['&', '-', '\x3161'] :: Set Char))
+                not (isSpace c) &&
+                c `notElem` (['&', '-', '\x3161'] :: Set Char)
             , emDash
             , Data.Text.singleton <$> anyChar
             ]

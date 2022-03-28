@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
@@ -14,6 +15,9 @@ import GHC.Exts (IsList (..))
 import System.IO
 
 import Data.Aeson
+#if MIN_VERSION_aeson(2,0,0)
+import qualified Data.Aeson.Key
+#endif
 import qualified Data.Aeson.Types
 import qualified Data.ByteString as B
 import qualified Data.Map.Strict as M
@@ -129,7 +133,11 @@ instance FromJSON HanjaReadingOption where
         let wordPairs = GHC.Exts.toList (wordMap :: Object)
         dictionary <- forM wordPairs $ \ (key, val) -> do
             val' <- withText "Hangul string" return val
+#if MIN_VERSION_aeson(2,0,0)
+            return (Data.Aeson.Key.toText key, val')
+#else
             return (key, val')
+#endif
         let customDict = Trie.fromList dictionary
         dictIds <- v .:? "useDictionaries" .!= []
         useDictionaries <- forM (dictIds :: Array) $
