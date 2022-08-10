@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.2
 -------------
 
-To be released.
+Released on August 11, 2022.
 
  -  HTTP API now allows any headers from cross-origin.  (Previously, it allowed
     only `Content-Type`.)
