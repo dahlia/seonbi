@@ -176,13 +176,13 @@ jobs:
             startsWith(matrix.os, 'windows-') && '.exe' || ''
           }}
         SEONBI_API_PORT: ${{ startsWith(matrix.os, 'macos-') && 8800 || 3800 }}
+        DENO_JOBS: 1
       run: >-
         deno test
         --allow-env=SEONBI_API,SEONBI_API_PORT
         --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }}
         --allow-run
         --unstable
-        --jobs=1
     - name: Test (auto install)
       working-directory: scripts/deno/
       env:
