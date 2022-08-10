@@ -205,7 +205,8 @@ app AppOptions { allowOrigin, debugDelayMs } request respond =
     headers :: [Header]
     headers = headerAdder
         [ ("Content-Type", "application/json")
-        , ("Access-Control-Allow-Headers", "content-type")
+        , ("Access-Control-Allow-Headers", "*")
+        , ("Vary", "origin")
         ]
     headerAdder :: [Header] -> [Header]
     headerAdder = case allowOrigin of

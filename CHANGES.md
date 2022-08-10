@@ -7,6 +7,17 @@ Version 0.4.0
 To be released.
 
 
+Version 0.3.2
+-------------
+
+Released on August 11, 2022.
+
+ -  HTTP API now allows any headers from cross-origin.  (Previously, it allowed
+    only `Content-Type`.)
+ -  HTTP API now respond with header `Vary: Origin` for more accurate cache
+    control.
+
+
 Version 0.3.1
 -------------
 
