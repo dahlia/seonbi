@@ -7,12 +7,12 @@ LABEL "org.opencontainers.image.title"="Seonbi"
 LABEL "org.opencontainers.image.licenses"="LGPL-2.1"
 
 RUN apk add --no-cache \
-  build-base=0.5-r2 \
+  build-base=0.5-r3 \
   bzip2-dev=1.0.8-r1 \
   ghc=8.8.4-r1 \
   libbz2=1.0.8-r1 \
-  zlib-dev=1.2.11-r3 \
-  zlib-static=1.2.11-r3
+  zlib-dev=1.2.12-r3 \
+  zlib-static=1.2.12-r3
 RUN wget -qO- https://get.haskellstack.org/ | sh
 
 RUN stack config set system-ghc --global true
