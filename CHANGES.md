@@ -6,6 +6,11 @@ Version 0.3.2
 
 To be released.
 
+ -  HTTP API now allows header `Cache-Control` besides `Content-Type` from
+    cross-origin.
+ -  HTTP API now respond with header `Vary: Origin` for more accurate cache
+    control.
+
 
 Version 0.3.1
 -------------
