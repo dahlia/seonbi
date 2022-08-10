@@ -256,6 +256,19 @@ jobs:
         name: image-metadata
         path: /tmp/image-metadata
 
+  fly:
+    name: Deploy seonbi-api to Fly.io
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+    - image
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: superfly/flyctl-actions/setup-flyctl@master
+    - run: flyctl deploy --remote-only
+
   binaries:
     name: Package executable binaries
     needs:

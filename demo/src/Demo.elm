@@ -43,7 +43,8 @@ import Url
 apiServerUrl : String
 apiServerUrl =
     --"http://localhost:3800/"
-    "https://seonbi.herokuapp.com/"
+    --"https://seonbi.herokuapp.com/"
+    "https://seonbi.fly.dev/"
 
 
 initialContent : String
