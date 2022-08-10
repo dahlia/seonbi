@@ -12,6 +12,7 @@ flags:
     Win32-2-13-1: false  # https://github.com/RyanGlScott/mintty/issues/4
 allow-newer: true
 ghc-options:
+  "$everything": -haddock
   "$locals": -fhide-source-paths
 extra-include-dirs:
 - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi

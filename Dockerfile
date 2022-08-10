@@ -20,10 +20,6 @@ RUN stack config set system-ghc --global true
 # Add just the package.yaml file to capture dependencies
 COPY package.yaml /src/seonbi/package.yaml
 COPY stack-ghc-8.8.yaml /src/seonbi/stack.yaml
-RUN sed 's/^resolver: .*$/resolver: lts-16.31/' /src/seonbi/stack.yaml \
-  | sed 's/^ghc-options:$/\0\n  "*": -j1/' \
-  > /tmp/stack.yaml
-RUN cp /tmp/stack.yaml /src/seonbi/stack.yaml
 
 WORKDIR /src/seonbi
 
@@ -37,7 +33,7 @@ RUN stack build \
   --flag seonbi:static
 
 COPY . /src/seonbi
-RUN cp /tmp/stack.yaml /src/seonbi/stack.yaml
+RUN cp /src/seonbi/stack-ghc-8.8.yaml /src/seonbi/stack.yaml
 
 RUN stack build \
   --flag seonbi:iconv \

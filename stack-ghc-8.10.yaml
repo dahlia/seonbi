@@ -9,5 +9,6 @@ flags:
     iconv: true
 allow-newer: true
 ghc-options:
+  "$everything": -haddock
   "$locals": -fhide-source-paths
 require-stack-version: ">=2.7.0"
