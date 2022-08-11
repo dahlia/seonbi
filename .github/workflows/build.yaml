@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        os: [ubuntu-22.04, macos-11, windows-2022]
         ghc-version:
         - "8.8"
         - "8.10"
@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        os: [ubuntu-22.04, macos-11, windows-2022]
     steps:
     - uses: actions/checkout@v2
     - uses: denoland/setup-deno@v1
@@ -199,7 +199,7 @@ jobs:
 
   image:
     name: Docker image
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
     - run: |
@@ -274,16 +274,16 @@ jobs:
     needs:
     - build
     - image
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
       with:
-        name: binaries-macos-10.15-ghc-8.8
+        name: binaries-macos-11-ghc-8.8
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v2
       with:
-        name: binaries-windows-2019-ghc-8.8
+        name: binaries-windows-2022-ghc-8.8
         path: /tmp/binaries-windows
     - uses: actions/download-artifact@v2
       with:
@@ -336,12 +336,12 @@ jobs:
     if: >-
       github.event_name != 'pull_request' &&
       startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
       with:
-        name: sdist-ubuntu-20.04-ghc-8.8
+        name: sdist-ubuntu-22.04-ghc-8.8
         path: /tmp/sdist
     - uses: actions/download-artifact@v2
       with:
@@ -410,7 +410,7 @@ jobs:
     if: >-
       github.event_name != 'pull_request' &&
       github.ref == 'refs/heads/main'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
