@@ -6,6 +6,10 @@ Version 0.4.0
 
 To be released.
 
+ -  Deno module became possible to use an already deployed Seonbi API server
+    instead of spawning a local API server.  The `new Seonbi()` constructor
+    now takes `{ apiUrl: string }` besides existing configuration forms.
+
 
 Version 0.3.2
 -------------

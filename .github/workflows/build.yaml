@@ -179,7 +179,8 @@ jobs:
         DENO_JOBS: 1
       run: >-
         deno test
-        --allow-env=SEONBI_API,SEONBI_API_PORT
+        --check
+        --allow-env=SEONBI_API,SEONBI_API_PORT,SEONBI_API_URL
         --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }}
         --allow-run
         --unstable
@@ -187,15 +188,33 @@ jobs:
       working-directory: scripts/deno/
       env:
         SEONBI_API_PORT: ${{ startsWith(matrix.os, 'macos-') && 8800 || 3800 }}
+        DENO_JOBS: 1
       run: >-
         deno test
-        --allow-env=SEONBI_API,SEONBI_API_PORT,TMPDIR,TEMP
+        --check
+        --allow-env=SEONBI_API,SEONBI_API_PORT,SEONBI_API_URL,TMPDIR,TEMP
         --allow-read
         --allow-write
         --allow-net=127.0.0.1:${{ env.SEONBI_API_PORT }},github.com,github-releases.githubusercontent.com,dahlia.github.io,hongminhee.org
         --allow-run
         --unstable
-        --jobs=1
+    - name: Test (hosted server)
+      working-directory: scripts/deno/
+      env:
+        SEONBI_API_URL: https://seonbi.fly.dev/
+        SEONBI_API: >-
+          ${{ runner.temp }}/bin/seonbi-api${{
+            startsWith(matrix.os, 'windows-') && '.exe' || ''
+          }}
+        SEONBI_API_PORT: ${{ startsWith(matrix.os, 'macos-') && 8800 || 3800 }}
+        DENO_JOBS: 1
+      run: >-
+        deno test
+        --check
+        --allow-env=SEONBI_API,SEONBI_API_PORT
+        --allow-net=seonbi.fly.dev,127.0.0.1:${{ env.SEONBI_API_PORT }}
+        --allow-run
+        --unstable
 
   image:
     name: Docker image

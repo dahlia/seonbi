@@ -98,7 +98,7 @@ export interface Options {
 /**
  * Configuration for spawning and communicating with a Seonbi API server.
  */
-export interface Configuration {
+export type Configuration = {
   /** The port number to communicate in. */
   port: number;
   /**
@@ -120,7 +120,10 @@ export interface Configuration {
     | { binPath: string }
     | { distType: DistType }
     | { downloadPath: string; distType?: DistType };
-}
+} | {
+  /** The seonbi HTTP API server to use, which is already deployed. */
+  apiUrl: string | URL;
+};
 
 /** The default configuration. */
 export const DEFAULT_CONFIGURATION: Configuration = {
@@ -181,21 +184,31 @@ const DOWNLOAD_URLS: Record<DistType, DownloadUrls> = {
 /**
  * The object to run and manage a Seonbi API server and communicate with it.
  */
-export class Seonbi implements Configuration {
-  readonly host: string;
-  readonly port: number;
-  readonly process:
-    | "download"
-    | "started"
-    | { binPath: string }
-    | { distType: DistType }
-    | { downloadPath: string; distType?: DistType };
+export class Seonbi {
+  readonly apiUrl: URL;
+  readonly localServer?: {
+    readonly port?: number;
+    readonly process:
+      | "download"
+      | "started"
+      | { binPath: string }
+      | { distType: DistType }
+      | { downloadPath: string; distType?: DistType };
+  };
   #proc?: Deno.Process;
 
   constructor(configuration: Configuration = DEFAULT_CONFIGURATION) {
-    this.host = "127.0.0.1";
-    this.port = configuration.port;
-    this.process = configuration.process;
+    if ("apiUrl" in configuration) {
+      this.apiUrl = typeof configuration.apiUrl == "string"
+        ? new URL(configuration.apiUrl)
+        : configuration.apiUrl;
+    } else {
+      this.apiUrl = new URL(`http://127.0.0.1:${configuration.port}`);
+      this.localServer = {
+        port: configuration.port,
+        process: configuration.process,
+      };
+    }
   }
 
   /** Whether it the API server is running. */
@@ -213,12 +226,12 @@ export class Seonbi implements Configuration {
     await this.start();
     const permDesc: Deno.PermissionDescriptor = {
       name: "net",
-      host: `${this.host}:${this.port}`,
+      host: this.apiUrl.host,
     };
     const { state: perm } = await Deno.permissions.query(permDesc);
     if (perm !== "granted") await Deno.permissions.request(permDesc);
     const payload = { content, ...options };
-    const response = await fetch(`http://${this.host}:${this.port}/`, {
+    const response = await fetch(this.apiUrl, {
       method: "POST",
       headers: new Headers({ "Content-Type": "application/json" }),
       body: new Blob([JSON.stringify(payload)], { type: "application/json" }),
@@ -255,15 +268,21 @@ export class Seonbi implements Configuration {
 
   /** Starts the API server in background. */
   async start(): Promise<void> {
-    if (this.running || this.process === "started") return;
+    const localServer = this.localServer;
+    if (
+      this.running || localServer == null || localServer.process === "started"
+    ) {
+      return;
+    }
     const permDesc: Deno.PermissionDescriptor = { name: "run" };
     const { state: perm } = await Deno.permissions.query(permDesc);
     if (perm !== "granted") await Deno.permissions.request(permDesc);
     let binPath: string;
     if (
-      this.process === "download" ||
-      typeof this.process == "object" &&
-        ("distType" in this.process || "downloadPath" in this.process)
+      localServer.process === "download" ||
+      typeof localServer.process == "object" &&
+        ("distType" in localServer.process ||
+          "downloadPath" in localServer.process)
     ) {
       let exists = false;
       let cachedPath;
@@ -282,22 +301,25 @@ export class Seonbi implements Configuration {
       }
       if (cachedPath != null && exists) binPath = cachedPath;
       else {
-        const distType: DistType =
-          typeof this.process == "object" && "distType" in this.process &&
-            this.process.distType != null
-            ? this.process.distType
-            : "stable";
+        const distType: DistType = typeof localServer.process == "object" &&
+            "distType" in localServer.process &&
+            localServer.process.distType != null
+          ? localServer.process.distType
+          : "stable";
         binPath = await this.#install(distType);
-        if (typeof this.process == "object" && "downloadPath" in this.process) {
-          await Deno.copyFile(binPath, this.process.downloadPath);
-          binPath = this.process.downloadPath;
+        if (
+          typeof localServer.process == "object" &&
+          "downloadPath" in localServer.process
+        ) {
+          await Deno.copyFile(binPath, localServer.process.downloadPath);
+          binPath = localServer.process.downloadPath;
         }
         this.#setCache("seonbi_api_path", binPath);
       }
     } else {
-      binPath = this.process.binPath;
+      binPath = localServer.process.binPath;
     }
-    const cmd = [binPath, `--host=${this.host}`, `--port=${this.port}`];
+    const cmd = [binPath, `--host=127.0.0.1`, `--port=${localServer.port}`];
     try {
       this.#proc = Deno.run({
         cmd,
@@ -315,7 +337,13 @@ export class Seonbi implements Configuration {
    * Stops the running server process if it is.
    */
   async stop(): Promise<void> {
-    if (this.#proc == null || this.process === "started") return;
+    const localServer = this.localServer;
+    if (
+      this.#proc == null || localServer == null ||
+      localServer.process === "started"
+    ) {
+      return;
+    }
     const pid = this.#proc.pid;
     if (Deno.build.os == "windows") {
       // As of Deno 1.14.0, Process<T>.kill() does not support Windows:
@@ -358,7 +386,7 @@ export class Seonbi implements Configuration {
       );
     }
     const url = new URL(downloadUrl);
-    const suffix = url.pathname.substr(url.pathname.lastIndexOf("/") + 1);
+    const suffix = url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
     const tmpDirEnv = Deno.build.os === "windows" ? "TEMP" : "TMPDIR";
     let permDesc: Deno.PermissionDescriptor = {
       name: "env",

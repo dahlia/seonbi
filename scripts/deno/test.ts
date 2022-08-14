@@ -37,21 +37,30 @@ const customDict: Options = {
   },
 };
 
-const config: Configuration = {
+let config: Configuration = {
   ...DEFAULT_CONFIGURATION,
   process: { distType: "nightly" },
 };
 
 try {
   const binPath = Deno.env.get("SEONBI_API");
-  if (binPath != null) config.process = { binPath };
+  if (binPath != null && "process" in config) config.process = { binPath };
 } catch (e) {
   if (!(e instanceof Deno.errors.PermissionDenied)) throw e;
 }
 
 try {
   const port = Deno.env.get("SEONBI_API_PORT");
-  if (port != null && port.match(/^[0-9]+$/)) config.port = parseInt(port);
+  if (port != null && port.match(/^[0-9]+$/) && "process" in config) {
+    config.port = parseInt(port);
+  }
+} catch (e) {
+  if (!(e instanceof Deno.errors.PermissionDenied)) throw e;
+}
+
+try {
+  const apiUrl = Deno.env.get("SEONBI_API_URL");
+  if (apiUrl != null) config = { apiUrl };
 } catch (e) {
   if (!(e instanceof Deno.errors.PermissionDenied)) throw e;
 }
@@ -67,16 +76,18 @@ Deno.test("Seonbi#start()", async () => {
   try {
     for (let i = 0; i < 5; i++) {
       try {
-        const response = await fetch(`http://${seonbi.host}:${seonbi.port}/`);
+        const response = await fetch(seonbi.apiUrl);
         assertEquals(
           { message: "Unsupported method: GET", success: false },
           await response.json(),
         );
         break;
       } catch (e) {
-        if (!(e instanceof TypeError) ||
-            e.message.indexOf("os error 61") < 0 &&
-            e.message.indexOf("os error 111") < 0) {
+        if (
+          !(e instanceof TypeError) ||
+          e.message.indexOf("os error 61") < 0 &&
+            e.message.indexOf("os error 111") < 0
+        ) {
           throw e;
         }
 
