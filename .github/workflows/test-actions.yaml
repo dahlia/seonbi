@@ -1,0 +1,53 @@
+name: test-actions
+on:
+  push: []
+  schedule:
+  - cron: 59 14 * * *
+  pull_request: []
+
+jobs:
+  test-setup-seonbi:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-18.04
+        - ubuntu-20.04
+        - macos-10.15
+        - macos-11
+        - windows-2019
+        - windows-2022
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    # Test 1
+    - id: setup1
+      uses: ./setup
+      with:
+        seonbi-version: 0.3.*
+        add-to-path: false
+    - run: |
+        set -e
+        [[ "${{ steps.setup1.outputs.seonbi-version }}" = 0.3.* ]]
+        [[ "${{ steps.setup1.outputs.seonbi-version }}" != "0.3.*" ]]
+        ! command -v seonbi
+        ! command -v seonbi-api
+      shell: bash
+    - run: >-
+        ${{ steps.setup1.outputs.seonbi-path }}
+        test/data/大韓民國憲法第十號前文.ko-Kore.html
+    # Test 2
+    - id: setup2
+      uses: ./setup
+      with:
+        seonbi-version: 0.3.0
+    - run: |
+        set -e
+        [[ "${{ steps.setup2.outputs.seonbi-version }}" = "0.3.0" ]]
+        command -v seonbi
+        command -v seonbi-api
+      shell: bash
+    - run: seonbi test/data/大韓民國憲法第十號前文.ko-Kore.html
+    - run: >-
+        ${{ steps.setup1.outputs.seonbi-path }}
+        test/data/大韓民國憲法第十號前文.ko-Kore.html

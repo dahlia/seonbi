@@ -106,10 +106,17 @@ It is also distributed as a [Docker image][dockerhub]:
     $ echo '訓民正音' | docker run -i dahlia/seonbi:latest seonbi
     훈민정음
 
+If you'd like to use it on GitHub Actions there is [action
+`dahlia/seonbi/setup`][dahlia/seonbi/setup]:
+
+    - uses: dahlia/seonbi/setup
+    - run: seonbi -o output.html input.html
+
 If you want to use it as a Haskell library install the [seonbi][hackage] package
 using Stack or Cabal.
 
 [Bina]: https://bina.egoist.sh/
+[dahlia/seonbi/setup]: https://github.com/dahlia/seonbi/tree/main/setup
 
 
 CLI

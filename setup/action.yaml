@@ -1,0 +1,140 @@
+name: Setup Seonbi
+description: Set up a specific version of Seonbi and add it to the PATH.
+author: Hong Minhee
+branding:
+  icon: package
+  color: gray-dark
+inputs:
+  seonbi-version:
+    description: >-
+      Version of Seonbi to install.  Note that asterisks can be used to
+      choose the latest version, e.g., 1.2.*, 1.*, *.
+    default: "*"
+  add-to-path:
+    description: >-
+      Whether to add the installed seonbi and seonbi-api to the PATH.  Turned
+      on by default.
+    default: true
+outputs:
+  seonbi-version:
+    description: Exact version number of the installed Seonbi.
+    value: ${{ steps.prepare.outputs.seonbi-version }}
+  seonbi-path:
+    description: Absolute path of the installed executable seonbi.
+    value: ${{ steps.prepare.outputs.seonbi-path }}
+  seonbi-api-path:
+    description: Absolute path of the installed executable seonbi-api.
+    value: ${{ steps.prepare.outputs.seonbi-api-path }}
+runs:
+  using: composite
+  steps:
+  - id: prepare
+    shell: python
+    run: |
+      from __future__ import print_function
+      import fnmatch
+      import json
+      import os
+      import os.path
+      try: from urllib import request as urllib2
+      except ImportError: import urllib2
+      import tempfile
+
+      suffixes = {
+        ('Linux', 'X64'): 'linux-x86_64.tar.bz2',
+        ('macOS', 'X64'): 'macos-x86_64.tar.bz2',
+        ('macOS', 'ARM64'): 'macos-arm64.tar.bz2',
+        ('Windows', 'X64'): 'win64.zip',
+      }
+      os_ = os.environ['RUNNER_OS']
+      arch = os.environ['RUNNER_ARCH']
+      try:
+        suffix = suffixes[os_, arch]
+      except KeyError:
+        print(
+          "::error title=Unsupported OS and architecture::Seonbi doesn't",
+          'support {0}/{1}'.format(os_, arch)
+        )
+        raise SystemExit(1)
+
+      # TODO: paging
+      req = urllib2.Request(
+        'https://api.github.com/repos/dahlia/seonbi/releases?per_page=100',
+        headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN']}
+      )
+      res = urllib2.urlopen(req)
+      tags = json.load(res)
+      tags.sort(
+        key=lambda tag: tuple(map(int, tag['tag_name'].split('.'))),
+        reverse=True
+      )
+      res.close()
+      version_pattern = os.environ['SEONBI_VERSION'].strip()
+      for tag in tags:
+        if not fnmatch.fnmatch(tag['tag_name'], version_pattern):
+          continue
+        for asset in tag['assets']:
+          if asset['name'] == 'seonbi-{0}.{1}'.format(tag['tag_name'], suffix):
+            print('::set-output name=seonbi-version::' + tag['tag_name'])
+            print(
+              '::set-output name=download-url::' + asset['browser_download_url']
+            )
+            break
+        else:
+          continue
+        break
+      else:
+        print(
+          '::error title=Unsupported platform::Seonbi', version_pattern,
+          'does not support', os_, '&', arch + '.'
+        )
+
+      dir_path = tempfile.mkdtemp('seonbi', dir=os.environ.get('RUNNER_TEMP'))
+      seonbi_path = os.path.join(
+        dir_path,
+        'seonbi.exe' if os_ == 'Windows' else 'seonbi'
+      )
+      seonbi_api_path = os.path.join(
+        dir_path,
+        'seonbi-api.exe' if os_ == 'Windows' else 'seonbi-api'
+      )
+      print('::set-output name=dir-path::' + dir_path)
+      print('::set-output name=seonbi-path::' + seonbi_path)
+      print('::set-output name=seonbi-api-path::' + seonbi_api_path)
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SEONBI_VERSION: ${{ inputs.seonbi-version }}
+  # Linux & macOS
+  - if: runner.os != 'Windows'
+    shell: bash
+    run: |
+      set -e
+      wget "$DOWNLOAD_URL"
+      tar xvfj "$(basename "$DOWNLOAD_URL")"
+      chmod +x seonbi seonbi-api
+      if [[ "$ADD_TO_PATH" = "true" ]]; then
+        pwd >> "$GITHUB_PATH"
+      fi
+    env:
+      DOWNLOAD_URL: ${{ steps.prepare.outputs.download-url }}
+      DIR_PATH: ${{ steps.prepare.outputs.dir-path }}
+      ADD_TO_PATH: ${{ inputs.add-to-path }}
+    working-directory: ${{ steps.prepare.outputs.dir-path }}
+  # Windows
+  - if: runner.os == 'Windows'
+    shell: pwsh
+    run: |
+      Invoke-WebRequest `
+        $env:DOWNLOAD_URL `
+        -OutFile $env:DOWNLOAD_URL.Split("/")[-1]
+      7z x $env:DOWNLOAD_URL.Split("/")[-1]
+      if (ConvertFrom-Json $env:ADD_TO_PATH) {
+        Add-Content `
+          -Path $env:GITHUB_PATH `
+          -Value "$(Get-Location)"
+      }
+    env:
+      DOWNLOAD_URL: ${{ steps.prepare.outputs.download-url }}
+      DIR_PATH: ${{ steps.prepare.outputs.dir-path }}
+      ADD_TO_PATH: ${{ inputs.add-to-path }}
+    working-directory: ${{ steps.prepare.outputs.dir-path }}

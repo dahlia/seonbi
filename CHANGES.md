@@ -6,6 +6,9 @@ Version 0.4.0
 
 To be released.
 
+ -  Introduced GitHub action `dahlia/seonbi/setup` to install Seonbi during
+    GitHub Actions workflow.
+
  -  Previosuly, `ContentType` type (and `-t`/`--content-type` in CLI and
     `"contentType"` field in HTTP API) was a mere case-insensitive string.
     Now, it is loosely structured so that it can contain parameters.  You can
