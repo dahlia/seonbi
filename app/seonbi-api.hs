@@ -106,14 +106,27 @@ instance FromJSON Input where
 
 instance FromJSON ContentType where
     parseJSON = withText "ContentType" $ \ t ->
-        if contentTypeFromText t `S.member` contentTypes
-        then return (contentTypeFromText t)
-        else fail $ unpack $ Data.Text.concat
-            [ "Unknown content type: "
-            , t
-            , "; available content types: "
-            , intercalate ", " $ contentTypeText <$> S.elems contentTypes
-            ]
+        case contentTypeFromText t of
+            Just ctype ->
+                if ctype `S.member` contentTypes
+                then return ctype
+                else fail $ unpack $ Data.Text.concat
+                    [ "Unknown content type: "
+                    , t
+                    , "; available content types: "
+                    , availables
+                    ]
+
+            Nothing -> fail $ unpack $ Data.Text.concat
+                [ "Invalid content type: "
+                , t
+                , "; available content types: "
+                , availables
+                ]
+      where
+        availables :: Text
+        availables =
+            intercalate ", " $ contentTypeText <$> S.elems contentTypes
 
 instance FromJSON QuoteOption
 instance FromJSON CiteOption

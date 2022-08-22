@@ -70,11 +70,11 @@ library:
   - attoparsec >= 0.12 && < 1
   - bytestring-trie >= 0.2.5 && < 0.3
   - cassava >= 0.5 && < 0.6
-  - case-insensitive >= 1 && < 2
   - cmark >= 0.6 && < 1
   - data-default >= 0.2 && < 1
   - filepath >= 1 && < 2
   - file-embed >= 0.0.10 && < 0.0.16
+  - http-media >= 0.8 && < 1
   when:
   - condition: flag(static) || flag(embed-dictionary)
     then:

@@ -28,13 +28,16 @@ import Data.List
 import Text.Read (readMaybe)
 
 import CMark
-import Data.CaseInsensitive
 import Data.Set
 import Data.Text as ST
+import Data.Text.Encoding
 import Data.Text.Lazy as LT
 import Data.Text.Lazy.Builder
 import HTMLEntities.Builder
 import HTMLEntities.Decoder
+import Network.HTTP.Media.Accept
+import Network.HTTP.Media.MediaType
+import Network.HTTP.Media.RenderHeader
 
 import Text.Seonbi.Html
 import Text.Seonbi.Html.Tag (headingLevel, headingTag')
@@ -295,15 +298,15 @@ asCommonMarkTransformer transformer input = do
 
 
 -- | Represents a case-insensitive content type.
-type ContentType = CI ST.Text
+type ContentType = MediaType
 
 -- | Converts a 'Text' to a 'ContentType'.
-contentTypeFromText :: ST.Text -> ContentType
-contentTypeFromText = mk
+contentTypeFromText :: ST.Text -> Maybe ContentType
+contentTypeFromText = parseAccept . encodeUtf8
 
 -- | Converts a 'ContentType' to a 'Text'.
 contentTypeText :: ContentType -> ST.Text
-contentTypeText = original
+contentTypeText = decodeUtf8 . renderHeader
 
 newtype TransformerTransformer' m =
     TransformerTransformer' (TransformerTransformer m)
@@ -325,7 +328,7 @@ getTransformerTransformer :: (Monad m, MonadFail m)
                           => ContentType
                           -> Maybe (TransformerTransformer' m)
 getTransformerTransformer contentType =
-    snd <$> Data.List.find ((== contentType) . fst) transformers
+    snd <$> Data.List.find (matches contentType . fst) transformers
 
 -- | Applies an 'HtmlTransformer' to the given text with respect to the
 -- given content type.

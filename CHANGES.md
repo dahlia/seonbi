@@ -6,6 +6,23 @@ Version 0.4.0
 
 To be released.
 
+ -  Previosuly, `ContentType` type (and `-t`/`--content-type` in CLI and
+    `"contentType"` field in HTTP API) was a mere case-insensitive string.
+    Now, it is loosely structured so that it can contain parameters.  You can
+    treat it as a media type (MIME type).
+
+    For example, `text/markdown` and `text/markdown; variant=Original` both
+    use the same parser and formatter under the hood.
+
+     -  `Text.Seonbi.ContentTypes.ContentType` type became an alias of
+        `Network.HTTP.Media.MediaType` type (was `CI Text`).
+     -  The type of `Text.Seonbi.ContentTypes.contentTypeFromText` function
+        became `Text -> Maybe ContentType` (was `Text -> ContentType`).
+     -  `Text.Seonbi.ContentTypes.transformWithContentType` function became
+        able to handle media types with parameters, and now it falls back
+        more-specific media types to less-specific media types if there is no
+        exactly matched one.
+
  -  Deno module became possible to use an already deployed Seonbi API server
     instead of spawning a local API server.  The `new Seonbi()` constructor
     now takes `{ apiUrl: string }` besides existing configuration forms.
