@@ -55,17 +55,17 @@ HANJA_PATTERN = '''
 HANJA_RE = re.compile(HANJA_PATTERN, re.VERBOSE)
 SQUARE_BRACKETS_HANJA_RE = re.compile(
     f'\[((?:{HANJA_PATTERN})+)\]$'
-, re.VERBOSE)
-HANJA_ONLY_RE = re.compile(f'^(?:{HANJA_PATTERN})+$', re.VERBOSE)
+, re.VERBOSE | re.UNICODE)
+HANJA_ONLY_RE = re.compile(f'^(?:(?:{HANJA_PATTERN})▽?)+$', re.VERBOSE)
 DISAMBIGUATOR = re.compile(r'\d{2}$|(?:^|(?<=[가-힣]))-(?:(?=[가-힣])|$)')
 
 
 EQU_RE = re.compile('<equ>&#x([A-Fa-f0-9]+);</equ>')
 
 EQU_TABLE = {
-    0xe000: '⿰魚空',  # ⿰魚空
+    0xe000: '⿰魚空',  # https://www.cns11643.gov.tw/wordView.jsp?ID=948526
     0xe004: '氛',
-    0xe005: '⿱艹詢',  # ⿱艹詢
+    0xe005: '⿱艹詢',  # https://hc.jsecs.org/irg/ws2021/app/?id=03429
     0xe008: '옴',  # https://en.wikipedia.org/wiki/Om
     0x1e45: 'n',  # n in linga/lingam.  https://en.wikipedia.org/wiki/Lingam
 }
@@ -196,7 +196,8 @@ def filter_xml(xml_path, hanja_only=True):
                 word['origin'] = list(filter(includes, word['origin']))
                 if not word['origin']:
                     continue
-                if any(m.endswith(' 우리 한자음으로 읽은 이름.')
+                if any(m.startswith('→ ') or
+                       m.endswith(' 우리 한자음으로 읽은 이름.')
                        for m in word['meaning']):
                     word = None
                     continue
@@ -205,7 +206,7 @@ def filter_xml(xml_path, hanja_only=True):
                     f'{i + 1}. {m}' for (i, m) in enumerate(word['meaning'])
                 )
                 for hanja in word['origin']:
-                    hanja = hanja.strip()
+                    hanja = hanja.strip().replace('▽', '')
                     if not hanja:
                         continue
                     yield hanja, reading, meaning
