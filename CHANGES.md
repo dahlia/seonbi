@@ -31,6 +31,22 @@ To be released.
     now takes `{ apiUrl: string }` besides existing configuration forms.
 
 
+Version 0.3.3
+-------------
+
+Released on September 9, 2022.
+
+ -  Updated the *Standard Korean Language Dictionary* data
+    (*data/ko-kr-stdict.tsv*) to the revision 2022-09.
+ -  Fixed a bug that Sino-Korean words are not phoneticized to Koream custom
+    readings (習慣音) according to folk readings (俗音) and erroneous
+    readings (訛音).  Now such words are phoneticized to the most usual readings
+    according to *Standard Korean Language Dictionary*.  For example,
+    *困難* is no more phoneticized to *곤난* but *곤란* instead. [[#22]]
+
+[#22]: https://github.com/dahlia/seonbi/issues/22
+
+
 Version 0.3.2
 -------------
 
