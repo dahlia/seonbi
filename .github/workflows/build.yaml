@@ -218,10 +218,13 @@ jobs:
 
   image:
     name: Docker image
+    outputs:
+      image: ${{ steps.push-image.outputs.image }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - run: |
+    - id: push-image
+      run: |
         image_name="dahlia/seonbi"
         gh_image_name="docker.pkg.github.com/$GITHUB_REPOSITORY/bin"
         declare -a build_opts=()
@@ -257,6 +260,7 @@ jobs:
             --password "${{ secrets.DOCKERHUB_TOKEN }}"
           docker push "$gh_image_name:$tag"
           docker push "$image_name:$tag"
+          echo "::set-output name=image::$gh_image_name:$tag"
         fi
         docker save -o /tmp/image.tar "$image_name:$tag"
         mkdir -p /tmp/images
@@ -282,10 +286,20 @@ jobs:
     - image
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      IMAGE: ${{ needs.image.outputs.image }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - uses: superfly/flyctl-actions/setup-flyctl@master
+    - run: |
+        curl -L -o /tmp/subtoml \
+          https://github.com/pbzweihander/subtoml-rs/releases/download/v0.1.0/subtoml
+        chmod +x /tmp/subtoml
+        /tmp/subtoml \
+          -i fly.toml \
+          -o fly.toml \
+          build.image="$IMAGE"
+        cat fly.toml
     - run: flyctl deploy --remote-only
 
   binaries:

@@ -4,7 +4,7 @@ kill_timeout = 5
 processes = []
 
 [build]
-image = "ghcr.io/dahlia/seonbi/bin:fix-cors"
+image = "ghcr.io/dahlia/seonbi/bin:latest"
 
 [experimental]
 allowed_public_ports = [3800]
