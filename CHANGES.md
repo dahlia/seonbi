@@ -14,7 +14,7 @@ Released on September 9, 2022.
 
  -  Updated the *Standard Korean Language Dictionary* data
     (*data/ko-kr-stdict.tsv*) to the revision 2022-09.
- -  Fixed a bug that Sino-Korean words are not phoneticized to Koream custom
+ -  Fixed a bug that Sino-Korean words are not phoneticized to Korean custom
     readings (習慣音) according to folk readings (俗音) and erroneous
     readings (訛音).  Now such words are phoneticized to the most usual readings
     according to *Standard Korean Language Dictionary*.  For example,
