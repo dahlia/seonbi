@@ -14,7 +14,7 @@ the version to install, use the `seonbi-version` option:[^1]
 ~~~ yaml
 - uses: dahlia/seonbi/setup@main
   with:
-    submark-version: 0.3.*
+    seonbi-version: 0.3.*
 ~~~
 
 The wildcard in the version number chooses the latest released version.
@@ -29,7 +29,7 @@ use the `seonbi-version` output:
 - id: setup-seonbi
   uses: dahlia/seonbi/setup@main
   with:
-    submark-version: *
+    seonbi-version: *
 - run: |
     echo "Installed seonbi version:" \
       "${{ steps.setup-seonbi.outputs.seonbi-version }}"
