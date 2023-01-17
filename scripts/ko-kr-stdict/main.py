@@ -247,6 +247,12 @@ def main():
         default=False,
         help='print diagnostic log messages'
     )
+    parser.add_argument(
+        '--memory-db',
+        action='store_true',
+        default=False,
+        help='place an intermediate SQLite database in the memory'
+    )
     args = parser.parse_args()
     log = functools.partial(print, file=sys.stderr) \
           if args.verbose \
@@ -263,7 +269,10 @@ def main():
         log("Extracting a zip file...")
         zf.extractall(td)
         log("Successfully extracted.")
-        with sqlite3.connect(os.path.join(td, '.__tmpdic__.db'),
+        db_path = ':memory:' \
+                  if args.memory_db \
+                  else os.path.join(td, '.__tmpdic__.db')
+        with sqlite3.connect(db_path,
                              isolation_level=None) as db:
             log("Created a temporary SQLite database.")
             cursor = db.cursor()
