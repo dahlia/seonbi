@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.4
 -------------
 
-To be released.
+Released on January 18, 2023.
 
  -  Updated the *Standard Korean Language Dictionary* data
     (*data/ko-kr-stdict.tsv*) to the revision 2022-12.

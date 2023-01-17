@@ -137,18 +137,18 @@ export type DownloadUrls = Record<
 const STABLE_DOWNLOAD_URLS: DownloadUrls = {
   linux: {
     x86_64:
-      "https://github.com/dahlia/seonbi/releases/download/0.3.2/seonbi-0.3.2.linux-x86_64.tar.bz2",
+      "https://github.com/dahlia/seonbi/releases/download/0.3.4/seonbi-0.3.3.linux-x86_64.tar.bz2",
     aarch64: undefined,
   },
   darwin: {
     x86_64:
-      "https://github.com/dahlia/seonbi/releases/download/0.3.2/seonbi-0.3.2.macos-x86_64.tar.bz2",
+      "https://github.com/dahlia/seonbi/releases/download/0.3.4/seonbi-0.3.4.macos-x86_64.tar.bz2",
     aarch64:
-      "https://github.com/dahlia/seonbi/releases/download/0.3.2/seonbi-0.3.2.macos-arm64.tar.bz2",
+      "https://github.com/dahlia/seonbi/releases/download/0.3.4/seonbi-0.3.4.macos-arm64.tar.bz2",
   },
   windows: {
     x86_64:
-      "https://github.com/dahlia/seonbi/releases/download/0.3.2/seonbi-0.3.2.win64.zip",
+      "https://github.com/dahlia/seonbi/releases/download/0.3.4/seonbi-0.3.4.win64.zip",
     aarch64: undefined,
   },
 } as const;
