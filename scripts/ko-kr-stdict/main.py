@@ -229,6 +229,12 @@ def main():
         )
     )
     parser.add_argument(
+        '-o', '--output-file',
+        metavar='FILE',
+        type=argparse.FileType('w'),
+        help='write to the specified file instead of the standard output'
+    )
+    parser.add_argument(
         '-m', '--meaning-column',
         action='store_true',
         default=False,
@@ -238,10 +244,12 @@ def main():
     with args.zip_file as f, \
          zipfile.ZipFile(f) as zf, \
          tempfile.TemporaryDirectory() as td, \
-         io.TextIOWrapper(sys.stdout.buffer,
-                          encoding='utf-8',
-                          newline='',
-                          write_through=True) as bstdout:
+         args.output_file or io.TextIOWrapper(
+             sys.stdout.buffer,
+             encoding='utf-8',
+             newline='',
+             write_through=True
+         ) as bstdout:
         zf.extractall(td)
         with sqlite3.connect(os.path.join(td, '.__tmpdic__.db'),
                              isolation_level=None) as db:
