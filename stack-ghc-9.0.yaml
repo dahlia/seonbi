@@ -1,7 +1,8 @@
-resolver: lts-19.18
+resolver: lts-19.33
 packages:
 - .
 extra-deps:
+- aeson-1.5.6.0
 - bytestring-trie-0.2.5.0
 - html-charset-0.1.0
 - happy-1.20.0  # https://github.com/simonmar/happy/issues/211

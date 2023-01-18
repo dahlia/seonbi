@@ -82,7 +82,7 @@ jobs:
         ls -al /tmp/sdist
     - name: Save source distribution
       if: startsWith(matrix.os, 'ubuntu-')
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: sdist-${{ matrix.os }}-ghc-${{ matrix.ghc-version }}
         path: /tmp/sdist
@@ -110,7 +110,7 @@ jobs:
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
         matrix.ghc-version == '8.8'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: docs
         path: .docs
@@ -126,7 +126,7 @@ jobs:
         files: .bin/seonbi*
         args: "-9"
     - name: Save executable binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: binaries-${{ matrix.os }}-ghc-${{ matrix.ghc-version }}
         path: .bin
@@ -145,7 +145,7 @@ jobs:
     - uses: denoland/setup-deno@v1
       with:
         deno-version: v1.x
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: binaries-${{ matrix.os }}-ghc-8.8
         path: ${{ runner.temp }}/bin
@@ -270,11 +270,11 @@ jobs:
         mkdir -p /tmp/image-metadata
         docker images "$image_name:$tag" | tail -n 1 | awk '{print $3}' \
           > /tmp/image-metadata/image_id.txt
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: image
         path: /tmp/images
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: image-metadata
         path: /tmp/image-metadata
@@ -310,19 +310,19 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: binaries-macos-11-ghc-8.8
         path: /tmp/binaries-macos
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: binaries-windows-2022-ghc-8.8
         path: /tmp/binaries-windows
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: image
         path: /tmp/images
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: image-metadata
         path: /tmp/image-metadata
@@ -356,9 +356,9 @@ jobs:
         cp "$workspace/"{LICENSE,README.md,CHANGES.md} ./
         zip /tmp/dists/seonbi.win64.zip *
         popd
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
-        name: dists
+        name: dists-untagged
         path: /tmp/dists
 
   release:
@@ -366,66 +366,45 @@ jobs:
     needs:
     - build
     - binaries
-    if: >-
-      github.event_name != 'pull_request' &&
-      startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: sdist-ubuntu-22.04-ghc-8.8
         path: /tmp/sdist
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
+      with:
+        name: dists-untagged
+        path: /tmp/dists
+    - id: extract-changelog
+      uses: dahlia/submark@6d84f1b8865362dace8bb268eed15ad73ede4ae4
+      with:
+        input-file: CHANGES.md
+        heading-level: 2
+        heading-title-text: Version ${{ github.ref_name }}
+        ignore-case: true
+        omit-heading: true
+    - run: |
+        pushd /tmp/dists
+        for file in ./*; do
+          mv "$file" "${file/seonbi/seonbi-$GITHUB_REF_NAME}"
+        done
+    - uses: actions/upload-artifact@v3
       with:
         name: dists
-        path: /tmp/dists
-    - env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        mkdir -p "$HOME/bin"
-        export PATH="$HOME/bin:$PATH"
-        curl -L -o "$HOME/bin/submark" \
-          https://github.com/dahlia/submark/releases/download/0.2.0/submark-linux-x86_64
-        chmod +x "$HOME/bin/submark"
-        curl -L -o $HOME/bin/github-release.bz2 \
-          https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2
-        bzip2 -d $HOME/bin/github-release.bz2
-        chmod +x $HOME/bin/github-release
-
-        version="${GITHUB_REF:10}"
-        github_user="${GITHUB_REPOSITORY%/*}"
-        github_repo="${GITHUB_REPOSITORY#*/}"
-
-        # Release note
-        submark -iO --h2 "Version $version" CHANGES.md \
-        | github-release release \
-            --user "$github_user" \
-            --repo "$github_repo" \
-            --tag "$version" \
-            --name "Seonbi $version" \
-            --description -
-
-        # Source distribution
-        for file in /tmp/sdist/*; do
-          github-release upload \
-            --user "$github_user" \
-            --repo "$github_repo" \
-            --tag "$version" \
-            --name "$(basename "$file")" \
-            --file "$file"
-        done
-
-        # Binaries
-        for file in /tmp/dists/*; do
-          name="$(basename "$file")"
-          github-release upload \
-            --user "$github_user" \
-            --repo "$github_repo" \
-            --tag "$version" \
-            --name "${name/seonbi/seonbi-$version}" \
-            --file "$file"
-        done
+        path: |
+          /tmp/sdist/*
+          /tmp/dists/*
+    - if: github.ref_type == 'tag'
+      uses: softprops/action-gh-release@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        body_path: ${{ steps.extract-changelog.output.output-file }}
+        name: Seonbi ${{ github.ref_name }}
+        files:
+          /tmp/sdist/*
+          /tmp/dists/*
     - env:
         HACKAGE_API_KEY: ${{ secrets.HACKAGE_API_KEY }}
       run: |
@@ -446,11 +425,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: dists
         path: /tmp/dists
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: docs
         path: /tmp/docs

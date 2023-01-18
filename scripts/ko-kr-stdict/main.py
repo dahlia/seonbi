@@ -17,6 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import csv
+import functools
 import io
 import itertools
 import os
@@ -229,22 +230,51 @@ def main():
         )
     )
     parser.add_argument(
+        '-o', '--output-file',
+        metavar='FILE',
+        type=argparse.FileType('w'),
+        help='write to the specified file instead of the standard output'
+    )
+    parser.add_argument(
         '-m', '--meaning-column',
         action='store_true',
         default=False,
         help='include the meaning column'
     )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        default=False,
+        help='print diagnostic log messages'
+    )
+    parser.add_argument(
+        '--memory-db',
+        action='store_true',
+        default=False,
+        help='place an intermediate SQLite database in the memory'
+    )
     args = parser.parse_args()
+    log = functools.partial(print, file=sys.stderr) \
+          if args.verbose \
+          else lambda *_: None
     with args.zip_file as f, \
          zipfile.ZipFile(f) as zf, \
          tempfile.TemporaryDirectory() as td, \
-         io.TextIOWrapper(sys.stdout.buffer,
-                          encoding='utf-8',
-                          newline='',
-                          write_through=True) as bstdout:
+         args.output_file or io.TextIOWrapper(
+             sys.stdout.buffer,
+             encoding='utf-8',
+             newline='',
+             write_through=True
+         ) as bstdout:
+        log("Extracting a zip file...")
         zf.extractall(td)
-        with sqlite3.connect(os.path.join(td, '.__tmpdic__.db'),
+        log("Successfully extracted.")
+        db_path = ':memory:' \
+                  if args.memory_db \
+                  else os.path.join(td, '.__tmpdic__.db')
+        with sqlite3.connect(db_path,
                              isolation_level=None) as db:
+            log("Created a temporary SQLite database.")
             cursor = db.cursor()
             cursor.execute('''
                 CREATE TABLE dic (
@@ -253,9 +283,11 @@ def main():
                     meaning hanja
                 )
             ''')
+            log("Created a temporary SQLite table.")
             for filename in os.listdir(td):
                 if filename.startswith('.'):
                     continue
+                log("Reading an XML file... ({0})".format(filename))
                 try:
                     words = filter_xml(os.path.join(td, filename))
                     for hanja, reading, meaning in words:
@@ -278,10 +310,12 @@ def main():
                         ''', (hanja, reading, meaning))
                 except (KeyboardInterrupt, BrokenPipeError):
                     raise SystemExit(130)
+            log("Filled the temporary table with the data.")
             if args.meaning_column:
                 cursor.execute('SELECT hanja, reading, meaning FROM dic')
             else:
                 cursor.execute('SELECT hanja, reading FROM dic')
+            log("Writing data into the file...")
             writer = csv.writer(bstdout, 'excel-tab')
             write = writer.writerow
             for row in cursor:
