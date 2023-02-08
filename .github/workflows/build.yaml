@@ -346,7 +346,9 @@ jobs:
           /tmp/sdist/*
           /tmp/dists/*
     - if: github.ref_type == 'tag'
-      uses: softprops/action-gh-release@v1
+      # Pinning the version to work around globbing bug
+      # <https://github.com/softprops/action-gh-release/issues/280>:
+      uses: softprops/action-gh-release@v0.1.13
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         body_path: ${{ steps.extract-changelog.output.output-file }}
