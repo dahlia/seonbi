@@ -6,6 +6,11 @@ Version 0.3.5
 
 To be released.
 
+ -  Official builds for Windows now contain required dynamic libraries (_*.dll_)
+    besides executables (*seonbi.exe* & *seonbi-api.exe*).  [[#2]]
+
+[#2]: https://github.com/dahlia/seonbi/issues/2
+
 
 Version 0.3.4
 -------------

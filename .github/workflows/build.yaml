@@ -116,6 +116,10 @@ jobs:
         path: .docs
     - name: Build using -fembed-dictionary
       run: stack build --flag seonbi:embed-dictionary
+    - name: Copy required DLLs
+      if: startsWith(matrix.os, 'windows-')
+      shell: pwsh
+      run: .\scripts\Bundle-RequiredDlls.ps1 -Verbose
     - name: Copy executable binaries
       shell: bash
       run: cp -r "$(stack path --local-install-root)/bin" .bin
@@ -149,7 +153,7 @@ jobs:
       with:
         name: binaries-${{ matrix.os }}-ghc-8.8
         path: ${{ runner.temp }}/bin
-    - run: chmod +x ${{ runner.temp }}/bin/*
+    - run: chmod +x ${{ runner.temp }}/bin/seonbi*
       if: "!startsWith(matrix.os, 'windows-')"
     - working-directory: scripts/deno/
       env:
