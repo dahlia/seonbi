@@ -9,15 +9,12 @@ import Text.Seonbi.Html.Scanner
 import Text.Seonbi.Html.Tag
 import Text.Seonbi.Html.TextNormalizer
 
-isDone :: Result a -> Bool
-isDone Done {} = True
-isDone Fail {} = False
-
 shouldBeDone :: (Eq a, Show a) => Result a -> a -> Expectation
-shouldBeDone result expected = do
-    result `shouldSatisfy` isDone
-    let Done "" r = result
+shouldBeDone (Done "" r) expected = do
     r `shouldBe` expected
+shouldBeDone result expected =
+    expectationFailure $ "Expected Done \"\" " ++ show expected ++
+        ", but got " ++ show result
 
 spec :: Spec
 spec =

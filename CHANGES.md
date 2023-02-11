@@ -9,6 +9,11 @@ To be released.
  -  Introduced GitHub action `dahlia/seonbi/setup` to install Seonbi during
     GitHub Actions workflow.
 
+ -  Since this version, it supports GHC 9.2.* at most.
+
+ -  The `iconv` flag became ignored on Windows, because the flag had never
+    worked on Windows.
+
  -  Previosuly, `ContentType` type (and `-t`/`--content-type` in CLI and
     `"contentType"` field in HTTP API) was a mere case-insensitive string.
     Now, it is loosely structured so that it can contain parameters.  You can

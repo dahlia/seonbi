@@ -3,6 +3,7 @@
 module Text.Seonbi.FacadeSpec (spec) where
 
 import Control.Monad
+import Data.Maybe (fromJust)
 
 import Data.Algorithm.Diff
 import Data.Text.Lazy
@@ -65,9 +66,9 @@ spec = do
     describe "transformHtmlLazyText" $
         forM_ testData $ \ (iname, oname, input, output, cfg) ->
             specify (iname ++ " -> " ++ oname) $ do
-                let Just noOpResult = transformHtmlLazyText noOp input
+                let noOpResult = fromJust $ transformHtmlLazyText noOp input
                 noOpResult `shouldHaveSameText` input
-                let Just cfgResult = transformHtmlLazyText cfg input
+                let cfgResult = fromJust $ transformHtmlLazyText cfg input
                 cfgResult `shouldHaveSameText` output
   where
     noOp :: Monad m => Configuration m a

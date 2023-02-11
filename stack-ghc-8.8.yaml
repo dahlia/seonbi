@@ -10,5 +10,5 @@ flags:
 allow-newer: false
 ghc-options:
   "$everything": -haddock
-  "$locals": -fhide-source-paths
+  "$locals": -Werror -fhide-source-paths
 require-stack-version: ">=2.7.0"

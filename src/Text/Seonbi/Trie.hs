@@ -128,11 +128,10 @@ instance Traversable Trie where
     traverse f (Trie btrie) = Trie <$> traverse f btrie
 
 instance Applicative Trie where
-    pure = return
+    pure = singleton ""
     (<*>) = ap
 
 instance Monad Trie where
-    return = singleton ""
     Trie btrie >>= f = Trie $ btrie >>= (\ v -> case f v of { Trie b -> b })
 
 instance (Semigroup a) => Semigroup (Trie a) where
@@ -140,7 +139,6 @@ instance (Semigroup a) => Semigroup (Trie a) where
 
 instance (Monoid a) => Monoid (Trie a) where
     mempty = Trie mempty
-    mappend (Trie a) (Trie b) = Trie $ mappend a b
 
 instance GHC.Exts.IsList (Trie a) where
     type Item (Trie a) = (Text, a)

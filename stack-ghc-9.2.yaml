@@ -1,13 +1,12 @@
-resolver: lts-18.28
+resolver: lts-20.10
 packages:
 - .
 extra-deps:
-- bytestring-trie-0.2.5.0
 - html-charset-0.1.0
 flags:
   seonbi:
-    iconv: true
-allow-newer: true
+    iconv: false  # iconv seems unmaintained and only supports bytestring < 0.11
+allow-newer: false
 ghc-options:
   "$everything": -haddock
   "$locals": -Werror -fhide-source-paths

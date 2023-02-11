@@ -17,6 +17,7 @@ jobs:
         - "8.8"
         - "8.10"
         - "9.0"
+        - "9.2"
     env:
       STACK_YAML: stack-ghc-${{ matrix.ghc-version }}.yaml
     steps:
@@ -40,13 +41,6 @@ jobs:
           %APPDATA%\cabal\store
           %APPDATA%\stack
         key: stack-${{ matrix.os }}-ghc-${{ matrix.version }}
-    - name: Adjust Stack configuration
-      if: "startsWith(matrix.os, 'windows-')"
-      run: >-
-        yq eval
-        -i
-        '.flags.seonbi.iconv = false'
-        stack-ghc-${{ matrix.ghc-version }}.yaml
     - name: Set up resolver
       shell: bash
       run: |
@@ -89,7 +83,7 @@ jobs:
     - name: Build docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        matrix.ghc-version == '8.8'
+        matrix.ghc-version == '9.2'
       shell: bash
       run: |
         curl -L -o /tmp/pandoc.deb \
@@ -103,13 +97,13 @@ jobs:
     - name: Copy docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        matrix.ghc-version == '8.8'
+        matrix.ghc-version == '9.2'
       shell: bash
       run: cp -r "$(stack path --dist-dir)/doc/html/seonbi" .docs
     - name: Save docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
-        matrix.ghc-version == '8.8'
+        matrix.ghc-version == '9.2'
       uses: actions/upload-artifact@v3
       with:
         name: docs
@@ -147,7 +141,7 @@ jobs:
         deno-version: v1.x
     - uses: actions/download-artifact@v3
       with:
-        name: binaries-${{ matrix.os }}-ghc-8.8
+        name: binaries-${{ matrix.os }}-ghc-9.2
         path: ${{ runner.temp }}/bin
     - run: chmod +x ${{ runner.temp }}/bin/*
       if: "!startsWith(matrix.os, 'windows-')"
@@ -312,11 +306,11 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v3
       with:
-        name: binaries-macos-11-ghc-8.8
+        name: binaries-macos-11-ghc-9.2
         path: /tmp/binaries-macos
     - uses: actions/download-artifact@v3
       with:
-        name: binaries-windows-2022-ghc-8.8
+        name: binaries-windows-2022-ghc-9.2
         path: /tmp/binaries-windows
     - uses: actions/download-artifact@v3
       with:
@@ -371,7 +365,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v3
       with:
-        name: sdist-ubuntu-22.04-ghc-8.8
+        name: sdist-ubuntu-22.04-ghc-9.2
         path: /tmp/sdist
     - uses: actions/download-artifact@v3
       with:
@@ -429,7 +423,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v3
       with:
-        name: dists
+        name: dists-untagged
         path: /tmp/dists
     - uses: actions/download-artifact@v3
       with:

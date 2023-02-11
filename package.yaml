@@ -43,7 +43,7 @@ flags:
     manual: true
     default: false
   iconv:
-    description: Use iconv
+    description: Use iconv; however it is ignored on Windows
     manual: true
     default: false
   embed-dictionary:
@@ -54,12 +54,10 @@ when:
 - condition: os(darwin)
   else:
     ghc-options:
-    - -Werror
     - -Wall
     - -fprint-explicit-kinds
   then:
     ghc-options:
-    - -Werror
     - -Wall
     - -fprint-explicit-kinds
     - -optP-Wno-nonportable-include-path
@@ -88,12 +86,12 @@ executables:
     main: seonbi.hs
     source-dirs: app
     when:
-    - condition: flag(iconv)
+    - condition: flag(iconv) && !os(windows)
       else:
         dependencies: &executable-seonbi-dependencies
           cases: ">= 0.1.3.2 && < 0.1.5"
           html-charset: ">= 0.1 && < 0.2"
-          optparse-applicative: ">= 0.14 && < 0.17"
+          optparse-applicative: ">= 0.14 && < 0.18"
           seonbi: ">= 0"
       then:
         dependencies:
@@ -143,7 +141,7 @@ executables:
     source-dirs: app
     dependencies:
     - http-types >= 0.12 && < 0.13
-    - optparse-applicative >= 0.14 && < 0.17
+    - optparse-applicative >= 0.14 && < 0.18
     - seonbi
     - wai >= 3.2 && < 3.4
     - warp >= 3.2 && < 3.4
@@ -166,7 +164,6 @@ tests:
     main: Spec.hs
     source-dirs: test
     ghc-options:
-    - -Wno-incomplete-uni-patterns
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
@@ -187,4 +184,4 @@ tests:
     ghc-options:
     - -threaded
     dependencies:
-    - hlint >= 2.1.7 && < 3.3
+    - hlint >= 2.1.7 && < 3.5

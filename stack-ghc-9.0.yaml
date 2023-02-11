@@ -3,18 +3,16 @@ packages:
 - .
 extra-deps:
 - aeson-1.5.6.0
-- bytestring-trie-0.2.5.0
 - html-charset-0.1.0
-- happy-1.20.0  # https://github.com/simonmar/happy/issues/211
 flags:
   seonbi:
     iconv: true
   mintty:
     Win32-2-13-1: false  # https://github.com/RyanGlScott/mintty/issues/4
-allow-newer: true
+allow-newer: false
 ghc-options:
   "$everything": -haddock
-  "$locals": -fhide-source-paths
+  "$locals": -Werror -fhide-source-paths
 extra-include-dirs:
 - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
   # https://gitlab.haskell.org/ghc/ghc/-/issues/20592#note_403426
