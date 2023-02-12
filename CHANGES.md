@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.5
 -------------
 
-To be released.
+Released on February 13, 2023.
 
  -  Official builds for Windows now contain required dynamic libraries (_*.dll_)
     besides executables (*seonbi.exe* & *seonbi-api.exe*).  [[#2]]
