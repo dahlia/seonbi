@@ -8,6 +8,8 @@ To be released.
 
  -  Official builds for Windows now contain required dynamic libraries (_*.dll_)
     besides executables (*seonbi.exe* & *seonbi-api.exe*).  [[#2]]
+ -  Updated the *Standard Korean Language Dictionary* data
+    (*data/ko-kr-stdict.tsv*) to the revision 2023-02.
 
 [#2]: https://github.com/dahlia/seonbi/issues/2
 
