@@ -161,7 +161,7 @@ tests:
     - seonbi
     - unicode-show
   spec:
-    main: Spec.hs
+    main: hspec.hs
     source-dirs: test
     ghc-options:
     - -threaded
