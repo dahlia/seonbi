@@ -8,10 +8,14 @@ To be released.
 
  -  Official builds for Windows now contain required dynamic libraries (_*.dll_)
     besides executables (*seonbi.exe* & *seonbi-api.exe*).  [[#2]]
+ -  Fixed a bug where Sino-Korean words that were not listed in the dictionary
+    sometimes had been inaccurately phoneticized so that Initial Sound Law
+    (頭音法則) had been applied to non-initial hanja of a word too. [[#20]]
  -  Updated the *Standard Korean Language Dictionary* data
     (*data/ko-kr-stdict.tsv*) to the revision 2023-02.
 
 [#2]: https://github.com/dahlia/seonbi/issues/2
+[#20]: https://github.com/dahlia/seonbi/issues/20
 
 
 Version 0.3.4

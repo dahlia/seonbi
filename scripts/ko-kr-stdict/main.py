@@ -208,7 +208,7 @@ def filter_xml(xml_path, hanja_only=True):
                 )
                 for hanja in word['origin']:
                     hanja = hanja.strip().replace('▽', '')
-                    if not hanja:
+                    if len(hanja) < 2:  # Ignore single character words
                         continue
                     yield hanja, reading, meaning
                 word = None
