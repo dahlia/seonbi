@@ -98,6 +98,11 @@ Installation
 Seonbi provides official executable binaries for Linux (x86_64), macOS,
 and Windows (64-bit).  You can download them from the [releases] page.
 
+If you prefer [Scoop] on Windows use the Seonbi official bucket:
+
+    scoop bucket add seonbi https://github.com/dahlia/seonbi.git
+    scoop install seonbi
+
 It is also distributed as a [Docker image][dockerhub]:
 
     $ echo '訓民正音' | docker run -i dahlia/seonbi:latest seonbi
@@ -112,6 +117,7 @@ If you'd like to use it on GitHub Actions there is [action
 If you want to use it as a Haskell library install the [seonbi][hackage] package
 using Stack or Cabal.
 
+[Scoop]: https://scoop.sh/
 [dahlia/seonbi/setup]: https://github.com/dahlia/seonbi/tree/main/setup
 
 

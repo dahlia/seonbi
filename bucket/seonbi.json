@@ -1,0 +1,21 @@
+{
+  "version": "0.3.5",
+  "description": "SmartyPants for Korean language",
+  "homepage": "https://github.com/dahlia/seonbi",
+  "license": "LGPL-2.1",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/dahlia/seonbi/releases/download/0.3.5/seonbi-0.3.5.win64.zip",
+      "hash": "78ac8de1f72f6ba4953d8bdadf786273eb32a57fab978750a308981c090d820c"
+    }
+  },
+  "bin": ["seonbi.exe", "seonbi-api.exe"],
+  "checkver": "github",
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/dahlia/seonbi/releases/download/$version/seonbi-$version.win64.zip"
+      }
+    }
+  }
+}
