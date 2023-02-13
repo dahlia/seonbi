@@ -349,26 +349,13 @@ jobs:
         path: |
           /tmp/sdist/*
           /tmp/dists/*
-    # Apparently softprops/action-gh-release's globbing is broken:
-    - id: dist-files
-      shell: python
-      run: |
-        from __future__ import print_function
-        import glob, os
-        sdists = glob.glob('/tmp/sdist/*')
-        dists = glob.glob('/tmp/dists/*')
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as o:
-          print('dist-files<<EOF', file=o)
-          for line in sdists + dists:
-            print(line, file=o)
-          print('EOF', file=o)
     - if: github.ref_type == 'tag'
-      uses: softprops/action-gh-release@v0.1.15
+      uses: ncipollo/release-action@v1
       with:
-        token: ${{ github.token }}
-        body_path: ${{ steps.extract-changelog.output.output-file }}
+        artifactErrorsFailBuild: true
+        artifacts: /tmp/sdist/*,/tmp/dists/*
+        bodyFile: ${{ steps.extract-changelog.outputs.output-file }}
         name: Seonbi ${{ github.ref_name }}
-        files: ${{ steps.dist-files.output.dist-files }}
     - env:
         HACKAGE_API_KEY: ${{ secrets.HACKAGE_API_KEY }}
       run: |
