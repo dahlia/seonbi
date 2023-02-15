@@ -43,7 +43,7 @@ flags:
     manual: true
     default: false
   iconv:
-    description: Use iconv
+    description: Use iconv; however it is ignored on Windows
     manual: true
     default: false
   embed-dictionary:
@@ -88,7 +88,7 @@ executables:
     main: seonbi.hs
     source-dirs: app
     when:
-    - condition: flag(iconv)
+    - condition: flag(iconv) && !os(windows)
       else:
         dependencies: &executable-seonbi-dependencies
           cases: ">= 0.1.3.2 && < 0.1.5"
