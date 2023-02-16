@@ -36,6 +36,24 @@ To be released.
     now takes `{ apiUrl: string }` besides existing configuration forms.
 
 
+Version 0.3.6
+-------------
+
+Released on February 16, 2023.
+
+ -  The `iconv` flag became ignored on Windows, because the flag had never
+    worked on Windows.
+
+ -  Fixed a bug that `seonbi.exe --help` had suddenly terminated with
+    the below error message on Windows:  [[#30]]
+
+    ~~~~
+    <stdout>: commitBuffer: invalid argument (invalid character)
+    ~~~~
+
+[#30]: https://github.com/dahlia/seonbi/issues/30
+
+
 Version 0.3.5
 -------------
 

@@ -1,14 +1,13 @@
-{-# LANGUAGE NamedFieldPuns #-}
 import Control.Monad
-import Data.Char
 import GHC.IO.Encoding
+import System.Info (os)
 
+import System.IO.CodePage (withCP65001)
 import Test.Hspec.Runner
 
 import qualified Spec
 
 main :: IO ()
-main = do
-    TextEncoding { textEncodingName } <- getLocaleEncoding
-    when ("cp437" == (toLower <$> textEncodingName)) $ setLocaleEncoding utf8
+main = withCP65001 $ do
+    when (System.Info.os == "ming32") $ setLocaleEncoding utf8
     hspecWith defaultConfig Spec.spec

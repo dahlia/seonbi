@@ -14,8 +14,10 @@ import Data.List (intercalate)
 import Data.Maybe
 import Data.Proxy
 import Data.Version
+import GHC.IO.Encoding
 import Prelude hiding (getContents, putStr, readFile, writeFile)
 import System.Exit
+import System.Info (os)
 import System.IO (hPutStrLn, stderr)
 import System.IO.Error
 
@@ -30,6 +32,7 @@ import qualified Data.Text as T
 import Data.Text.Lazy
 import Data.Text.Lazy.Encoding
 import Options.Applicative
+import System.IO.CodePage (withCP65001)
 import Text.Html.Encoding.Detection (detect)
 
 import qualified Paths_seonbi as Meta
@@ -348,7 +351,8 @@ showHtml HtmlComment { comment } =
     T.concat ["<!-- ", comment, " -->"]
 
 main :: IO ()
-main = do
+main = withCP65001 $ do
+    when (System.Info.os == "mingw32") $ setLocaleEncoding utf8
     options@Seonbi
         { encoding
         , config
