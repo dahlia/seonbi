@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.3.6
 -------------
 
-To be released.
+Released on February 16, 2023.
 
  -  The `iconv` flag became ignored on Windows, because the flag had never
     worked on Windows.

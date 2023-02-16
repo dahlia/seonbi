@@ -331,7 +331,7 @@ jobs:
         name: dists-untagged
         path: /tmp/dists
     - id: extract-changelog
-      uses: dahlia/submark@6d84f1b8865362dace8bb268eed15ad73ede4ae4
+      uses: dahlia/submark@e21a51982ee1c5ca798edf9b3c25c299f910d606
       with:
         input-file: CHANGES.md
         heading-level: 2
