@@ -2,7 +2,7 @@ name: build
 on:
   push: null
   schedule:
-  - cron: 59 14 * * *
+  - cron: 59 14 * * 5
   pull_request: null
 
 jobs:
