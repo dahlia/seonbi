@@ -132,9 +132,11 @@ export const DEFAULT_CONFIGURATION: Configuration = {
 };
 
 /** Table of download URLs for platforms. */
-export type DownloadUrls = Record<
-  typeof Deno.build.os,
-  Record<typeof Deno.build.arch, string | undefined> | undefined
+export type DownloadUrls = Partial<
+  Record<
+    typeof Deno.build.os,
+    Partial<Record<typeof Deno.build.arch, string | undefined>> | undefined
+  >
 >;
 
 const STABLE_DOWNLOAD_URLS: DownloadUrls = {
