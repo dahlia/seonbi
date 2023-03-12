@@ -60,6 +60,7 @@ data HtmlTag
     | Button
     | Canvas
     | Caption
+    | Center
     | Cite
     | Code
     | Col
@@ -80,6 +81,7 @@ data HtmlTag
     | FigCaption
     | Figure
     | Footer
+    | Font
     | Form
     | H1
     | H2
@@ -107,6 +109,7 @@ data HtmlTag
     | Meta
     | Meter
     | Nav
+    | NoBR
     | NoScript
     | Object
     | OL
@@ -132,6 +135,7 @@ data HtmlTag
     | Small
     | Source
     | Span
+    | Strike
     | Strong
     | Style
     | Sub
@@ -155,37 +159,39 @@ data HtmlTag
     | Var
     | Video
     | WBR
+    | XMP
     deriving (Eq, Ord, Show)
 
 -- | List all supported HTML tags.
 --
 -- >>> htmlTags
--- fromList [A,Abbr,Acronym,Address,...,UL,Var,Video,WBR]
+-- fromList [A,Abbr,Acronym,Address,...,UL,Var,Video,WBR,XMP]
 htmlTags :: Set HtmlTag
 htmlTags = Data.Set.fromList
     [ A, Abbr, Acronym, Address, Area, Article, Aside, Audio
     , B, Base, Bdi, Bdo, Big, BlockQuote, Body, BR, Button
-    , Canvas, Caption, Cite, Code, Col, ColGroup
+    , Canvas, Caption, Center, Cite, Code, Col, ColGroup
     , Data, DataList, DD, Del, Details, Dfn, Dialog, Div, DL, DT
     , Em, Embed
-    , FieldSet, FigCaption, Figure, Footer, Form
+    , FieldSet, FigCaption, Figure, Font, Footer, Form
     , H1, H2, H3, H4, H5, H6, Head, Header, HR, Html
     , I, IFrame, Img, Input, Ins
     , Kbd
     , Label, Legend, LI, Link
     , Main, Map, Mark, Meta, Meter
-    , Nav, NoScript
+    , Nav, NoBR, NoScript
     , Object, OL, OptGroup, Option, Output
     , P, Param, Picture, Pre, Progress
     , Q
     , RB, RP, RT, RTC, Ruby
     , S, Samp, Script, Select, Section, Small, Source
-    , Span, Strong, Style, Sub, Summary, Sup
+    , Span, Strike, Strong, Style, Sub, Summary, Sup
     , Table, TBody, TD, Template, TFoot, TextArea
     , TH, THead, Time, Title, TR, Track, TT
     , U, UL
     , Var, Video
     , WBR
+    , XMP
     ]
 
 -- | The name of an 'HtmlTag' in lowercase.
@@ -234,6 +240,7 @@ htmlTagKind = \ case
     Button -> Normal
     Canvas -> Foreign
     Caption -> Normal
+    Center -> Normal
     Cite -> Normal
     Code -> Normal
     Col -> Void
@@ -253,6 +260,7 @@ htmlTagKind = \ case
     FieldSet -> Normal
     FigCaption -> Normal
     Figure -> Normal
+    Font -> Normal
     Footer -> Normal
     Form -> Normal
     H1 -> Normal
@@ -281,6 +289,7 @@ htmlTagKind = \ case
     Meta -> Void
     Meter -> Normal
     Nav -> Normal
+    NoBR -> Normal
     NoScript -> Normal
     Object -> Normal
     OL -> Normal
@@ -306,6 +315,7 @@ htmlTagKind = \ case
     Small -> Normal
     Source -> Void
     Span -> Normal
+    Strike -> Normal
     Strong -> Normal
     Style -> RawText
     Sub -> Normal
@@ -329,6 +339,7 @@ htmlTagKind = \ case
     Var -> Normal
     Video -> Normal
     WBR -> Void
+    XMP -> RawText
 
 -- | Get the heading level of an 'HtmlTag', if it is a heading tag
 -- ('H1' to 'H6').

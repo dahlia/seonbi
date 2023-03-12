@@ -31,6 +31,25 @@ To be released.
         more-specific media types to less-specific media types if there is no
         exactly matched one.
 
+ -  For `text/html` and `application/xhtml+xml` formats, some obsolete HTML
+    tags are no more ignored, but now recognized as valid HTML tags.  Here are
+    the list of added tags:
+
+     -  `<center>`
+     -  `<font>`
+     -  `<nobr>`
+     -  `<strike>`
+     -  `<xmp>`
+
+    Haskell API-wise, the following constructors were added to
+    the `Text.Seonbi.Html.Tag.HtmlTag` type:
+
+     -  `Center`
+     -  `Font`
+     -  `NoBR`
+     -  `Strike`
+     -  `XMP`
+
  -  Deno module became possible to use an already deployed Seonbi API server
     instead of spawning a local API server.  The `new Seonbi()` constructor
     now takes `{ apiUrl: string }` besides existing configuration forms.
