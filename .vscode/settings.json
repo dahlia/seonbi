@@ -1,0 +1,28 @@
+{
+  "cSpell.customDictionaries": {
+    "workspace": {
+      "name": "Workspace Dictionary",
+      "description": "A custom dictionary for this poject.",
+      "path": "${workspaceFolder}/en.utf-8.add",
+      "addWords": true,
+      "scope": "workspace"
+    }
+  },
+  "cSpell.dictionaries": [
+    "en_US",
+    "filetypes",
+    "html",
+    "softwareTerms",
+    "typescript"
+  ],
+  "cSpell.ignoreRegExpList": [
+    "/\\\\x[0-9A-Fa-f]{2}/",
+    "/\\\\u[0-9A-Fa-f]{4}/",
+    "/\\\\U[0-9A-Fa-f]{8}/"
+  ],
+
+  "deno.enable": false,
+  "deno.enablePaths": [
+    "scripts/deno/"
+  ]
+}

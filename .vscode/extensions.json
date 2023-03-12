@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "EditorConfig.EditorConfig",
-    "haskell.haskell"
+    "haskell.haskell",
+    "streetsidesoftware.code-spell-checker"
   ]
 }
