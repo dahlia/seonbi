@@ -54,6 +54,8 @@ To be released.
     instead of spawning a local API server.  The `new Seonbi()` constructor
     now takes `{ apiUrl: string }` besides existing configuration forms.
 
+ -  The official Docker images now support `linux/arm64` besides `linux/amd64`.
+
 
 Version 0.3.6
 -------------
