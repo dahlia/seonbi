@@ -95,8 +95,9 @@ programming.  For such end-users, here's the list of end-user apps:
 Installation
 ------------
 
-Seonbi provides official executable binaries for Linux (x86_64), macOS,
-and Windows (64-bit).  You can download them from the [releases] page.
+Seonbi provides official executable binaries for Linux (x86_64, arm64),
+macOS (Intel & Apple Silicon), and Windows (64-bit).  You can download them from
+the [releases] page.
 
 If you prefer [Scoop] on Windows use the Seonbi official bucket:
 

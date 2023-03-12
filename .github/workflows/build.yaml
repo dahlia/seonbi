@@ -311,6 +311,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+    - uses: docker/setup-qemu-action@v2
     - uses: actions/download-artifact@v3
       with:
         name: binaries-macos-11-ghc-9.2
@@ -323,17 +324,25 @@ jobs:
         set -e
         mkdir -p /tmp/dists
         # Linux
-        docker pull "$IMAGE"
-        mkdir -p /tmp/binaries-linux
-        docker run -i "$IMAGE" cat /usr/local/bin/seonbi \
-          > /tmp/binaries-linux/seonbi
-        docker run -i "$IMAGE" cat /usr/local/bin/seonbi-api \
-          > /tmp/binaries-linux/seonbi-api
-        pushd /tmp/binaries-linux
-        chmod +x *
-        cp "$GITHUB_WORKSPACE/"{LICENSE,README.md,CHANGES.md} ./
-        tar cvfj /tmp/dists/seonbi.linux-x86_64.tar.bz2 *
-        popd
+        declare -A platforms=(
+          [linux/amd64]="linux-x86_64"
+          [linux/arm64]="linux-arm64"
+        )
+        for platform in "${!platforms[@]}"; do
+          docker pull --platform "$platform" "$IMAGE"
+          mkdir -p /tmp/binaries-linux/"$platform"
+          docker run --platform "$platform" -i "$IMAGE" \
+            cat /usr/local/bin/seonbi \
+            > /tmp/binaries-linux/seonbi
+          docker run --platform "$platform" -i "$IMAGE" \
+            cat /usr/local/bin/seonbi-api \
+            > /tmp/binaries-linux/seonbi-api
+          pushd /tmp/binaries-linux/"$platform"
+          chmod +x *
+          cp "$GITHUB_WORKSPACE/"{LICENSE,README.md,CHANGES.md} ./
+          tar cvfj "/tmp/dists/seonbi.${platforms[${platform}]}.tar.bz2" *
+          popd
+        done
         # macOS
         pushd /tmp/binaries-macos
         chmod +x *
