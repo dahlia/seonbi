@@ -174,7 +174,7 @@ jobs:
     - uses: denoland/setup-deno@v1
       with:
         deno-version: v1.x
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: binaries-${{ matrix.os }}-ghc-9.2
         path: ${{ runner.temp }}/bin
@@ -329,15 +329,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: binaries-macos-13-xlarge-ghc-9.2
         path: /tmp/binaries-macos-arm64
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: binaries-macos-11-ghc-9.2
         path: /tmp/binaries-macos-x86_64
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: binaries-windows-2022-ghc-9.2
         path: /tmp/binaries-windows
@@ -388,11 +388,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: sdist-ubuntu-22.04-ghc-9.2
         path: /tmp/sdist
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: dists-untagged
         path: /tmp/dists
@@ -442,11 +442,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: dists-untagged
         path: /tmp/dists
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: docs
         path: /tmp/docs
