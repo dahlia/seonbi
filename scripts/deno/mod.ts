@@ -167,7 +167,8 @@ const NIGHTLY_DOWNLOAD_URLS: DownloadUrls = {
   darwin: {
     x86_64:
       "https://dahlia.github.io/seonbi/dists/latest/seonbi.macos-x86_64.tar.bz2",
-    aarch64: undefined,
+    aarch64:
+      "https://dahlia.github.io/seonbi/dists/latest/seonbi.macos-arm64.tar.bz2",
   },
   windows: {
     x86_64: "https://dahlia.github.io/seonbi/dists/latest/seonbi.win64.zip",
