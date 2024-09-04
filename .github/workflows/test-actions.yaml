@@ -12,7 +12,6 @@ jobs:
         os:
         - ubuntu-20.04
         - ubuntu-22.04
-        - macos-11  # Intel
         - macos-12  # Intel
         - macos-13-xlarge  # Apple silicon
         - windows-2019
