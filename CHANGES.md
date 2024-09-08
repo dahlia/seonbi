@@ -54,6 +54,9 @@ To be released.
     instead of spawning a local API server.  The `new Seonbi()` constructor
     now takes `{ apiUrl: string }` besides existing configuration forms.
 
+ -  Updated the *Standard Korean Language Dictionary* data
+    (*data/ko-kr-stdict.tsv*) to the revision 2024-09.
+
 
 Version 0.3.6
 -------------
