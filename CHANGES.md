@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.4.0
 -------------
 
-To be released.
+Released on September 8, 2024.
 
  -  Introduced GitHub action `dahlia/seonbi/setup` to install Seonbi during
     GitHub Actions workflow.
