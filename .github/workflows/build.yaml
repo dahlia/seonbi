@@ -42,8 +42,9 @@ jobs:
           ghc-version: "8.10"
         - os: windows-2022
           ghc-version: "9.0"
+        # GHC 9.4 uses LLVM on Windows which breaks some dependencies:
         - os: windows-2022
-          ghc-version: "9.2"
+          ghc-version: "9.4"
     env:
       STACK_YAML: stack-ghc-${{ matrix.ghc-version }}.yaml
     steps:
@@ -186,9 +187,15 @@ jobs:
     - uses: denoland/setup-deno@v1
       with:
         deno-version: v1.x
-    - uses: actions/download-artifact@v4
+    - if: matrix.os != 'windows-2022'
+      uses: actions/download-artifact@v4
       with:
         name: binaries-${{ matrix.os }}-ghc-9.4
+        path: ${{ runner.temp }}/bin
+    - if: matrix.os == 'windows-2022'
+      uses: actions/download-artifact@v4
+      with:
+        name: binaries-${{ matrix.os }}-ghc-9.2
         path: ${{ runner.temp }}/bin
     - run: chmod +x ${{ runner.temp }}/bin/seonbi*
       if: "!startsWith(matrix.os, 'windows-')"
@@ -351,7 +358,7 @@ jobs:
         path: /tmp/binaries-macos-x86_64
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-windows-2022-ghc-9.4
+        name: binaries-windows-2022-ghc-9.2
         path: /tmp/binaries-windows
     - run: |
         set -e
