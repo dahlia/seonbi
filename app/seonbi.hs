@@ -88,7 +88,8 @@ fromUnicode encodingName =
 -- "euckr"
 normalizeEncodingName :: EncodingName -> EncodingName
 normalizeEncodingName =
-    Prelude.filter (\ c -> isAscii c && isAlphaNum c) . fmap Data.Char.toLower
+    Prelude.filter (\ c -> Data.Char.isAscii c && isAlphaNum c) .
+        fmap Data.Char.toLower
 
 data Seonbi = Seonbi
     { output :: FilePath

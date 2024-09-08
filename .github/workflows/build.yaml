@@ -22,21 +22,28 @@ jobs:
         - "8.10"
         - "9.0"
         - "9.2"
+        - "9.4"
         exclude:
         - os: macos-12
           ghc-version: "8.10"
         - os: macos-12
           ghc-version: "9.0"
+        - os: macos-12
+          ghc-version: "9.2"
         - os: macos-13-xlarge
           ghc-version: "8.8"
         - os: macos-13-xlarge
           ghc-version: "8.10"
         - os: macos-13-xlarge
           ghc-version: "9.0"
+        - os: macos-13-xlarge
+          ghc-version: "9.2"
         - os: windows-2022
           ghc-version: "8.10"
         - os: windows-2022
           ghc-version: "9.0"
+        - os: windows-2022
+          ghc-version: "9.2"
     env:
       STACK_YAML: stack-ghc-${{ matrix.ghc-version }}.yaml
     steps:
@@ -181,7 +188,7 @@ jobs:
         deno-version: v1.x
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-${{ matrix.os }}-ghc-9.2
+        name: binaries-${{ matrix.os }}-ghc-9.4
         path: ${{ runner.temp }}/bin
     - run: chmod +x ${{ runner.temp }}/bin/seonbi*
       if: "!startsWith(matrix.os, 'windows-')"
@@ -336,15 +343,15 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-macos-13-xlarge-ghc-9.2
+        name: binaries-macos-13-xlarge-ghc-9.4
         path: /tmp/binaries-macos-arm64
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-macos-12-ghc-9.2
+        name: binaries-macos-12-ghc-9.4
         path: /tmp/binaries-macos-x86_64
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-windows-2022-ghc-9.2
+        name: binaries-windows-2022-ghc-9.4
         path: /tmp/binaries-windows
     - run: |
         set -e
@@ -395,7 +402,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
-        name: sdist-ubuntu-22.04-ghc-9.2
+        name: sdist-ubuntu-22.04-ghc-9.4
         path: /tmp/sdist
     - uses: actions/download-artifact@v4
       with:
