@@ -143,7 +143,8 @@ const STABLE_DOWNLOAD_URLS: DownloadUrls = {
   linux: {
     x86_64:
       "https://github.com/dahlia/seonbi/releases/download/0.5.0/seonbi-0.5.0.linux-x86_64.tar.bz2",
-    aarch64: undefined,
+    aarch64:
+      "https://github.com/dahlia/seonbi/releases/download/0.5.0/seonbi-0.5.0.linux-arm64.tar.bz2",
   },
   darwin: {
     x86_64:
@@ -162,7 +163,8 @@ const NIGHTLY_DOWNLOAD_URLS: DownloadUrls = {
   linux: {
     x86_64:
       "https://dahlia.github.io/seonbi/dists/latest/seonbi.linux-x86_64.tar.bz2",
-    aarch64: undefined,
+    aarch64:
+      "https://dahlia.github.io/seonbi/dists/latest/seonbi.linux-arm64.tar.bz2",
   },
   darwin: {
     x86_64:

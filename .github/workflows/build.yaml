@@ -13,9 +13,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - ubuntu-22.04
-        - macos-12  # Intel
-        - macos-13-xlarge  # Apple silicon
+        - ubuntu-24.04
+        - macos-13  # Intel
+        - macos-14  # Apple silicon
         - windows-2022
         ghc-version:
         - "8.8"
@@ -24,20 +24,22 @@ jobs:
         - "9.2"
         - "9.4"
         exclude:
-        - os: macos-12
+        - os: macos-13
           ghc-version: "8.10"
-        - os: macos-12
+        - os: macos-13
           ghc-version: "9.0"
-        - os: macos-12
+        - os: macos-13
           ghc-version: "9.2"
-        - os: macos-13-xlarge
+        - os: macos-14
           ghc-version: "8.8"
-        - os: macos-13-xlarge
+        - os: macos-14
           ghc-version: "8.10"
-        - os: macos-13-xlarge
+        - os: macos-14
           ghc-version: "9.0"
-        - os: macos-13-xlarge
+        - os: macos-14
           ghc-version: "9.2"
+        - os: windows-2022
+          ghc-version: "8.8"
         - os: windows-2022
           ghc-version: "8.10"
         - os: windows-2022
@@ -70,6 +72,10 @@ jobs:
           %APPDATA%\cabal\store
           %APPDATA%\stack
         key: stack-${{ matrix.os }}-ghc-${{ matrix.version }}
+    - name: Install dependencies (Linux)
+      if: "startsWith(matrix.os, 'ubuntu-')"
+      run: |
+        sudo apt install libbz2-dev
     - name: Install Haskell Stack (if not installed)
       shell: bash
       run: |
@@ -121,14 +127,8 @@ jobs:
         matrix.ghc-version == '9.2'
       shell: bash
       run: |
-        curl -L -o /tmp/pandoc.deb \
-          https://github.com/jgm/pandoc/releases/download/2.14.2/pandoc-2.14.2-1-amd64.deb
-        sudo dpkg -i /tmp/pandoc.deb
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
-        sudo add-apt-repository ppa:rmescandon/yq
-        sudo apt update
-        sudo apt-get install -y yq
-        bash scripts/haddock-prologue/build.sh
+        sudo apt-get install -y pandoc yq
+        PATH="/usr/bin:$PATH" bash scripts/haddock-prologue/build.sh
     - name: Copy docs
       if: >-
         startsWith(matrix.os, 'ubuntu-') &&
@@ -178,9 +178,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - ubuntu-22.04
-        - macos-12  # Intel
-        - macos-13-xlarge  # Apple silicon
+        - ubuntu-24.04
+        - macos-14  # Apple silicon
         - windows-2022
     steps:
     - uses: actions/checkout@v4
@@ -266,12 +265,21 @@ jobs:
 
   image:
     name: Docker image
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-24.04
+        - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     env:
       DOCKERHUB_IMAGE_NAME: seonbi
     outputs:
       image-ghcr: ghcr.io/${{ github.repository }}/bin@${{ steps.push-image.outputs.digest }}
       image-dockerhub: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}@${{ steps.push-image.outputs.digest }}
+      tag: ${{ steps.values.outputs.tag }}
+      labels: ${{ steps.values.outputs.labels }}
+      arch: ${{ steps.values.outputs.arch }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -303,6 +311,11 @@ jobs:
         else
           echo labels= >> "$GITHUB_OUTPUT"
         fi
+        if [[ "$RUNNER_ARCH" = "ARM64" ]]; then
+          echo arch=arm64 >> "$GITHUB_OUTPUT"
+        else
+          echo arch=amd64 >> "$GITHUB_OUTPUT"
+        fi
     - id: push-image
       uses: docker/build-push-action@v6
       with:
@@ -313,9 +326,38 @@ jobs:
           org.opencontainers.image.url=${{ github.event.repository.html_url }}
           ${{ steps.values.outputs.labels }}
         tags: |
-          ghcr.io/${{ github.repository }}/bin:${{ steps.values.outputs.tag }}
-          ${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ steps.values.outputs.tag }}
+          ghcr.io/${{ github.repository }}/bin:${{ steps.values.outputs.tag }}-${{ steps.values.outputs.arch }}
+          ${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ steps.values.outputs.tag }}-${{ steps.values.outputs.arch }}
         provenance: false  # https://community.fly.io/t/deploying-to-fly-via-github-action-failing/10171/33
+
+  image-manifest:
+    name: Create and push manifest images
+    if: github.event_name != 'pull_request'
+    needs:
+    - image
+    runs-on: ubuntu-24.04
+    env:
+      DOCKERHUB_IMAGE_NAME: seonbi
+    steps:
+    - uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ github.token }}
+    - uses: docker/login-action@v3
+      with:
+        username: ${{ vars.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - uses: Noelware/docker-manifest-action@0.4.2
+      with:
+        inputs: ghcr.io/${{ github.repository }}/bin:${{ needs.image.outputs.tag }}
+        images: ghcr.io/${{ github.repository }}/bin:${{ needs.image.outputs.tag }}-amd64,ghcr.io/${{ github.repository }}/bin:${{ needs.image.outputs.tag }}-arm64
+        push: true
+    - uses: Noelware/docker-manifest-action@0.4.2
+      with:
+        inputs: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ needs.image.outputs.tag }}
+        images: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ needs.image.outputs.tag }}-amd64,docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}:${{ needs.image.outputs.tag }}-arm64
+        push: true
 
   fly:
     name: Deploy seonbi-api to Fly.io
@@ -324,8 +366,8 @@ jobs:
     - image
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      IMAGE: ${{ needs.image.outputs.image-ghcr }}
-    runs-on: ubuntu-22.04
+      IMAGE: ghcr.io/${{ github.repository }}/bin:${{ needs.image.outputs.tag }}-amd64
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -345,35 +387,53 @@ jobs:
     needs:
     - build
     - image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-macos-13-xlarge-ghc-9.4
+        name: binaries-macos-14-ghc-9.4
         path: /tmp/binaries-macos-arm64
     - uses: actions/download-artifact@v4
       with:
-        name: binaries-macos-12-ghc-9.4
+        name: binaries-macos-13-ghc-9.4
         path: /tmp/binaries-macos-x86_64
     - uses: actions/download-artifact@v4
       with:
         name: binaries-windows-2022-ghc-9.2
         path: /tmp/binaries-windows
+    - uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - uses: docker/setup-buildx-action@v3
     - run: |
         set -e
         mkdir -p /tmp/dists
-        # Linux
-        docker pull "$IMAGE"
-        mkdir -p /tmp/binaries-linux
-        docker run -i "$IMAGE" cat /usr/local/bin/seonbi \
-          > /tmp/binaries-linux/seonbi
-        docker run -i "$IMAGE" cat /usr/local/bin/seonbi-api \
-          > /tmp/binaries-linux/seonbi-api
-        pushd /tmp/binaries-linux
+        # Linux (amd64)
+        docker pull "$IMAGE-amd64"
+        mkdir -p /tmp/binaries-linux-amd64
+        docker run -i "$IMAGE-amd64" cat /usr/local/bin/seonbi \
+          > /tmp/binaries-linux-amd64/seonbi
+        docker run -i "$IMAGE-amd64" cat /usr/local/bin/seonbi-api \
+          > /tmp/binaries-linux-amd64/seonbi-api
+        pushd /tmp/binaries-linux-amd64
         chmod +x *
         cp "$GITHUB_WORKSPACE/"{LICENSE,README.md,CHANGES.md} ./
         tar cvfj /tmp/dists/seonbi.linux-x86_64.tar.bz2 *
+        popd
+        # Linux (arm64)
+        docker pull "$IMAGE-arm64"
+        mkdir -p /tmp/binaries-linux-arm64
+        docker run -i --platform linux/arm64 "$IMAGE-arm64" \
+          cat /usr/local/bin/seonbi \
+          > /tmp/binaries-linux-arm64/seonbi
+        docker run -i --platform linux/arm64 "$IMAGE-arm64" \
+          cat /usr/local/bin/seonbi-api \
+          > /tmp/binaries-linux-arm64/seonbi-api
+        pushd /tmp/binaries-linux-arm64
+        chmod +x *
+        cp "$GITHUB_WORKSPACE/"{LICENSE,README.md,CHANGES.md} ./
+        tar cvfj /tmp/dists/seonbi.linux-arm64.tar.bz2 *
         popd
         # macOS (Apple silicon)
         pushd /tmp/binaries-macos-arm64
@@ -393,7 +453,7 @@ jobs:
         zip /tmp/dists/seonbi.win64.zip *
         popd
       env:
-        IMAGE: ${{ needs.image.outputs.image-ghcr }}
+        IMAGE: ghcr.io/${{ github.repository }}/bin:${{ needs.image.outputs.tag }}
     - uses: actions/upload-artifact@v4
       with:
         name: dists-untagged
@@ -404,12 +464,12 @@ jobs:
     needs:
     - build
     - binaries
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
-        name: sdist-ubuntu-22.04-ghc-9.4
+        name: sdist-ubuntu-24.04-ghc-9.4
         path: /tmp/sdist
     - uses: actions/download-artifact@v4
       with:

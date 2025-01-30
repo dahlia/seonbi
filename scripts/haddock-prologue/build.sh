@@ -15,7 +15,11 @@ cp "$package" "$backup"
 cwd="$(pwd)"
 exit_code=1
 {
-  yq write --inplace "$package" description "$description"
+  yq \
+    -y \
+    --arg description "$description" \
+    '.description = $description' \
+    "$backup" > "$package"
   cd "$root"
   stack haddock --no-haddock-deps
   cd "$(stack path --dist-dir)/doc/html/"

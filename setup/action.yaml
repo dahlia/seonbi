@@ -42,6 +42,7 @@ runs:
 
       suffixes = {
         ('Linux', 'X64'): 'linux-x86_64.tar.bz2',
+        ('Linux', 'ARM64'): 'linux-arm64.tar.bz2',
         ('macOS', 'X64'): 'macos-x86_64.tar.bz2',
         ('macOS', 'ARM64'): 'macos-arm64.tar.bz2',
         ('Windows', 'X64'): 'win64.zip',

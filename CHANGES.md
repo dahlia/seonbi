@@ -6,6 +6,13 @@ Version 0.5.0
 
 To be released.
 
+ -  Added prebuilt executable binaries for Linux ARM64 (linux-arm64).
+
+ -  The official Docker images are now multi-platform (linux/amd64 and
+    linux/arm64).  [[#35]]
+
+[#35]: https://github.com/dahlia/seonbi/issues/35
+
 
 Version 0.4.0
 -------------
