@@ -24,5 +24,9 @@
   "deno.enable": false,
   "deno.enablePaths": [
     "scripts/deno/"
-  ]
+  ],
+
+  "haskell.serverEnvironment": {
+    "STACK_YAML": "stack-ghc-9.4.yaml"
+  }
 }

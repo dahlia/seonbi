@@ -249,8 +249,8 @@ data TitlePunct
     deriving (Eq, Show)
 
 
--- | A set of stops—'period', 'comma', and 'interpunct'—to be used by
--- 'normalizeStops' function.
+-- | A set of stops—'period', 'comma', 'interpunct', 'questionMark', and
+-- 'exclamationMark'—to be used by 'normalizeStops' function.
 --
 -- There are three presets: 'horizontalStops', 'verticalStops', and
 -- 'horizontalStopsWithSlashes'.
@@ -258,40 +258,42 @@ data Stops = Stops
     { period :: Text
     , comma :: Text
     , interpunct :: Text
+    , questionMark :: Text
+    , exclamationMark :: Text
     } deriving (Eq, Show)
 
 -- | Stop sentences in the modern Korean style which follows Western stops.
 -- E.g.:
 --
--- > 봄·여름·가을·겨울. 어제, 오늘.
+-- > 봄·여름·가을·겨울. 어제, 오늘. 새벽? 아침!
 horizontalStops :: Stops
 horizontalStops = Stops
     { period = ". "
     , comma = ", "
     , interpunct = "·"
+    , questionMark = "? "
+    , exclamationMark = "! "
     }
 
 -- | Stop sentences in the pre-modern Korean style which follows Chinese stops.
 -- E.g.:
 --
--- > 봄·여름·가을·겨울。어제、오늘。
+-- > 봄·여름·가을·겨울。어제、오늘。새벽？아침！
 verticalStops :: Stops
 verticalStops = Stops
     { period = "。"
     , comma = "、"
     , interpunct = "·"
+    , questionMark = "？"
+    , exclamationMark = "！"
     }
 
 -- | Similar to 'horizontalStops' except slashes are used instead of
 -- interpuncts. E.g.:
 --
--- > 봄/여름/가을/겨울. 어제, 오늘.
+-- > 봄/여름/가을/겨울. 어제, 오늘. 새벽? 아침!
 horizontalStopsWithSlashes :: Stops
-horizontalStopsWithSlashes = Stops
-    { period = ". "
-    , comma = ", "
-    , interpunct = "/"
-    }
+horizontalStopsWithSlashes = horizontalStops { interpunct = "/" }
 
 
 -- | Normalizes sentence stops (periods, commas, and interpuncts).
@@ -331,6 +333,12 @@ normalizeStops stops input = (`fmap` annotatedEntities) $ \ case
              }
         , do { ending <- interpunct'
              ; return (toEntity $ adjustEnding ending $ interpunct stops)
+             }
+        , do { ending <- questionMark'
+             ; return (toEntity $ adjustEnding ending $ questionMark stops)
+             }
+        , do { ending <- exclamationMark'
+             ; return (toEntity $ adjustEnding ending $ exclamationMark stops)
              }
         ]
     adjustEnding :: Ending -> Text -> Text
@@ -377,6 +385,26 @@ normalizeStops stops input = (`fmap` annotatedEntities) $ \ case
         , string "&#183;"
         , asciiCI "&#xb7;"
         ] >> return Ending
+    questionMark' :: Parser Ending
+    questionMark' = choice
+        [ char '?' >> boundary
+        , char '？' >> trailingSpaces
+        , string "&quest;" >> boundary
+        , string "&#63;" >> boundary
+        , asciiCI "&#x3f;" >> boundary
+        , string "&#65311;" >> trailingSpaces
+        , asciiCI "&#xff1f;" >> trailingSpaces
+        ]
+    exclamationMark' :: Parser Ending
+    exclamationMark' = choice
+        [ char '!' >> boundary
+        , char '！' >> trailingSpaces
+        , string "&excl;" >> boundary
+        , string "&#33;" >> boundary
+        , asciiCI "&#x21;" >> boundary
+        , string "&#65281;" >> trailingSpaces
+        , asciiCI "&#xff01;" >> trailingSpaces
+        ]
     closingChars :: String
     closingChars =
         [ '"', '”', '\'', '’', ')', ']', '}', '」', '』', '〉', '》', '）', '〕'
@@ -419,7 +447,7 @@ normalizeStops stops input = (`fmap` annotatedEntities) $ \ case
         ]
 
 
-data Ending = TrailingChars Text | TrailingSpaces Text | Ending
+data Ending = TrailingChars Text | TrailingSpaces Text | Ending deriving (Show)
 
 
 -- | Substitution options for 'transformArrow' function.  These options can

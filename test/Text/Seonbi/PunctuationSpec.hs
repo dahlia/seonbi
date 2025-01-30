@@ -475,15 +475,25 @@ spec = do
                 [ "·", "&middot;", "&centerdot;", "&CenterDot;"
                 , "&#xB7;", "&#xb7;", "&#183;"
                 ] :: [Text]
+        let questionMarks =
+                [ "? ", "&quest; ", "&#63; ", "&#x3f; "
+                , "？", "&#65311;", "&#xFF1F;"
+                ] :: [Text]
+        let exclamationMarks =
+                [ "! ", "&excl; ", "&#33; ", "&#x21; "
+                , "！", "&#65281;", "&#xFF01;"
+                ] :: [Text]
         let s = stripEnd
         let examples =
-                [ [qc|봄{i1}여름{i2}가을{i3}겨울{p1}(括弧{s p3}) 어제{c}오늘{s p2}|]
+                [ [qc|봄{i1}여름{i2}가을{i3}겨울{p1}(括弧{s p3}) 어제{c}오늘{p2}새벽{q}아침{s e}|]
                 | p1 <- periods, p2 <- periods, p3 <- periods
                 , c <- commas
                 , i1 <- interpuncts, i2 <- interpuncts, i3 <- interpuncts
+                , q <- questionMarks
+                , e <- exclamationMarks
                 ] :: [Text]
         let gen = unsafePerformIO getStdGen :: StdGen
-        let randomInts = randomRs (0, 499) gen :: [Int]
+        let randomInts = randomRs (0, 999) gen :: [Int]
         let sampledExamples =
                 [ e
                 | (e, r) <- Prelude.zip examples randomInts
@@ -499,19 +509,19 @@ spec = do
                 normalizeStops horizontalStops input `shouldBe`
                     [ HtmlStartTag [] P ""
                     , HtmlText [P]
-                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. (括弧.) 어제, 오늘."
+                        "봄&#xb7;여름&#xb7;가을&#xb7;겨울. (括弧.) 어제, 오늘. 새벽? 아침!"
                     , HtmlEndTag [] P
                     ]
                 normalizeStops verticalStops input `shouldBe`
                     [ HtmlStartTag [] P ""
                     , HtmlText [P]
                         ("봄&#xb7;여름&#xb7;가을&#xb7;겨울&#x3002;(括弧&#x3002;) " <>
-                            "어제&#x3001;오늘&#x3002;")
+                            "어제&#x3001;오늘&#x3002;새벽&#xff1f;아침&#xff01;")
                     , HtmlEndTag [] P
                     ]
                 normalizeStops horizontalStopsWithSlashes input `shouldBe`
                     [ HtmlStartTag [] P ""
-                    , HtmlText [P] "봄/여름/가을/겨울. (括弧.) 어제, 오늘."
+                    , HtmlText [P] "봄/여름/가을/겨울. (括弧.) 어제, 오늘. 새벽? 아침!"
                     , HtmlEndTag [] P
                     ]
         it "normalizes stops followed by boundaries as well" $ do

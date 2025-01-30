@@ -6,11 +6,21 @@ Version 0.5.0
 
 To be released.
 
+ -  Stops normalizer now normalizes question marks and exclamation marks too.
+    The below functions were added.  [[#34]]
+
+    Haskell API-wise, the below record fields were added to
+    the `Text.Seonbi.Punctuation.Stops` data type:
+
+     -  `questionMark` field
+     -  `exclamationMark` field
+
  -  Added prebuilt executable binaries for Linux ARM64 (linux-arm64).
 
  -  The official Docker images are now multi-platform (linux/amd64 and
     linux/arm64).  [[#35]]
 
+[#34]: https://github.com/dahlia/seonbi/issues/34
 [#35]: https://github.com/dahlia/seonbi/issues/35
 
 
