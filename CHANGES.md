@@ -4,7 +4,7 @@ Seonbi changelog
 Version 0.5.0
 -------------
 
-To be released.
+Released on January 31, 2025.
 
  -  Stops normalizer now normalizes question marks and exclamation marks too.
     The below functions were added.  [[#34]]
