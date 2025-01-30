@@ -20,6 +20,9 @@ To be released.
  -  The official Docker images are now multi-platform (linux/amd64 and
     linux/arm64).  [[#35]]
 
+ -  Updated the *Standard Korean Language Dictionary* data
+    (*data/ko-kr-stdict.tsv*) to the revision 2025-01.
+
 [#34]: https://github.com/dahlia/seonbi/issues/34
 [#35]: https://github.com/dahlia/seonbi/issues/35
 

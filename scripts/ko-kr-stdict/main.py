@@ -55,7 +55,7 @@ HANJA_PATTERN = '''
 '''
 HANJA_RE = re.compile(HANJA_PATTERN, re.VERBOSE)
 SQUARE_BRACKETS_HANJA_RE = re.compile(
-    f'\[((?:{HANJA_PATTERN})+)\]$'
+    f'\\[((?:{HANJA_PATTERN})+)\\]$'
 , re.VERBOSE | re.UNICODE)
 HANJA_ONLY_RE = re.compile(f'^(?:(?:{HANJA_PATTERN})▽?)+$', re.VERBOSE)
 DISAMBIGUATOR = re.compile(r'\d{2}$|(?:^|(?<=[가-힣]))-(?:(?=[가-힣])|$)')

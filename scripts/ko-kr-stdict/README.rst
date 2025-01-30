@@ -18,11 +18,11 @@ NIKL has distributed *Standard Korean Language Dictionary* under CC BY-SA
 does not have English version and you need to make an account to download
 the data.  Or, in short, you could download using ``curl`` in one-shot::
 
-    # Works as of September 2024.
+    # Works as of January 2025.
     curl \
         -LJ \
         -X POST \
-        -F link_key=1359365 \
+        -F link_key=1404371 \
         -F pageUnit=10 \
         -F pageIndex=1 \
         -o stdict.zip \
