@@ -1,0 +1,411 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Lang</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier">LangHtmlEntity</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier">LanguageTag</span></a></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#annotateWithLang"><span class="hs-identifier">annotateWithLang</span></a></span><span>
+</span><span id="line-6"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#extractLang"><span class="hs-identifier">extractLang</span></a></span><span>
+</span><span id="line-7"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#isKorean"><span class="hs-identifier">isKorean</span></a></span><span>
+</span><span id="line-8"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#isNeverKorean"><span class="hs-identifier">isNeverKorean</span></a></span><span>
+</span><span id="line-9"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isSpace</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Attoparsec.Text</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html"><span class="hs-identifier">Text.Seonbi.Html.Entity</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html"><span class="hs-identifier">Text.Seonbi.Html.Tag</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier">HtmlTag</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- | Represents a language tag.  Although it is defined as an alias for 'Text',</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- it can be structured in the future.  Do not use its contents directly.</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">type</span><span> </span><span id="LanguageTag"><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-var">LanguageTag</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Extracts the language tag from the given raw HTML attributes if it has</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- @lang@ attribute.</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- &gt;&gt;&gt; extractLang &quot;&quot;</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- &gt;&gt;&gt; extractLang &quot;lang=en&quot;</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- Just &quot;en&quot;</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- &gt;&gt;&gt; extractLang &quot;lang=\&quot;ko-KR\&quot;&quot;</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- Just &quot;ko-kr&quot;</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- &gt;&gt;&gt; extractLang &quot; lang='ko-Hang'&quot;</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- Just &quot;ko-hang&quot;</span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#extractLang"><span class="hs-identifier hs-type">extractLang</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-type">HtmlRawAttrs</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-comment">-- ^ A raw HTML attributes to extract the language tag from.</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">-- ^ A language tag extracted from the given raw HTML attributes.</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- If the given raw HTML attributes does not have @lang@ attribute or</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-comment">-- its value is invalid, 'Nothing' is returned.</span><span>
+</span><span id="line-43"></span><span id="extractLang"><span class="annot"><span class="annottext">extractLang :: Text -&gt; Maybe Text
+</span><a href="Text.Seonbi.Html.Lang.html#extractLang"><span class="hs-identifier hs-var hs-var">extractLang</span></a></span></span><span> </span><span id="local-6989586621679112539"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112539"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">forall a. Parser a -&gt; Text -&gt; Either String a
+</span><span class="hs-identifier hs-var">parseOnly</span></span><span> </span><span class="annot"><span class="annottext">Parser (Maybe Text)
+</span><a href="#local-6989586621679112537"><span class="hs-identifier hs-var">parser'</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112539"><span class="hs-identifier hs-var">attrs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-45"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679112536"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112536"><span class="hs-identifier hs-var">lang'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-46"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679112535"><span class="annot"><span class="annottext">lt :: Text
+</span><a href="#local-6989586621679112535"><span class="hs-identifier hs-var hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">strip</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="#local-6989586621679112531"><span class="hs-identifier hs-var">normalizeEntities</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112536"><span class="hs-identifier hs-var">lang'</span></a></span><span>
+</span><span id="line-47"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Bool
+</span><span class="hs-identifier hs-var">Data.Text.null</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112535"><span class="hs-identifier hs-var">lt</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112535"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-48"></span><span>        </span><span class="annot"><span class="annottext">Either String (Maybe Text)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><a href="#local-6989586621679112537"><span class="hs-identifier hs-type">parser'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>    </span><span id="local-6989586621679112537"><span class="annot"><span class="annottext">parser' :: Parser (Maybe Text)
+</span><a href="#local-6989586621679112537"><span class="hs-identifier hs-var hs-var">parser'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-52"></span><span>        </span><span class="annot"><span class="annottext">Parser ()
+</span><span class="hs-identifier hs-var">skipSpace</span></span><span>
+</span><span id="line-53"></span><span>        </span><span id="local-6989586621679112528"><span class="annot"><span class="annottext">[Maybe Text]
+</span><a href="#local-6989586621679112528"><span class="hs-identifier hs-var">attrs'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser (Maybe Text)
+</span><a href="#local-6989586621679112527"><span class="hs-identifier hs-var">langAttr</span></a></span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a s. Alternative f =&gt; f a -&gt; f s -&gt; f [a]
+</span><span class="hs-operator hs-var">`sepBy`</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+</span><span class="hs-identifier hs-var">space</span></span><span>
+</span><span id="line-54"></span><span>        </span><span class="annot"><span class="annottext">Parser ()
+</span><span class="hs-identifier hs-var">skipSpace</span></span><span>
+</span><span id="line-55"></span><span>        </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; Maybe a
+</span><span class="hs-identifier hs-var">listToMaybe</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">forall a. [Maybe a] -&gt; [a]
+</span><span class="hs-identifier hs-var">catMaybes</span></span><span> </span><span class="annot"><span class="annottext">[Maybe Text]
+</span><a href="#local-6989586621679112528"><span class="hs-identifier hs-var">attrs'</span></a></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><a href="#local-6989586621679112527"><span class="hs-identifier hs-type">langAttr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>    </span><span id="local-6989586621679112527"><span class="annot"><span class="annottext">langAttr :: Parser (Maybe Text)
+</span><a href="#local-6989586621679112527"><span class="hs-identifier hs-var hs-var">langAttr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-58"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679112522"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112522"><span class="hs-identifier hs-var">isLang</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112521"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112521"><span class="hs-identifier hs-var">cont</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser (Bool, Bool)
+</span><a href="#local-6989586621679112520"><span class="hs-identifier hs-var">attrIsLang</span></a></span><span>
+</span><span id="line-59"></span><span>        </span><span id="local-6989586621679112519"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112519"><span class="hs-identifier hs-var">value</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112521"><span class="hs-identifier hs-var">cont</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Parser Text
+</span><a href="#local-6989586621679112518"><span class="hs-identifier hs-var">attrValue</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-60"></span><span>        </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112522"><span class="hs-identifier hs-var">isLang</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112519"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><a href="#local-6989586621679112520"><span class="hs-identifier hs-type">attrIsLang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>    </span><span id="local-6989586621679112520"><span class="annot"><span class="annottext">attrIsLang :: Parser (Bool, Bool)
+</span><a href="#local-6989586621679112520"><span class="hs-identifier hs-var hs-var">attrIsLang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a. Alternative f =&gt; [f a] -&gt; f a
+</span><span class="hs-identifier hs-var">choice</span></span><span>
+</span><span id="line-63"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Parser Text
+</span><span class="hs-identifier hs-var">asciiCI</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;lang=&quot;</span></span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Text
+</span><span class="hs-identifier hs-var">takeWhile1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'='</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>             </span><span class="hs-special">;</span><span> </span><span id="local-6989586621679112513"><span class="annot"><span class="annottext">Maybe Char
+</span><a href="#local-6989586621679112513"><span class="hs-identifier hs-var">eq</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Parser Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'='</span></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>             </span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">Maybe Char
+</span><a href="#local-6989586621679112513"><span class="hs-identifier hs-var">eq</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>             </span><span class="hs-special">}</span><span>
+</span><span id="line-68"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span>    </span><span class="annot"><a href="#local-6989586621679112518"><span class="hs-identifier hs-type">attrValue</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-70"></span><span>    </span><span id="local-6989586621679112518"><span class="annot"><span class="annottext">attrValue :: Parser Text
+</span><a href="#local-6989586621679112518"><span class="hs-identifier hs-var hs-var">attrValue</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a. Alternative f =&gt; [f a] -&gt; f a
+</span><span class="hs-identifier hs-var">choice</span></span><span>
+</span><span id="line-71"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser ()
+</span><span class="hs-identifier hs-var">skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span class="hs-special">;</span><span> </span><span id="local-6989586621679112508"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112508"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Text
+</span><span class="hs-identifier hs-var">takeTill</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser ()
+</span><span class="hs-identifier hs-var">skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112508"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-72"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser ()
+</span><span class="hs-identifier hs-var">skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>             </span><span class="hs-special">;</span><span> </span><span id="local-6989586621679112506"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112506"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Text
+</span><span class="hs-identifier hs-var">takeTill</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>             </span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser ()
+</span><span class="hs-identifier hs-var">skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span class="hs-special">)</span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112506"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-75"></span><span>             </span><span class="hs-special">}</span><span>
+</span><span id="line-76"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Text
+</span><span class="hs-identifier hs-var">takeWhile1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><a href="#local-6989586621679112531"><span class="hs-identifier hs-type">normalizeEntities</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-79"></span><span>    </span><span id="local-6989586621679112531"><span class="annot"><span class="annottext">normalizeEntities :: Text -&gt; Text
+</span><a href="#local-6989586621679112531"><span class="hs-identifier hs-var hs-var">normalizeEntities</span></a></span></span><span>
+</span><span id="line-80"></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&amp;hyphen;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-81"></span><span>        </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&amp;dash;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-82"></span><span>        </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&amp;#8208;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-83"></span><span>        </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&amp;#x2010;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-84"></span><span>        </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&amp;#X2010;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- | Annotates 'HtmlEntity' with the 'lang' tag extracted from it or its</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- ancestors.</span><span>
+</span><span id="line-88"></span><span class="hs-keyword">data</span><span> </span><span id="LangHtmlEntity"><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-var">LangHtmlEntity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="LangHtmlEntity"><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-var">LangHtmlEntity</span></a></span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The @lang@ tag extracted from the HTML 'entity' or its ancestors.</span><span>
+</span><span id="line-90"></span><span>      </span><span id="lang"><span class="annot"><span class="annottext">LangHtmlEntity -&gt; Maybe Text
+</span><a href="Text.Seonbi.Html.Lang.html#lang"><span class="hs-identifier hs-var hs-var">lang</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span>
+</span><span id="line-91"></span><span>      </span><span class="hs-comment">-- | The annotated HTML 'entity'.</span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="entity"><span class="annot"><span class="annottext">LangHtmlEntity -&gt; HtmlEntity
+</span><a href="Text.Seonbi.Html.Lang.html#entity"><span class="hs-identifier hs-var hs-var">entity</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112488"><span id="local-6989586621679112490"><span id="local-6989586621679112499"><span class="annot"><span class="annottext">Int -&gt; LangHtmlEntity -&gt; ShowS
+[LangHtmlEntity] -&gt; ShowS
+LangHtmlEntity -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [LangHtmlEntity] -&gt; ShowS
+$cshowList :: [LangHtmlEntity] -&gt; ShowS
+show :: LangHtmlEntity -&gt; String
+$cshow :: LangHtmlEntity -&gt; String
+showsPrec :: Int -&gt; LangHtmlEntity -&gt; ShowS
+$cshowsPrec :: Int -&gt; LangHtmlEntity -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112478"><span id="local-6989586621679112484"><span class="annot"><span class="annottext">LangHtmlEntity -&gt; LangHtmlEntity -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: LangHtmlEntity -&gt; LangHtmlEntity -&gt; Bool
+$c/= :: LangHtmlEntity -&gt; LangHtmlEntity -&gt; Bool
+== :: LangHtmlEntity -&gt; LangHtmlEntity -&gt; Bool
+$c== :: LangHtmlEntity -&gt; LangHtmlEntity -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- | Annotates the given HTML entities with the language tag extracted from</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- their @lang@ attributes.  If a parent entity has @lang@ attribute, its</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- all descendants are annotated with the same language tag.</span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#annotateWithLang"><span class="hs-identifier hs-type">annotateWithLang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-type">LangHtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-99"></span><span id="annotateWithLang"><span class="annot"><span class="annottext">annotateWithLang :: [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="Text.Seonbi.Html.Lang.html#annotateWithLang"><span class="hs-identifier hs-var hs-var">annotateWithLang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)] -&gt; [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><a href="#local-6989586621679112476"><span class="hs-identifier hs-type">annotate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-103"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-104"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-type">LangHtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-105"></span><span>    </span><span id="local-6989586621679112476"><span class="annot"><span class="annottext">annotate :: [(HtmlTag, Maybe Text)] -&gt; [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="#local-6989586621679112476"><span class="hs-identifier hs-var hs-var">annotate</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span id="local-6989586621679112475"><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112475"><span class="hs-identifier hs-var">stack</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112474"><span class="annot"><span class="annottext">x :: HtmlEntity
+</span><a href="#local-6989586621679112474"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112471"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112471"><span class="hs-identifier hs-var">tag'</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">rawAttributes :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawAttributes"><span class="hs-identifier hs-var">rawAttributes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112469"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112469"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679112468"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112468"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-107"></span><span>        </span><span class="annot"><span class="annottext">Maybe Text -&gt; HtmlEntity -&gt; LangHtmlEntity
+</span><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-var">LangHtmlEntity</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112467"><span class="hs-identifier hs-var">thisLang</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112474"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)] -&gt; [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112466"><span class="hs-identifier hs-var">nextStack</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112468"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-108"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-109"></span><span>        </span><span class="annot"><a href="#local-6989586621679112465"><span class="hs-identifier hs-type">parentLang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span>
+</span><span id="line-110"></span><span>        </span><span id="local-6989586621679112465"><span class="annot"><span class="annottext">parentLang :: Maybe Text
+</span><a href="#local-6989586621679112465"><span class="hs-identifier hs-var hs-var">parentLang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112475"><span class="hs-identifier hs-var">stack</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-111"></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112464"><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112464"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112464"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-112"></span><span>            </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-113"></span><span>        </span><span class="annot"><a href="#local-6989586621679112467"><span class="hs-identifier hs-type">thisLang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span>
+</span><span id="line-114"></span><span>        </span><span id="local-6989586621679112467"><span class="annot"><span class="annottext">thisLang :: Maybe Text
+</span><a href="#local-6989586621679112467"><span class="hs-identifier hs-var hs-var">thisLang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Maybe Text
+</span><a href="Text.Seonbi.Html.Lang.html#extractLang"><span class="hs-identifier hs-var">extractLang</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112469"><span class="hs-identifier hs-var">attrs</span></a></span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112465"><span class="hs-identifier hs-var">parentLang</span></a></span><span>
+</span><span id="line-115"></span><span>        </span><span class="annot"><a href="#local-6989586621679112466"><span class="hs-identifier hs-type">nextStack</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-116"></span><span>        </span><span id="local-6989586621679112466"><span class="annot"><span class="annottext">nextStack :: [(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112466"><span class="hs-identifier hs-var hs-var">nextStack</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112471"><span class="hs-identifier hs-var">tag'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112467"><span class="hs-identifier hs-var">thisLang</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112475"><span class="hs-identifier hs-var">stack</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span id="local-6989586621679112462"><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112462"><span class="hs-identifier hs-var">stack</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112461"><span class="annot"><span class="annottext">x :: HtmlEntity
+</span><a href="#local-6989586621679112461"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112459"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112459"><span class="hs-identifier hs-var">tag'</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679112458"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112458"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-118"></span><span>        </span><span class="annot"><span class="annottext">Maybe Text -&gt; HtmlEntity -&gt; LangHtmlEntity
+</span><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-var">LangHtmlEntity</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112457"><span class="hs-identifier hs-var">thisLang</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112461"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)] -&gt; [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112456"><span class="hs-identifier hs-var">nextStack</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112458"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-119"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-120"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679112456"><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112456"><span class="hs-identifier hs-var">nextStack</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112457"><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112457"><span class="hs-identifier hs-var">thisLang</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112462"><span class="hs-identifier hs-var">stack</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-121"></span><span>            </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>            </span><span id="local-6989586621679112453"><span class="annot"><span class="annottext">s :: [(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112453"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="hs-special">(</span><span id="local-6989586621679112452"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112452"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112451"><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112451"><span class="hs-identifier hs-var">lang'</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679112450"><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112450"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-123"></span><span>                </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112452"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112459"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112450"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112453"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112451"><span class="hs-identifier hs-var">lang'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span id="local-6989586621679112449"><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112449"><span class="hs-identifier hs-var">stack</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112448"><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112448"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679112447"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112447"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-125"></span><span>        </span><span class="annot"><span class="annottext">Maybe Text -&gt; HtmlEntity -&gt; LangHtmlEntity
+</span><a href="Text.Seonbi.Html.Lang.html#LangHtmlEntity"><span class="hs-identifier hs-var">LangHtmlEntity</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112446"><span class="hs-identifier hs-var">parentLang</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112448"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)] -&gt; [HtmlEntity] -&gt; [LangHtmlEntity]
+</span><a href="#local-6989586621679112476"><span class="hs-identifier hs-var">annotate</span></a></span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112449"><span class="hs-identifier hs-var">stack</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112447"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-126"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-127"></span><span>        </span><span class="annot"><a href="#local-6989586621679112446"><span class="hs-identifier hs-type">parentLang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span>
+</span><span id="line-128"></span><span>        </span><span id="local-6989586621679112446"><span class="annot"><span class="annottext">parentLang :: Maybe Text
+</span><a href="#local-6989586621679112446"><span class="hs-identifier hs-var hs-var">parentLang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><a href="#local-6989586621679112449"><span class="hs-identifier hs-var">stack</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-129"></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112445"><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112445"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><a href="#local-6989586621679112445"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-130"></span><span>            </span><span class="annot"><span class="annottext">[(HtmlTag, Maybe Text)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- | Determines whether the given language tag refers to any kind of Korean.</span><span>
+</span><span id="line-133"></span><span class="hs-comment">--</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- &gt;&gt;&gt; isKorean &quot;ko&quot;</span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-136"></span><span class="hs-comment">-- &gt;&gt;&gt; isKorean &quot;ko-KR&quot;</span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- &gt;&gt;&gt; isKorean &quot;kor-Hang&quot;</span><span>
+</span><span id="line-139"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-140"></span><span class="hs-comment">-- &gt;&gt;&gt; isKorean &quot;en&quot;</span><span>
+</span><span id="line-141"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- &gt;&gt;&gt; isKorean &quot;en-KR&quot;</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-144"></span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#isKorean"><span class="hs-identifier hs-type">isKorean</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-145"></span><span id="isKorean"><span class="annot"><span class="annottext">isKorean :: Text -&gt; Bool
+</span><a href="Text.Seonbi.Html.Lang.html#isKorean"><span class="hs-identifier hs-var hs-var">isKorean</span></a></span></span><span> </span><span id="local-6989586621679112444"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112444"><span class="hs-identifier hs-var">lang'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112443"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ko&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112443"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;kor&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span>
+</span><span id="line-147"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;ko-&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><span class="hs-operator hs-var">`isPrefixOf`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112443"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span>
+</span><span id="line-148"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;kor-&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><span class="hs-operator hs-var">`isPrefixOf`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112443"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><a href="#local-6989586621679112443"><span class="hs-identifier hs-type">l</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-151"></span><span>    </span><span id="local-6989586621679112443"><span class="annot"><span class="annottext">l :: Text
+</span><a href="#local-6989586621679112443"><span class="hs-identifier hs-var hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112444"><span class="hs-identifier hs-var">lang'</span></a></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="hs-comment">-- | Determines whether the given language tag undoubtedly does not refer</span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- to any kind of Korean.</span><span>
+</span><span id="line-155"></span><span class="hs-comment">--</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- &gt;&gt;&gt; isNeverKorean $ Just &quot;ko&quot;</span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- &gt;&gt;&gt; isNeverKorean $ Just &quot;ko-KR&quot;</span><span>
+</span><span id="line-159"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- &gt;&gt;&gt; isNeverKorean Nothing</span><span>
+</span><span id="line-161"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-162"></span><span class="hs-comment">-- &gt;&gt;&gt; isNeverKorean $ Just &quot;en&quot;</span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-164"></span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#isNeverKorean"><span class="hs-identifier hs-type">isNeverKorean</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#LanguageTag"><span class="hs-identifier hs-type">LanguageTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-165"></span><span id="isNeverKorean"><span class="annot"><span class="annottext">isNeverKorean :: Maybe Text -&gt; Bool
+</span><a href="Text.Seonbi.Html.Lang.html#isNeverKorean"><span class="hs-identifier hs-var hs-var">isNeverKorean</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe Text
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-166"></span><span class="annot"><a href="Text.Seonbi.Html.Lang.html#isNeverKorean"><span class="hs-identifier hs-var">isNeverKorean</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679112440"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112440"><span class="hs-identifier hs-var">lang'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Bool
+</span><a href="Text.Seonbi.Html.Lang.html#isKorean"><span class="hs-identifier hs-var">isKorean</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112440"><span class="hs-identifier hs-var">lang'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-167"></span></pre></body></html>

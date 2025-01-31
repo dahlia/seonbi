@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>seonbi-0.6.0: SmartyPants for Korean language</title><link href="linuwial.css" rel="stylesheet" type="text/css" title="Linuwial" /><link rel="stylesheet" type="text/css" href="quick-jump.css" /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700" /><script src="haddock-bundle.min.js" async="async" type="text/javascript"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script></head><body><div id="package-header"><span class="caption">seonbi-0.6.0: SmartyPants for Korean language</span><ul class="links" id="page-menu"><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul></div><div id="content"><div id="description"><h1>seonbi-0.6.0: SmartyPants for Korean language</h1><div class="doc"><p>(TL;DR: See the <a href="https://dahlia.github.io/seonbi/">demo web app</a>.)</p><p>Seonbi (&#49440;&#48708;) is an HTML preprocessor that makes typographic adjustments
+to an HTML so that the result uses accurate punctuations according to
+the modern Korean orthography. (It&#8217;s similar to what
+<a href="https://daringfireball.net/projects/smartypants/">SmartyPants</a> does for
+text written in English.)</p><p>It also transforms <code>ko-Kore</code> text (&#22283;&#28450;&#25991;&#28151;&#29992;;
+<a href="https://en.wikipedia.org/wiki/Korean_mixed_script">Korean mixed script</a>)
+into <code>ko-Hang</code> text (&#54620;&#44544;&#51204;&#50857;; Hangul-only script).</p><p>Seonbi provides a Haskell library, a CLI, and an HTTP API; any of them
+can perform the following transformations:</p><ul><li>All hanja words (e.g., <code>&#28450;&#23383;</code>) into corresponding hangul-only words
+(e.g., <code>&#54620;&#51088;</code>)</li><li>Straight quotes and apostrophes (<code>&quot;</code> &amp; <code>'</code>) into curly quotes HTML
+entities (<code>&#8220;</code>, <code>&#8221;</code>, <code>&#8216;</code>, &amp; <code>&#8217;</code>)</li><li>Three consecutive periods (<code>...</code> or <code>&#12290;&#12290;&#12290;</code>) into an ellipsis
+entity (<code>&#8230;</code>)</li><li>Classical (Chinese-style) stops (<code>&#12290;</code>, <code>&#12289;</code>, <code>&#65311;</code>, &amp; <code>&#65281;</code>) into
+modern (English-style) stops (<code>.</code>, <code>,</code>, <code>?</code>, &amp; <code>!</code>)</li><li>Pairs of less-than and greater-than inequality symbols (<code>&lt;</code> &amp; <code>&gt;</code>)
+into pairs of proper angle quotes (<code>&#12296;</code> &amp; <code>&#12297;</code>)</li><li>Pairs of two consecutive inequality symbols (<code>&lt;&lt;</code> &amp; <code>&gt;&gt;</code>) into
+pairs of proper double angle quotes (<code>&#12298;</code> &amp; <code>&#12299;</code>)</li><li>A hyphen (<code>-</code>) or hangul vowel <em>eu</em> (<code>&#12641;</code>) surrounded by spaces, or
+two/three consecutive hyphens (<code>--</code> or <code>---</code>) into a proper em dash
+(<code>&#8212;</code>)</li><li>A less-than inequality symbol followed by a hyphen or an equality
+symbol (<code>&lt;-</code>, <code>&lt;=</code>) into arrows to the left (<code>&#8592;</code>, <code>&#8656;</code>)</li><li>A hyphen or an equality symbol followed by a greater-than inequality
+symbol (<code>-&gt;</code>, <code>=&gt;</code>) into arrows to the right (<code>&#8594;</code>, <code>&#8658;</code>)</li><li>A hyphen or an equality symbol wrapped by inequality symbols
+(<code>&lt;-&gt;</code>, <code>&lt;=&gt;</code>) into bi-directional arrows (<code>&#8596;</code>, <code>&#8660;</code>)</li></ul><p>Each transformations can be partially turned on and off, and some
+transformations have many options.</p><p>All transformations work with both plain texts and rich text tree. In a
+similar way to SmartyPants, it does not modify characters within several
+sensitive HTML elements like <code>&lt;pre&gt;</code>/<code>&lt;code&gt;</code>/<code>&lt;script&gt;</code>/<code>&lt;kbd&gt;</code>.
+Chinese/Japanese stops or hanzi/kanji characters inside elements with
+<code>lang=&quot;zh&quot;</code>/<code>lang=&quot;ja&quot;</code><a href="#notes">[1]</a> are never transformed.</p><h2>End-user apps</h2><p><a id="end-user-apps"></a></p><p>Technically, Seonbi is basically exposed as a software component, which
+is also known as API (application programming interface), to be used as
+a module of other softwares.</p><p>However, as these official interfaces are not for humans but machines,
+it&#8217;s not easy to use for end-users whom haven&#8217;t experienced software
+programming. For such end-users, here&#8217;s the list of end-user apps:</p><ul><li><a href="https://dahlia.github.io/seonbi/">Demo web app</a>: The official web
+app. Not that mobile-friendly (usable though).</li><li><a href="https://www.icloud.com/shortcuts/1e468a5dd0104fc5b69fe803952fc154">Seonbi Translator</a>
+(&#49440;&#48708; &#48264;&#50669;&#44592;): An iOS shortcut made by
+<a href="https://chann.dev/">Heechan Bak</a> ([@channprj]).</li><li>Made by Lee Dogeon ([@moreal]).</li><li>[seonbi-ext]: A browser extension made by Lee Dogeon ([@moreal]).</li></ul><dl><dt>@channprj</dt><dd>https://github.com/channprj
+<a href="Probably%20aims%20to%20replace%20the%20official%20web%20app.">seonbi-webapp</a>:
+https://github.com/moreal/seonbi-webapp [@moreal]:
+https://github.com/moreal [seonbi-ext]:
+https://github.com/moreal/seonbi-ext</dd></dl><h2>Installation</h2><p><a id="installation"></a></p><p>Seonbi provides official executable binaries for Linux (x86_64), macOS
+(Apple silicon &amp; Intel), and Windows (64-bit). You can download them
+from the <a href="https://github.com/dahlia/seonbi/releases">releases</a> page.</p><p>If you prefer <a href="https://scoop.sh/">Scoop</a> on Windows use the Seonbi
+official bucket:</p><pre>scoop bucket add seonbi https://github.com/dahlia/seonbi.git
+scoop install seonbi</pre><p>It is also distributed as a
+<a href="https://hub.docker.com/r/dahlia/seonbi">Docker image</a>:</p><pre>$ echo '&#35347;&#27665;&#27491;&#38899;' | docker run -i dahlia/seonbi:latest seonbi
+&#54984;&#48124;&#51221;&#51020;</pre><p>If you&#8217;d like to use it on GitHub Actions there is
+<a href="https://github.com/dahlia/seonbi/tree/main/setup">action dahlia/seonbi/setup</a>:</p><pre>- uses: dahlia/seonbi/setup
+- run: seonbi -o output.html input.html</pre><p>If you want to use it as a Haskell library install the
+<a href="https://hackage.haskell.org/package/seonbi">seonbi</a> package using Stack
+or Cabal.</p><h2>CLI</h2><p><a id="cli"></a></p><p>The <code>seonbi</code> command basically takes the input HTML as standard input,
+and then transforms it into the output HTML as standard output:</p><pre>seonbi &lt; input.html &gt; output.html</pre><p>You could pass a filename as an argument instead (and it is <code>-</code> by
+default):</p><pre>seonbi input.html &gt; output.html</pre><p>There is <code>-o</code>/<code>--output</code> option as well:</p><pre>seonbi -o output.html input.html</pre><p>Although it automatically detects text encoding of the input file, you
+could explicitly specify <code>-e</code>/<code>--encoding</code>:</p><pre>seonbi -e euc-kr -o output.html input.html</pre><p>Although there are several style options, e.g., <code>-q</code>/<code>--quote</code>,
+<code>-c</code>/<code>--cite</code>, <code>-r</code>/<code>--render-hanja</code>, in most cases, giving
+<code>-p</code>/<code>--preset</code> is enough:</p><pre>echo '&#24179;&#22756; &#20919;&#40629;' | seonbi -p ko-kr  # &#54217;&#50577; &#45257;&#47732;
+echo '&#24179;&#22756; &#20919;&#40629;' | seonbi -p ko-kp  # &#54217;&#50577; &#47021;&#47732;</pre><p>Read <code>-h</code>/<code>--help</code> for details:</p><pre>seonbi --help</pre><h2>HTTP API</h2><p><a id="http-api"></a></p><p>The <code>seonbi-api</code> command starts an HTTP server that takes <code>POST</code>
+requests with an HTML source with transformation options, and responds
+with a transformed result HTML. You can decide a hostname and a port
+number with <code>-H</code>/<code>--host</code> and <code>-p</code>/<code>--port</code> options:</p><pre>seonbi-api -H 0.0.0.0 -p 3800</pre><p>The following is an example request:</p><pre>POST / HTTP/1.1
+Content-Type: application/json
+Host: localhost:3800
+
+{
+  &quot;preset&quot;: &quot;ko-kr&quot;,
+  &quot;contentType&quot;: &quot;text/html&quot;,
+  &quot;sourceHtml&quot;: &quot;&lt;p&gt;&#54616;&#45720;&#44284; &#48148;&#46988;&#44284; &#48324;&#44284; &#35433;&lt;/p&gt;&quot;
+}</pre><p>The HTTP API server would respond like this:</p><pre>HTTP/1.1 200 OK
+Content-Type: application/json
+Server: Seonbi/0.3.0
+
+{
+  &quot;success&quot;: true,
+  &quot;contentType&quot;: &quot;text/html&quot;,
+  &quot;resultHtml&quot;: &quot;&lt;p&gt;&#54616;&#45720;&#44284; &#48148;&#46988;&#44284; &#48324;&#44284; &#49884;&lt;/p&gt;&quot;
+}</pre><p>If a web app needs to use the HTTP API server,
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a> should be
+configured through <code>--allow-origin</code>/<code>-o</code> option:</p><pre>seonbi-api -o https://example.com</pre><p>To learn more about parameters interactively, try the
+<a href="https://dahlia.github.io/seonbi/">demo web app</a>.</p><h2>Haskell API</h2><p><a id="haskell-api"></a></p><p>All functions and types lie inside <code>Text.Seonbi</code> module and its
+submodules. The highest-level API is <code>Text.Seonbi.Facade</code> module.</p><p>See also the <a href="https://dahlia.github.io/seonbi/docs/">API docs</a> or
+<a href="https://hackage.haskell.org/package/seonbi">Hackage</a>.</p><h2>Deno API</h2><p><a id="deno-api"></a></p><p>There is a simple client library for Deno as well. See also the
+<a href="scripts/deno/">scripts/deno/</a> directory.</p><h2>License</h2><p><a id="license"></a></p><p>Distributed under LGPL 2.1 or later.</p><h2>Etymology</h2><p><a id="etymology"></a></p><p><em><a href="https://en.wikipedia.org/wiki/Seonbi">Seonbi</a></em> (&#49440;&#48708;) means a
+classical scholar during Joseon periods (14c&#8211;19c). Today there&#8217;s a meme
+that calls a person who feels morally superior or has elitism <em>seonbi</em>
+in the Korean internet. So <em>seonbi</em> and <em>smarty pants</em> have some things
+in common.</p><p><a id="notes"></a></p><ol><li>Technically, only Korean contents and language-unspecified elements
+are transformed. Elements having <code>lang</code> attribute with language tags
+referring to any Korean language are treated as Korean contents,
+e.g., <code>ko</code>, <code>ko-Hang</code>, <code>kor-KP</code>, <code>kor-Kore</code>.</li></ol></div></div><div id="module-list"><p class="caption">Modules</p><ul><li><span class="module details-toggle-control details-toggle" data-details-id="n.1">Text</span><details id="n.1" open="open"><summary class="hide-when-js-enabled">Submodules</summary><ul><li><span class="module details-toggle-control details-toggle" data-details-id="n.1.1">Seonbi</span><details id="n.1.1" open="open"><summary class="hide-when-js-enabled">Submodules</summary><ul><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-ContentTypes.html">Text.Seonbi.ContentTypes</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Facade.html">Text.Seonbi.Facade</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Hangul.html">Text.Seonbi.Hangul</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Hanja.html">Text.Seonbi.Hanja</a></span></li><li><span class="module"><span class="details-toggle-control details-toggle" data-details-id="n.1.1.5">&nbsp;</span><a href="Text-Seonbi-Html.html">Text.Seonbi.Html</a></span><details id="n.1.1.5" open="open"><summary class="hide-when-js-enabled">Submodules</summary><ul><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Clipper.html">Text.Seonbi.Html.Clipper</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Entity.html">Text.Seonbi.Html.Entity</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Lang.html">Text.Seonbi.Html.Lang</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Preservation.html">Text.Seonbi.Html.Preservation</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Printer.html">Text.Seonbi.Html.Printer</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Scanner.html">Text.Seonbi.Html.Scanner</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Tag.html">Text.Seonbi.Html.Tag</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-TagStack.html">Text.Seonbi.Html.TagStack</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-TextNormalizer.html">Text.Seonbi.Html.TextNormalizer</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Html-Wrapper.html">Text.Seonbi.Html.Wrapper</a></span></li></ul></details></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-PairedTransformer.html">Text.Seonbi.PairedTransformer</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Punctuation.html">Text.Seonbi.Punctuation</a></span></li><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Trie.html">Text.Seonbi.Trie</a></span></li><li><span class="module details-toggle-control details-toggle" data-details-id="n.1.1.9">Unihan</span><details id="n.1.1.9" open="open"><summary class="hide-when-js-enabled">Submodules</summary><ul><li><span class="module"><span class="noexpander">&nbsp;</span><a href="Text-Seonbi-Unihan-KHangul.html">Text.Seonbi.Unihan.KHangul</a></span></li></ul></details></li></ul></details></li></ul></details></li></ul></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.26.0</p></div></body></html>

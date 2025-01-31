@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Entity</span><span>
+</span><span id="line-2"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier">HtmlEntity</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier">HtmlRawAttrs</span></a></span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html"><span class="hs-identifier">Text.Seonbi.Html.Tag</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier">HtmlTag</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html"><span class="hs-identifier">Text.Seonbi.Html.TagStack</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier">HtmlTagStack</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- | All element attributes in a string.</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">type</span><span> </span><span id="HtmlRawAttrs"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-var">HtmlRawAttrs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- | An event entity emitted by 'scanHtml'.</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">data</span><span> </span><span id="HtmlEntity"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-var">HtmlEntity</span></a></span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-comment">-- | Represent a token which [opens an HTML element</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-comment">-- ](https://www.w3.org/TR/html5/syntax.html#start-tags).</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-comment">-- Note that 'rawAttributes' is not a parsed and structured data but a raw</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-comment">-- string as its name implies.</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-comment">-- The 'tagStack' doesn't include the corresponding opened 'tag'.</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="HtmlStartTag"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-var">HtmlStartTag</span></a></span></span><span>
+</span><span id="line-24"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A stack of 'HtmlTag's that represents a hierarchy of a currently</span><span>
+</span><span id="line-25"></span><span>          </span><span class="hs-comment">-- parsing position in an 'HtmlTag' tree.</span><span>
+</span><span id="line-26"></span><span>          </span><span id="tagStack"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlTagStack
+</span><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var hs-var">tagStack</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-27"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="tag"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var hs-var">tag</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span>
+</span><span id="line-28"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="rawAttributes"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlRawAttrs
+</span><a href="Text.Seonbi.Html.Entity.html#rawAttributes"><span class="hs-identifier hs-var hs-var">rawAttributes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-type">HtmlRawAttrs</span></a></span><span>
+</span><span id="line-29"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-comment">-- | Represent a token which [closes an HTML element</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-comment">-- ](https://www.w3.org/TR/html5/syntax.html#end-tags).</span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-comment">-- The 'tagStack' doesn't include the corresponding closed 'tag'.</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="HtmlEndTag"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-var">HtmlEndTag</span></a></span></span><span>
+</span><span id="line-34"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A stack of 'HtmlTag's that represents a hierarchy of a currently</span><span>
+</span><span id="line-35"></span><span>          </span><span class="hs-comment">-- parsing position in an 'HtmlTag' tree.</span><span>
+</span><span id="line-36"></span><span>          </span><span id="tagStack"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-37"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="tag"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span>
+</span><span id="line-38"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">-- | Represent a token of a text node.  Note that 'rawText' is not a parsed</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">-- and structured data but a raw string as its name implies.  There can be</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- continuously more than one 'HtmlText' values can be emitted even if they</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-comment">-- are not separated by element openings or closings.</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="HtmlText"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlText"><span class="hs-identifier hs-var">HtmlText</span></a></span></span><span>
+</span><span id="line-44"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A stack of 'HtmlTag's that represents a hierarchy of a currently</span><span>
+</span><span id="line-45"></span><span>          </span><span class="hs-comment">-- parsing position in an 'HtmlTag' tree.</span><span>
+</span><span id="line-46"></span><span>          </span><span id="tagStack"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-47"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="rawText"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlRawAttrs
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var hs-var">rawText</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-48"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- | Represent a token of a</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-comment">-- [CDATA section](https://www.w3.org/TR/html5/syntax.html#cdata-sections).</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="HtmlCdata"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlCdata"><span class="hs-identifier hs-var">HtmlCdata</span></a></span></span><span>
+</span><span id="line-52"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A stack of 'HtmlTag's that represents a hierarchy of a currently</span><span>
+</span><span id="line-53"></span><span>          </span><span class="hs-comment">-- parsing position in an 'HtmlTag' tree.</span><span>
+</span><span id="line-54"></span><span>          </span><span id="tagStack"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-55"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="text"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlRawAttrs
+</span><a href="Text.Seonbi.Html.Entity.html#text"><span class="hs-identifier hs-var hs-var">text</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-56"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-comment">-- | Represent a token of an</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-comment">-- [HTML comment](https://www.w3.org/TR/html5/syntax.html#comments).</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="HtmlComment"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlComment"><span class="hs-identifier hs-var">HtmlComment</span></a></span></span><span>
+</span><span id="line-60"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A stack of 'HtmlTag's that represents a hierarchy of a currently</span><span>
+</span><span id="line-61"></span><span>          </span><span class="hs-comment">-- parsing position in an 'HtmlTag' tree.</span><span>
+</span><span id="line-62"></span><span>          </span><span id="tagStack"><span class="annot"><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-63"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="comment"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlRawAttrs
+</span><a href="Text.Seonbi.Html.Entity.html#comment"><span class="hs-identifier hs-var hs-var">comment</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-64"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679111987"><span id="local-6989586621679112003"><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlEntity -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c/= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+== :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c== :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679111956"><span id="local-6989586621679111958"><span id="local-6989586621679111960"><span id="local-6989586621679111962"><span id="local-6989586621679111964"><span id="local-6989586621679111966"><span id="local-6989586621679111982"><span class="annot"><span class="annottext">Eq HtmlEntity
+HtmlEntity -&gt; HtmlEntity -&gt; Bool
+HtmlEntity -&gt; HtmlEntity -&gt; Ordering
+HtmlEntity -&gt; HtmlEntity -&gt; HtmlEntity
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: HtmlEntity -&gt; HtmlEntity -&gt; HtmlEntity
+$cmin :: HtmlEntity -&gt; HtmlEntity -&gt; HtmlEntity
+max :: HtmlEntity -&gt; HtmlEntity -&gt; HtmlEntity
+$cmax :: HtmlEntity -&gt; HtmlEntity -&gt; HtmlEntity
+&gt;= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c&gt;= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+&gt; :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c&gt; :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+&lt;= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c&lt;= :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+&lt; :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+$c&lt; :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+compare :: HtmlEntity -&gt; HtmlEntity -&gt; Ordering
+$ccompare :: HtmlEntity -&gt; HtmlEntity -&gt; Ordering
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679111929"><span id="local-6989586621679111931"><span id="local-6989586621679111953"><span class="annot"><span class="annottext">Int -&gt; HtmlEntity -&gt; ShowS
+[HtmlEntity] -&gt; ShowS
+HtmlEntity -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [HtmlEntity] -&gt; ShowS
+$cshowList :: [HtmlEntity] -&gt; ShowS
+show :: HtmlEntity -&gt; String
+$cshow :: HtmlEntity -&gt; String
+showsPrec :: Int -&gt; HtmlEntity -&gt; ShowS
+$cshowsPrec :: Int -&gt; HtmlEntity -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span></pre></body></html>

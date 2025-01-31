@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Clipper</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier">clipPrefixText</span></a></span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipSuffixText"><span class="hs-identifier">clipSuffixText</span></a></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipText"><span class="hs-identifier">clipText</span></a></span><span>
+</span><span id="line-6"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">dropWhileEnd</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.html"><span class="hs-identifier">Text.Seonbi.Html</span></a></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | Clip the given prefix text and suffix text from the HTML fragments.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- It simply is composed of 'clipPrefixText' and 'clipSuffixText' functions.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- It returns 'Nothing' if any of a prefix and a suffix does not match.</span><span>
+</span><span id="line-18"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipText"><span class="hs-identifier hs-type">clipText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-19"></span><span id="clipText"><span class="annot"><span class="annottext">clipText :: Text -&gt; Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipText"><span class="hs-identifier hs-var hs-var">clipText</span></a></span></span><span> </span><span id="local-6989586621679112909"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112909"><span class="hs-identifier hs-var">prefix</span></a></span></span><span> </span><span id="local-6989586621679112908"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112908"><span class="hs-identifier hs-var">suffix</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="annottext">Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipSuffixText"><span class="hs-identifier hs-var">clipSuffixText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112908"><span class="hs-identifier hs-var">suffix</span></a></span><span> </span><span class="annot"><span class="annottext">forall (m :: * -&gt; *) b c a.
+Monad m =&gt;
+(b -&gt; m c) -&gt; (a -&gt; m b) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&lt;=&lt;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var">clipPrefixText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112909"><span class="hs-identifier hs-var">prefix</span></a></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- | Clip the given prefix text from the HTML fragments.  If its first</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- text element does not have the same prefix, or the first element is not</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- an 'HtmlText' node, or the list of HTML fragments have nothing at all,</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- it returns 'Nothing'.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedLists</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; [HtmlText [] &quot;bar&quot;, HtmlStartTag [] P &quot;&quot;]</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; [HtmlStartTag [] P &quot;&quot;, HtmlText [] &quot;foo&quot;]</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; []</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- If the first element is an 'HtmlText' node, and its 'rawText' contains</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- the common prefix text, it returns a 'Just' value holding a list of</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- HTML fragments with the common prefix removed.</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; [HtmlText [] &quot;foobar&quot;, HtmlStartTag [] P &quot;&quot;]</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- Just [HtmlText {... &quot;bar&quot;},HtmlStartTag {...}]</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; [HtmlText [] &quot;foo&quot;, HtmlStartTag [] P &quot;&quot;]</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- Just [HtmlStartTag {..., tag = P, ...}]</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- A given text is treated as a raw text, which means even if some HTML</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- entities refer to the same characters it may fails to match unless</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- they share the exactly same representation, e.g.:</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;&amp;amp;&quot; [HtmlText [] &quot;&amp;AMP;&quot;]</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- In the same manner, it doesn't find a prefix from 'HtmlCdata', e.g.:</span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; [HtmlCdata [] &quot;foo&quot;, HtmlStartTag [] P &quot;&quot;]</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- In order to remove a prefix from both 'HtmlText' and 'HtmlCdata',</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- apply 'normalizeText' first so that all 'HtmlCdata' entities are transformed</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- to equivalent 'HtmlText' entities:</span><span>
+</span><span id="line-60"></span><span class="hs-comment">--</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- &gt;&gt;&gt; import Text.Seonbi.Html.TextNormalizer (normalizeText)</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- &gt;&gt;&gt; let normalized = normalizeText [HtmlCdata [] &quot;foo&quot;, HtmlStartTag [] P &quot;&quot;]</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;foo&quot; normalized</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- Just [HtmlStartTag {..., tag = P, ...}]</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- Plus, it works even if HTML fragments contain some 'HtmlComment' entities,</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- but these are not touched at all, e.g.:</span><span>
+</span><span id="line-68"></span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- &gt;&gt;&gt; clipPrefixText &quot;bar&quot; [HtmlComment [] &quot;foo&quot;, HtmlText [] &quot;barbaz&quot;]</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- Just [HtmlComment {... &quot;foo&quot;},HtmlText {... &quot;baz&quot;}]</span><span>
+</span><span id="line-71"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-type">clipPrefixText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-72"></span><span id="clipPrefixText"><span class="annot"><span class="annottext">clipPrefixText :: Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var hs-var">clipPrefixText</span></a></span></span><span> </span><span id="local-6989586621679112906"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112906"><span class="hs-identifier hs-var">prefix</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Bool
+</span><span class="hs-identifier hs-var">Data.Text.null</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112906"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var">clipPrefixText</span></a></span><span> </span><span id="local-6989586621679112904"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112904"><span class="hs-identifier hs-var">prefix</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112903"><span class="annot"><span class="annottext">x :: HtmlEntity
+</span><a href="#local-6989586621679112903"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlComment"><span class="hs-identifier hs-type">HtmlComment</span></a></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679112901"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112901"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112903"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var">clipPrefixText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112904"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112901"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var">clipPrefixText</span></a></span><span> </span><span id="local-6989586621679112899"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112899"><span class="hs-identifier hs-var">prefix</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112898"><span class="annot"><span class="annottext">x :: HtmlEntity
+</span><a href="#local-6989586621679112898"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlText"><span class="hs-identifier hs-type">HtmlText</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112895"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112895"><span class="hs-identifier hs-var">rawText'</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679112894"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112894"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112899"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112895"><span class="hs-identifier hs-var">rawText'</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112894"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112899"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><span class="hs-operator hs-var">`isPrefixOf`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112895"><span class="hs-identifier hs-var">rawText'</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-80"></span><span>      </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112898"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">Data.Text.length</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112899"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112895"><span class="hs-identifier hs-var">rawText'</span></a></span><span> </span><span class="hs-special">}</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112894"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-82"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipPrefixText"><span class="hs-identifier hs-var">clipPrefixText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- | Clip the given suffix text from the HTML fragments, in the same manner</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- to 'clipPrefixText'.</span><span>
+</span><span id="line-86"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipSuffixText"><span class="hs-identifier hs-type">clipSuffixText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-87"></span><span id="clipSuffixText"><span class="annot"><span class="annottext">clipSuffixText :: Text -&gt; [HtmlEntity] -&gt; Maybe [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Clipper.html#clipSuffixText"><span class="hs-identifier hs-var hs-var">clipSuffixText</span></a></span></span><span> </span><span id="local-6989586621679112890"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112890"><span class="hs-identifier hs-var">suffix</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Bool
+</span><span class="hs-identifier hs-var">Data.Text.null</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112890"><span class="hs-identifier hs-var">suffix</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Text.Seonbi.Html.Clipper.html#clipSuffixText"><span class="hs-identifier hs-var">clipSuffixText</span></a></span><span> </span><span id="local-6989586621679112889"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112889"><span class="hs-identifier hs-var">suffix</span></a></span></span><span> </span><span id="local-6989586621679112888"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112888"><span class="hs-identifier hs-var">entities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">Prelude.last</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112886"><span class="hs-identifier hs-var">entities'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-92"></span><span>        </span><span id="local-6989586621679112885"><span class="annot"><span class="annottext">e :: HtmlEntity
+</span><a href="#local-6989586621679112885"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlText"><span class="hs-identifier hs-type">HtmlText</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112884"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112884"><span class="hs-identifier hs-var">rawText'</span></a></span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-93"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112889"><span class="hs-identifier hs-var">suffix</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112884"><span class="hs-identifier hs-var">rawText'</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112883"><span class="hs-identifier hs-var">init'</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112882"><span class="hs-identifier hs-var">comments</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112889"><span class="hs-identifier hs-var">suffix</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><span class="hs-operator hs-var">`isSuffixOf`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112884"><span class="hs-identifier hs-var">rawText'</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-95"></span><span>              </span><span class="hs-keyword">let</span><span>
+</span><span id="line-96"></span><span>                  </span><span id="local-6989586621679112880"><span class="annot"><span class="annottext">sLen :: Int
+</span><a href="#local-6989586621679112880"><span class="hs-identifier hs-var hs-var">sLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">Data.Text.length</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112889"><span class="hs-identifier hs-var">suffix</span></a></span><span>
+</span><span id="line-97"></span><span>                  </span><span id="local-6989586621679112879"><span class="annot"><span class="annottext">rtLen :: Int
+</span><a href="#local-6989586621679112879"><span class="hs-identifier hs-var hs-var">rtLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">Data.Text.length</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112884"><span class="hs-identifier hs-var">rawText'</span></a></span><span>
+</span><span id="line-98"></span><span>                  </span><span id="local-6989586621679112876"><span class="annot"><span class="annottext">clipped :: Text
+</span><a href="#local-6989586621679112876"><span class="hs-identifier hs-var hs-var">clipped</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.take</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679112879"><span class="hs-identifier hs-var">rtLen</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679112880"><span class="hs-identifier hs-var">sLen</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112884"><span class="hs-identifier hs-var">rawText'</span></a></span><span>
+</span><span id="line-99"></span><span>              </span><span class="hs-keyword">in</span><span>
+</span><span id="line-100"></span><span>                  </span><span class="annot"><span class="annottext">forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112883"><span class="hs-identifier hs-var">init'</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112885"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112876"><span class="hs-identifier hs-var">clipped</span></a></span><span> </span><span class="hs-special">}</span><span> </span><span class="annot"><span class="annottext">forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112882"><span class="hs-identifier hs-var">comments</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-102"></span><span>        </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><a href="#local-6989586621679112886"><span class="hs-identifier hs-type">entities'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-105"></span><span>    </span><span id="local-6989586621679112886"><span class="annot"><span class="annottext">entities' :: [HtmlEntity]
+</span><a href="#local-6989586621679112886"><span class="hs-identifier hs-var hs-var">entities'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">`Data.List.dropWhileEnd`</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112888"><span class="hs-identifier hs-var">entities</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span> </span><span class="hs-glyph">case</span><span>
+</span><span id="line-106"></span><span>        </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlComment"><span class="hs-identifier hs-type">HtmlComment</span></a></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-107"></span><span>        </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><a href="#local-6989586621679112883"><span class="hs-identifier hs-type">init'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-109"></span><span>    </span><span id="local-6989586621679112883"><span class="annot"><span class="annottext">init' :: [HtmlEntity]
+</span><a href="#local-6989586621679112883"><span class="hs-identifier hs-var hs-var">init'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">Prelude.init</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112886"><span class="hs-identifier hs-var">entities'</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><a href="#local-6989586621679112882"><span class="hs-identifier hs-type">comments</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679112882"><span class="annot"><span class="annottext">comments :: [HtmlEntity]
+</span><a href="#local-6989586621679112882"><span class="hs-identifier hs-var hs-var">comments</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">Prelude.drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">Prelude.length</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112886"><span class="hs-identifier hs-var">entities'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112888"><span class="hs-identifier hs-var">entities</span></a></span><span>
+</span><span id="line-112"></span></pre></body></html>
