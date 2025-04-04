@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Wrapper</span><span>
+</span><span id="line-2"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy"><span class="hs-identifier">isWrappedBy</span></a></span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy%27"><span class="hs-identifier">isWrappedBy'</span></a></span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#wrap"><span class="hs-identifier">wrap</span></a></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.html"><span class="hs-identifier">Text.Seonbi.Html</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html"><span class="hs-identifier">Text.Seonbi.Html.TagStack</span></a></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- | Wraps given entities with an element.</span><span>
+</span><span id="line-11"></span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#wrap"><span class="hs-identifier hs-type">wrap</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-type">HtmlRawAttrs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-12"></span><span id="wrap"><span class="annot"><span class="annottext">wrap :: HtmlTagStack
+-&gt; HtmlTag -&gt; HtmlRawAttrs -&gt; [HtmlEntity] -&gt; [HtmlEntity]
+</span><a href="Text.Seonbi.Html.Wrapper.html#wrap"><span class="hs-identifier hs-var hs-var">wrap</span></a></span></span><span> </span><span id="local-6989586621679113630"><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113630"><span class="hs-identifier hs-var">baseStack</span></a></span></span><span> </span><span id="local-6989586621679113629"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113629"><span class="hs-identifier hs-var">tag'</span></a></span></span><span> </span><span id="local-6989586621679113628"><span class="annot"><span class="annottext">HtmlRawAttrs
+</span><a href="#local-6989586621679113628"><span class="hs-identifier hs-var">attributes</span></a></span></span><span> </span><span id="local-6989586621679113627"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679113627"><span class="hs-identifier hs-var">entities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">:</span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTagStack -&gt; HtmlTag -&gt; HtmlRawAttrs -&gt; HtmlEntity
+</span><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-var">HtmlStartTag</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113630"><span class="hs-identifier hs-var">baseStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113629"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlRawAttrs
+</span><a href="#local-6989586621679113628"><span class="hs-identifier hs-var">attributes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679113625"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tagStack :: HtmlTagStack
+</span><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HtmlTagStack -&gt; HtmlTagStack
+</span><a href="#local-6989586621679113623"><span class="hs-identifier hs-var">rebase'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlTagStack
+</span><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679113625"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679113625"><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679113625"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679113627"><span class="hs-identifier hs-var">entities</span></a></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">HtmlTagStack -&gt; HtmlTag -&gt; HtmlEntity
+</span><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-var">HtmlEndTag</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113630"><span class="hs-identifier hs-var">baseStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113629"><span class="hs-identifier hs-var">tag'</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="#local-6989586621679113621"><span class="hs-identifier hs-type">newBaseStack</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-19"></span><span>    </span><span id="local-6989586621679113621"><span class="annot"><span class="annottext">newBaseStack :: HtmlTagStack
+</span><a href="#local-6989586621679113621"><span class="hs-identifier hs-var hs-var">newBaseStack</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HtmlTag -&gt; HtmlTagStack -&gt; HtmlTagStack
+</span><a href="Text.Seonbi.Html.TagStack.html#push"><span class="hs-identifier hs-var">push</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113629"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113630"><span class="hs-identifier hs-var">baseStack</span></a></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="#local-6989586621679113623"><span class="hs-identifier hs-type">rebase'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span>
+</span><span id="line-21"></span><span>    </span><span id="local-6989586621679113623"><span class="annot"><span class="annottext">rebase' :: HtmlTagStack -&gt; HtmlTagStack
+</span><a href="#local-6989586621679113623"><span class="hs-identifier hs-var hs-var">rebase'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HtmlTagStack -&gt; HtmlTagStack -&gt; HtmlTagStack -&gt; HtmlTagStack
+</span><a href="Text.Seonbi.Html.TagStack.html#rebase"><span class="hs-identifier hs-var">rebase</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113630"><span class="hs-identifier hs-var">baseStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113621"><span class="hs-identifier hs-var">newBaseStack</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- | A shortcut to 'isWrappedBy'' of wildcard attributes match.</span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy"><span class="hs-identifier hs-type">isWrappedBy</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-25"></span><span id="isWrappedBy"><span class="annot"><span class="annottext">isWrappedBy :: [HtmlEntity] -&gt; HtmlTag -&gt; Bool
+</span><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy"><span class="hs-identifier hs-var hs-var">isWrappedBy</span></a></span></span><span> </span><span id="local-6989586621679113618"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679113618"><span class="hs-identifier hs-var">entities</span></a></span></span><span> </span><span id="local-6989586621679113617"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113617"><span class="hs-identifier hs-var">tag'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><span class="annottext">[HtmlEntity] -&gt; HtmlTag -&gt; Maybe HtmlRawAttrs -&gt; Bool
+</span><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy%27"><span class="hs-identifier hs-var">isWrappedBy'</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679113618"><span class="hs-identifier hs-var">entities</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113617"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | 'True' if the given @['HtmlEntity']@ is wrapped by a tag and attributes.</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- E.g.:</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedLists</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- &gt;&gt;&gt; :{</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- let entities = </span><span>
+</span><span id="line-35"></span><span class="hs-comment">--         [ HtmlStartTag [] Em &quot; id=foo&quot;</span><span>
+</span><span id="line-36"></span><span class="hs-comment">--         , HtmlText [Em] &quot;Hello&quot;</span><span>
+</span><span id="line-37"></span><span class="hs-comment">--         , HtmlEndTag [] Em</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--         ] :: [HtmlEntity]</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- :}</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- &gt;&gt;&gt; isWrappedBy' entities Em $ Just &quot; id=foo&quot;</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- &gt;&gt;&gt; isWrappedBy' entities Div $ Just &quot; id=foo&quot;</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- &gt;&gt;&gt; isWrappedBy' entities Em $ Just &quot; id=wrong&quot;</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- In order to match to any attributes (wildcard match), give 'Nothing' to</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- the third argument:</span><span>
+</span><span id="line-50"></span><span class="hs-comment">--</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- &gt;&gt;&gt; isWrappedBy' entities Em Nothing</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- &gt;&gt;&gt; isWrappedBy' entities Span Nothing</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-55"></span><span class="hs-comment">--</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- Or you can use 'isWrappedBy' function which is a shortcut for that.</span><span>
+</span><span id="line-57"></span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy%27"><span class="hs-identifier hs-type">isWrappedBy'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlRawAttrs"><span class="hs-identifier hs-type">HtmlRawAttrs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-58"></span><span id="isWrappedBy%27"><span class="annot"><span class="annottext">isWrappedBy' :: [HtmlEntity] -&gt; HtmlTag -&gt; Maybe HtmlRawAttrs -&gt; Bool
+</span><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy%27"><span class="hs-identifier hs-var hs-var">isWrappedBy'</span></a></span></span><span> </span><span id="local-6989586621679113616"><span class="annot"><span class="annottext">entities :: [HtmlEntity]
+</span><a href="#local-6989586621679113616"><span class="hs-identifier hs-var">entities</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span id="local-6989586621679113615"><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113615"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679113614"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113614"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679113613"><span class="annot"><span class="annottext">HtmlRawAttrs
+</span><a href="#local-6989586621679113613"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679113612"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113612"><span class="hs-identifier hs-var">tag'</span></a></span></span><span> </span><span id="local-6989586621679113611"><span class="annot"><span class="annottext">Maybe HtmlRawAttrs
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">attributes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">Prelude.last</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679113616"><span class="hs-identifier hs-var">entities</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-60"></span><span>        </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span id="local-6989586621679113609"><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113609"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span id="local-6989586621679113608"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113608"><span class="hs-identifier hs-var">t'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-61"></span><span>            </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113614"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113612"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113608"><span class="hs-identifier hs-var">t'</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679113612"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113615"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679113609"><span class="hs-identifier hs-var">s'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlRawAttrs
+</span><a href="#local-6989586621679113613"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe HtmlRawAttrs
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">attributes</span></a></span><span>
+</span><span id="line-62"></span><span>        </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-63"></span><span>            </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Text.Seonbi.Html.Wrapper.html#isWrappedBy%27"><span class="hs-identifier hs-var">isWrappedBy'</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe HtmlRawAttrs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-65"></span></pre></body></html>

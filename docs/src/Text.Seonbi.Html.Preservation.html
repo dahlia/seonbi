@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE NamedFieldPuns #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Preservation</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier">isPreservedEntity</span></a></span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier">isPreservedTag</span></a></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier">isPreservedTagStack</span></a></span><span>
+</span><span id="line-6"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">any</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html"><span class="hs-identifier">Text.Seonbi.Html.Entity</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html"><span class="hs-identifier">Text.Seonbi.Html.Tag</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html"><span class="hs-identifier">Text.Seonbi.Html.TagStack</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- | 'True' if the given tag should be preserved from transformation.</span><span>
+</span><span id="line-15"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier hs-type">isPreservedTag</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html#HtmlTag"><span class="hs-identifier hs-type">HtmlTag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-16"></span><span id="isPreservedTag"><span class="annot"><span class="annottext">isPreservedTag :: HtmlTag -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier hs-var hs-var">isPreservedTag</span></a></span></span><span> </span><span id="local-6989586621679112428"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112428"><span class="hs-identifier hs-var">tag'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112428"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-18"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="Text.Seonbi.Html.Tag.html#Code"><span class="hs-identifier hs-var">Code</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-19"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="Text.Seonbi.Html.Tag.html#Kbd"><span class="hs-identifier hs-var">Kbd</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-20"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="Text.Seonbi.Html.Tag.html#Pre"><span class="hs-identifier hs-var">Pre</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-21"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="Text.Seonbi.Html.Tag.html#TextArea"><span class="hs-identifier hs-var">TextArea</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-22"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-23"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">HtmlTag -&gt; HtmlTagKind
+</span><a href="Text.Seonbi.Html.Tag.html#htmlTagKind"><span class="hs-identifier hs-var">htmlTagKind</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112428"><span class="hs-identifier hs-var">tag'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-24"></span><span>                </span><span class="annot"><span class="annottext">HtmlTagKind
+</span><a href="Text.Seonbi.Html.Tag.html#Normal"><span class="hs-identifier hs-var">Normal</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-25"></span><span>                </span><span class="annot"><span class="annottext">HtmlTagKind
+</span><a href="Text.Seonbi.Html.Tag.html#EscapableRawText"><span class="hs-identifier hs-var">EscapableRawText</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-26"></span><span>                </span><span class="annot"><span class="annottext">HtmlTagKind
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | 'True' if the given tag stack should be preserved from transformation.</span><span>
+</span><span id="line-29"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier hs-type">isPreservedTagStack</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.TagStack.html#HtmlTagStack"><span class="hs-identifier hs-type">HtmlTagStack</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-30"></span><span id="isPreservedTagStack"><span class="annot"><span class="annottext">isPreservedTagStack :: HtmlTagStack -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier hs-var hs-var">isPreservedTagStack</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HtmlTag -&gt; Bool) -&gt; HtmlTagStack -&gt; Bool
+</span><a href="Text.Seonbi.Html.TagStack.html#any"><span class="hs-identifier hs-var">any</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier hs-var">isPreservedTag</span></a></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | 'True' if the given HTML entity should be preserved from transformation.</span><span>
+</span><span id="line-33"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier hs-type">isPreservedEntity</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-34"></span><span id="isPreservedEntity"><span class="annot"><span class="annottext">isPreservedEntity :: HtmlEntity -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier hs-var hs-var">isPreservedEntity</span></a></span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlComment"><span class="hs-identifier hs-type">HtmlComment</span></a></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier hs-var">isPreservedEntity</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span id="local-6989586621679112417"><span class="annot"><span class="annottext">HtmlTagStack
+tagStack :: HtmlEntity -&gt; HtmlTagStack
+tagStack :: HtmlTagStack
+</span><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var hs-var">tagStack</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112415"><span class="annot"><span class="annottext">HtmlTag
+tag :: HtmlEntity -&gt; HtmlTag
+tag :: HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var hs-var">tag</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">HtmlTag -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier hs-var">isPreservedTag</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112415"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier hs-var">isPreservedTagStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112417"><span class="hs-identifier hs-var">tagStack</span></a></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier hs-var">isPreservedEntity</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span id="local-6989586621679112411"><span class="annot"><span class="annottext">HtmlTagStack
+tagStack :: HtmlTagStack
+tagStack :: HtmlEntity -&gt; HtmlTagStack
+</span><a href="#local-6989586621679112411"><span class="hs-identifier hs-var hs-var">tagStack</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112410"><span class="annot"><span class="annottext">HtmlTag
+tag :: HtmlTag
+tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="#local-6989586621679112410"><span class="hs-identifier hs-var hs-var">tag</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">HtmlTag -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTag"><span class="hs-identifier hs-var">isPreservedTag</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112410"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier hs-var">isPreservedTagStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112411"><span class="hs-identifier hs-var">tagStack</span></a></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Text.Seonbi.Html.Preservation.html#isPreservedEntity"><span class="hs-identifier hs-var">isPreservedEntity</span></a></span><span> </span><span id="local-6989586621679112409"><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112409"><span class="hs-identifier hs-var">entity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="annottext">HtmlTagStack -&gt; Bool
+</span><a href="Text.Seonbi.Html.Preservation.html#isPreservedTagStack"><span class="hs-identifier hs-var">isPreservedTagStack</span></a></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlTagStack
+</span><a href="Text.Seonbi.Html.Entity.html#tagStack"><span class="hs-identifier hs-var">tagStack</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112409"><span class="hs-identifier hs-var">entity</span></a></span><span>
+</span><span id="line-42"></span></pre></body></html>

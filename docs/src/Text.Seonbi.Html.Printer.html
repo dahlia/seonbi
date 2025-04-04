@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Seonbi.Html.Printer</span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printHtml"><span class="hs-identifier">printHtml</span></a></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printText"><span class="hs-identifier">printText</span></a></span><span>
+</span><span id="line-6"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printXhtml"><span class="hs-identifier">printXhtml</span></a></span><span>
+</span><span id="line-7"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy.Builder</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">HTMLEntities.Decoder</span></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html"><span class="hs-identifier">Text.Seonbi.Html.Entity</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Tag.html"><span class="hs-identifier">Text.Seonbi.Html.Tag</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- &gt;&gt;&gt; import Text.Seonbi.Html.Scanner</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -interactive-print=Text.Show.Unicode.uprint</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Print the list of 'HtmlEntity' into a lazy 'Text'.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- &gt;&gt;&gt; let Done &quot;&quot; tokens = scanHtml &quot;&lt;p&gt;Hello,&lt;br&gt;\n&lt;em&gt;world&lt;/em&gt;!&lt;/p&gt;&quot;</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- &gt;&gt;&gt; printHtml tokens</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- &quot;&lt;p&gt;Hello,&lt;br&gt;\n&lt;em&gt;world&lt;/em&gt;!&lt;/p&gt;&quot;</span><span>
+</span><span id="line-30"></span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printHtml"><span class="hs-identifier hs-type">printHtml</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-31"></span><span id="printHtml"><span class="annot"><span class="annottext">printHtml :: [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printHtml"><span class="hs-identifier hs-var hs-var">printHtml</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printHtml%27"><span class="hs-identifier hs-var">printHtml'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- | Similar to 'printHtml' except it renders void (self-closing) tags as</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- like @&lt;br/&gt;@ instead of @&lt;br&gt;@.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- &gt;&gt;&gt; let Done &quot;&quot; tokens = scanHtml &quot;&lt;p&gt;Hello,&lt;br&gt;\n&lt;em&gt;world&lt;/em&gt;!&lt;/p&gt;&quot;</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- &gt;&gt;&gt; printXhtml tokens</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- &quot;&lt;p&gt;Hello,&lt;br/&gt;\n&lt;em&gt;world&lt;/em&gt;!&lt;/p&gt;&quot;</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- Note that normal tags are not rendered as self-closed; only void tags</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- according to HTML specification are:</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- &gt;&gt;&gt; let Done &quot;&quot; tokens' = scanHtml &quot;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&quot;</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- &gt;&gt;&gt; printXhtml tokens'</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- &quot;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&quot;</span><span>
+</span><span id="line-46"></span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printXhtml"><span class="hs-identifier hs-type">printXhtml</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-47"></span><span id="printXhtml"><span class="annot"><span class="annottext">printXhtml :: [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printXhtml"><span class="hs-identifier hs-var hs-var">printXhtml</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printHtml%27"><span class="hs-identifier hs-var">printHtml'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printHtml%27"><span class="hs-identifier hs-type">printHtml'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-50"></span><span id="printHtml%27"><span class="annot"><span class="annottext">printHtml' :: Bool -&gt; [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printHtml%27"><span class="hs-identifier hs-var hs-var">printHtml'</span></a></span></span><span> </span><span id="local-6989586621679112356"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112356"><span class="hs-identifier hs-var">xhtml</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">[Text] -&gt; Text
+</span><span class="hs-identifier hs-var">Data.Text.Lazy.concat</span></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">Prelude.concatMap</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity] -&gt; [Text]
+</span><a href="#local-6989586621679112352"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span class="annot"><span class="annottext">forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">forall a. (a -&gt; a -&gt; Bool) -&gt; [a] -&gt; [[a]]
+</span><span class="hs-identifier hs-var">Data.List.groupBy</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlEntity -&gt; Bool
+</span><a href="#local-6989586621679112350"><span class="hs-identifier hs-var">isVoid</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><a href="#local-6989586621679112350"><span class="hs-identifier hs-type">isVoid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-54"></span><span>    </span><span id="local-6989586621679112350"><span class="annot"><span class="annottext">isVoid :: HtmlEntity -&gt; HtmlEntity -&gt; Bool
+</span><a href="#local-6989586621679112350"><span class="hs-identifier hs-var hs-var">isVoid</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span id="local-6989586621679112348"><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112348"><span class="hs-identifier hs-var">stck</span></a></span></span><span> </span><span id="local-6989586621679112347"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112347"><span class="hs-identifier hs-var">tg</span></a></span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span id="local-6989586621679112345"><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112345"><span class="hs-identifier hs-var">stck'</span></a></span></span><span> </span><span id="local-6989586621679112344"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112344"><span class="hs-identifier hs-var">tg'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-55"></span><span>        </span><span class="annot"><span class="annottext">HtmlTag -&gt; HtmlTagKind
+</span><a href="Text.Seonbi.Html.Tag.html#htmlTagKind"><span class="hs-identifier hs-var">htmlTagKind</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112347"><span class="hs-identifier hs-var">tg</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagKind
+</span><a href="Text.Seonbi.Html.Tag.html#Void"><span class="hs-identifier hs-var">Void</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112348"><span class="hs-identifier hs-var">stck</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTagStack
+</span><a href="#local-6989586621679112345"><span class="hs-identifier hs-var">stck'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112347"><span class="hs-identifier hs-var">tg</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112344"><span class="hs-identifier hs-var">tg'</span></a></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><a href="#local-6989586621679112350"><span class="hs-identifier hs-var">isVoid</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><a href="#local-6989586621679112352"><span class="hs-identifier hs-type">render</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>    </span><span id="local-6989586621679112352"><span class="annot"><span class="annottext">render :: [HtmlEntity] -&gt; [Text]
+</span><a href="#local-6989586621679112352"><span class="hs-identifier hs-var hs-var">render</span></a></span></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679112340"><span class="annot"><span class="annottext">a :: HtmlEntity
+</span><a href="#local-6989586621679112340"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112338"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112338"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">rawAttributes :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawAttributes"><span class="hs-identifier hs-var">rawAttributes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112336"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112336"><span class="hs-identifier hs-var">at</span></a></span></span><span> </span><span class="hs-special">}</span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112335"><span class="annot"><span class="annottext">b :: HtmlEntity
+</span><a href="#local-6989586621679112335"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-59"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; HtmlEntity -&gt; Bool
+</span><a href="#local-6989586621679112350"><span class="hs-identifier hs-var">isVoid</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112340"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112335"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-60"></span><span>        </span><span class="hs-keyword">then</span><span>
+</span><span id="line-61"></span><span>            </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&lt;&quot;</span></span><span>
+</span><span id="line-62"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag -&gt; Text
+</span><a href="Text.Seonbi.Html.Tag.html#htmlTagName"><span class="hs-identifier hs-var">htmlTagName</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112338"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="#local-6989586621679112332"><span class="hs-identifier hs-var">renderAttrs</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112336"><span class="hs-identifier hs-var">at</span></a></span><span>
+</span><span id="line-64"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679112356"><span class="hs-identifier hs-var">xhtml</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;/&gt;&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span>
+</span><span id="line-65"></span><span>            </span><span class="hs-special">]</span><span>
+</span><span id="line-66"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; [Text]
+</span><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112340"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; [Text]
+</span><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112335"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><a href="#local-6989586621679112352"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span id="local-6989586621679112330"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112330"><span class="hs-identifier hs-var">entities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">Prelude.concatMap</span></span><span> </span><span class="annot"><span class="annottext">HtmlEntity -&gt; [Text]
+</span><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112330"><span class="hs-identifier hs-var">entities</span></a></span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><a href="#local-6989586621679112331"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span>    </span><span id="local-6989586621679112331"><span class="annot"><span class="annottext">e :: HtmlEntity -&gt; [Text]
+</span><a href="#local-6989586621679112331"><span class="hs-identifier hs-var hs-var">e</span></a></span></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlStartTag"><span class="hs-identifier hs-type">HtmlStartTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112329"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112329"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">rawAttributes :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawAttributes"><span class="hs-identifier hs-var">rawAttributes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112328"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112328"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-70"></span><span>        </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&lt;&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag -&gt; Text
+</span><a href="Text.Seonbi.Html.Tag.html#htmlTagName"><span class="hs-identifier hs-var">htmlTagName</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112329"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="#local-6989586621679112332"><span class="hs-identifier hs-var">renderAttrs</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112328"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEndTag"><span class="hs-identifier hs-type">HtmlEndTag</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">tag :: HtmlEntity -&gt; HtmlTag
+</span><a href="Text.Seonbi.Html.Entity.html#tag"><span class="hs-identifier hs-var">tag</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112327"><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112327"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&lt;/&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HtmlTag -&gt; Text
+</span><a href="Text.Seonbi.Html.Tag.html#htmlTagName"><span class="hs-identifier hs-var">htmlTagName</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTag
+</span><a href="#local-6989586621679112327"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-72"></span><span>    </span><span class="annot"><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlText"><span class="hs-identifier hs-type">HtmlText</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112324"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112324"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112324"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-73"></span><span>    </span><span class="annot"><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlCdata"><span class="hs-identifier hs-type">HtmlCdata</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">text :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112321"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112321"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&lt;![CDATA[&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112321"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;]]&gt;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-74"></span><span>    </span><span class="annot"><a href="#local-6989586621679112331"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlComment"><span class="hs-identifier hs-type">HtmlComment</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">comment :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#comment"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112318"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112318"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&lt;!--&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112318"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;--&gt;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><a href="#local-6989586621679112332"><span class="hs-identifier hs-type">renderAttrs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Data.Text.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-76"></span><span>    </span><span id="local-6989586621679112332"><span class="annot"><span class="annottext">renderAttrs :: Text -&gt; Text
+</span><a href="#local-6989586621679112332"><span class="hs-identifier hs-var hs-var">renderAttrs</span></a></span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><a href="#local-6989586621679112332"><span class="hs-identifier hs-var">renderAttrs</span></a></span><span> </span><span id="local-6989586621679112317"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112317"><span class="hs-identifier hs-var">attrs</span></a></span></span><span>
+</span><span id="line-78"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Char
+</span><span class="hs-identifier hs-var">Data.Text.head</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112317"><span class="hs-identifier hs-var">attrs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112317"><span class="hs-identifier hs-var">attrs</span></a></span><span>
+</span><span id="line-79"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Text -&gt; Text
+</span><span class="hs-operator hs-var">`cons`</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112317"><span class="hs-identifier hs-var">attrs</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- | Print only the text contents (including CDATA sections) without tags</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- into a lazy 'Text'.</span><span>
+</span><span id="line-83"></span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- &gt;&gt;&gt; let Done &quot;&quot; tokens = scanHtml &quot;&lt;p&gt;Hello,&lt;br&gt;\n&lt;em&gt;world&lt;/em&gt;!&lt;/p&gt;&quot;</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- &gt;&gt;&gt; printText tokens</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- &quot;Hello,\nworld!&quot;</span><span>
+</span><span id="line-87"></span><span class="hs-comment">--</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- Entities are decoded:</span><span>
+</span><span id="line-89"></span><span class="hs-comment">--</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- &gt;&gt;&gt; let Done &quot;&quot; tokens = scanHtml &quot;&lt;p&gt;&lt;code&gt;&amp;lt;&amp;gt;&amp;quot;&amp;amp;&lt;/code&gt;&lt;/p&gt;&quot;</span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- &gt;&gt;&gt; printText tokens</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- &quot;&lt;&gt;\&quot;&amp;&quot;</span><span>
+</span><span id="line-93"></span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printText"><span class="hs-identifier hs-type">printText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-94"></span><span id="printText"><span class="annot"><span class="annottext">printText :: [HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printText"><span class="hs-identifier hs-var hs-var">printText</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier hs-var">Data.Text.Lazy.empty</span></span><span>
+</span><span id="line-95"></span><span class="annot"><a href="Text.Seonbi.Html.Printer.html#printText"><span class="hs-identifier hs-var">printText</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679112312"><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112312"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679112311"><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112311"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">HtmlEntity -&gt; Text
+</span><a href="#local-6989586621679112310"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlEntity
+</span><a href="#local-6989586621679112312"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity] -&gt; Text
+</span><a href="Text.Seonbi.Html.Printer.html#printText"><span class="hs-identifier hs-var">printText</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlEntity]
+</span><a href="#local-6989586621679112311"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><a href="#local-6989586621679112310"><span class="hs-identifier hs-type">render</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlEntity"><span class="hs-identifier hs-type">HtmlEntity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-99"></span><span>    </span><span id="local-6989586621679112310"><span class="annot"><span class="annottext">render :: HtmlEntity -&gt; Text
+</span><a href="#local-6989586621679112310"><span class="hs-identifier hs-var hs-var">render</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span> </span><span class="hs-glyph">case</span><span>
+</span><span id="line-100"></span><span>        </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlText"><span class="hs-identifier hs-type">HtmlText</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">rawText :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#rawText"><span class="hs-identifier hs-var">rawText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112309"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112309"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Text
+</span><span class="hs-identifier hs-var">toLazyText</span></span><span> </span><span class="annot"><span class="annottext">forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Builder
+</span><span class="hs-identifier hs-var">htmlEncodedText</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112309"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-101"></span><span>        </span><span class="annot"><a href="Text.Seonbi.Html.Entity.html#HtmlCdata"><span class="hs-identifier hs-type">HtmlCdata</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">text :: HtmlEntity -&gt; Text
+</span><a href="Text.Seonbi.Html.Entity.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679112306"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112306"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679112306"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-102"></span><span>        </span><span class="annot"><span class="annottext">HtmlEntity
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier hs-var">Data.Text.Lazy.empty</span></span><span>
+</span><span id="line-103"></span></pre></body></html>
