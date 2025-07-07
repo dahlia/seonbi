@@ -6,6 +6,12 @@ Version 0.6.0
 
 To be released.
 
+ -  Updated Unicode Han Database `kHangul` data
+    (*src/Text/Seonbi/Unicode/kHangul.json*) to the version 16.0.0.
+    [[36] by Lee Dogeon]
+
+[#36]: https://github.com/dahlia/seonbi/pull/36
+
 
 Version 0.5.0
 -------------
