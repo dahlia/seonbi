@@ -76,10 +76,8 @@ runs:
           continue
         for asset in tag['assets']:
           if asset['name'] == 'seonbi-{0}.{1}'.format(tag['tag_name'], suffix):
-            print('::set-output name=seonbi-version::' + tag['tag_name'])
-            print(
-              '::set-output name=download-url::' + asset['browser_download_url']
-            )
+            print(f'seonbi-version={tag["tag_name"]}', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+            print(f'download-url={asset["browser_download_url"]}', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
             break
         else:
           continue
@@ -99,9 +97,9 @@ runs:
         dir_path,
         'seonbi-api.exe' if os_ == 'Windows' else 'seonbi-api'
       )
-      print('::set-output name=dir-path::' + dir_path)
-      print('::set-output name=seonbi-path::' + seonbi_path)
-      print('::set-output name=seonbi-api-path::' + seonbi_api_path)
+      print(f'dir-path={dir_path}', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+      print(f'seonbi-path={seonbi_path}', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+      print(f'seonbi-api-path={seonbi_api_path}', file=open(os.environ['GITHUB_OUTPUT'], 'a'))
     env:
       GH_TOKEN: ${{ github.token }}
       SEONBI_VERSION: ${{ inputs.seonbi-version }}
