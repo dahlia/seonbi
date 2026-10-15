@@ -29,7 +29,7 @@ use the `seonbi-version` output:
 - id: setup-seonbi
   uses: dahlia/seonbi/setup@main
   with:
-    seonbi-version: *
+    seonbi-version: "*"
 - run: |
     echo "Installed seonbi version:" \
       "${{ steps.setup-seonbi.outputs.seonbi-version }}"
