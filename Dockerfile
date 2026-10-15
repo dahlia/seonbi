@@ -11,7 +11,7 @@ RUN apk add --no-cache \
   bzip2-dev=1.0.8-r6 \
   ghc=9.4.7-r1 \
   libbz2=1.0.8-r6 \
-  xz=5.4.5-r0 \
+  xz=5.4.5-r1 \
   zlib-dev=1.3.1-r0 \
   zlib-static=1.3.1-r0
 
