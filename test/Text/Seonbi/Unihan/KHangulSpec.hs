@@ -32,6 +32,7 @@ spec = do
                 (HanjaReadingCitation NonStandard [Education, PersonalName])
             decode "\"0\"" `shouldBe` Just (HanjaReadingCitation KS_X_1001 [])
             decode "\"1\"" `shouldBe` Just (HanjaReadingCitation KS_X_1002 [])
+            decode "\"X\"" `shouldBe` Just (HanjaReadingCitation NonStandard [])
             decode "\"0E\"" `shouldBe` Just
                 (HanjaReadingCitation KS_X_1001 [Education])
             decode "\"1N\"" `shouldBe` Just
