@@ -17,7 +17,7 @@ Here's an example code for one-shot transformation:
 import { transform } from "https://deno.land/x/seonbi/mod.ts";
 
 const input = "디노를 通해 쓰는 선비";
-const output = transform(input);
+const output = await transform(input);
 console.log(output);  // 디노를 통해 쓰는 선비
 ~~~~
 

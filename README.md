@@ -112,7 +112,7 @@ It is also distributed as a [Docker image][dockerhub]:
 If you'd like to use it on GitHub Actions there is [action
 `dahlia/seonbi/setup`][dahlia/seonbi/setup]:
 
-    - uses: dahlia/seonbi/setup
+    - uses: dahlia/seonbi/setup@main
     - run: seonbi -o output.html input.html
 
 If you want to use it as a Haskell library install the [seonbi][hackage] package
