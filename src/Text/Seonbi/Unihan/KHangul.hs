@@ -14,6 +14,7 @@ module Text.Seonbi.Unihan.KHangul
     , kHangulData'
     ) where
 
+import Control.Applicative ((<|>))
 import Data.Either
 
 import Data.Aeson
@@ -67,10 +68,12 @@ citationParser = do
   where
     charset :: Parser CharacterSet
     charset = do
-        d <- digit
+        d <- digit <|> char 'X'
         case d of
             '0' -> return KS_X_1001
             '1' -> return KS_X_1002
+            -- X marks a former K-source, not a current character set.
+            'X' -> return NonStandard
             c -> fail ("Invalid kHangul character set code: " ++ show c)
     purpose :: Parser Purpose
     purpose = do
