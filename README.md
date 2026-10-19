@@ -3,6 +3,23 @@ Seonbi: SmartyPants for Korean language
 
 [![][releases-badge]][releases] [![][hackage-badge]][hackage] [![][dockerhub-badge]][dockerhub] [![][ci-status-badge]][ci]
 
+> [!NOTE]
+> For converting mixed-script Korean text to hangul-only text, I recommend
+> [Gukhanmun], Seonbi's spiritual successor written in Rust. It improves word
+> segmentation and dictionary support, and provides JavaScript/TypeScript
+> bindings through WebAssembly and Node-API, so you can use it directly in
+> browsers and Node.js without running an HTTP API server.
+>
+> Most of my development effort now goes into Gukhanmun. I intend to keep
+> maintaining Seonbi, but cannot promise to develop it as actively as Gukhanmun.
+>
+> Seonbi remains useful for its broader SmartyPants-style substitutions, such
+> as turning ASCII `<` and `>` into `〈` and `〉`, straight quotes into curly
+> quotes, or consecutive periods into an ellipsis. Gukhanmun can normalize
+> existing commas, periods, and citation delimiters, but inferring typographic
+> marks from ASCII substitutes is outside its scope. If you need those
+> substitutions, keep using Seonbi.
+
 [![](https://dahlia.github.io/seonbi/showcase.svg)][demo web app]
 
 (TL;DR: See the [demo web app].)
@@ -60,6 +77,7 @@ Chinese/Japanese stops or hanzi/kanji characters inside elements with
 [dockerhub-badge]: https://img.shields.io/docker/v/dahlia/seonbi?label=docker%20image&sort=semver
 [ci]: https://github.com/dahlia/seonbi/actions
 [ci-status-badge]: https://github.com/dahlia/seonbi/workflows/build/badge.svg
+[Gukhanmun]: https://gukhanmun.org/
 [demo web app]: https://dahlia.github.io/seonbi/
 [SmartyPants]: https://daringfireball.net/projects/smartypants/
 [Korean mixed script]: https://en.wikipedia.org/wiki/Korean_mixed_script
